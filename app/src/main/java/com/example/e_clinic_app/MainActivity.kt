@@ -30,8 +30,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        testFirebaseSignIn()
-        testFirestoreWrite()
+        authenticateThenWrite()
     }
 }
 
@@ -51,13 +50,14 @@ fun GreetingPreview() {
     }
 }
 
-// For demonstration only; a real app would do this in a ViewModel
-private fun testFirebaseSignIn() {
+// Correctly chained Firebase authentication and Firestore write
+private fun authenticateThenWrite() {
     val auth = FirebaseAuth.getInstance()
     auth.signInAnonymously()
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Log.d("FirebaseTest", "signInAnonymously: success")
+                testFirestoreWrite() // Only call Firestore write after successful auth
             } else {
                 Log.w("FirebaseTest", "signInAnonymously: failure", task.exception)
             }
@@ -67,9 +67,13 @@ private fun testFirebaseSignIn() {
 private fun testFirestoreWrite() {
     val db = FirebaseFirestore.getInstance()
     val docData = hashMapOf("testField" to "Hello Firestore")
+
     db.collection("testCollection")
         .add(docData)
-        .addOnSuccessListener { Log.d("FirebaseTest", "Document written!") }
-        .addOnFailureListener { e -> Log.w("FirebaseTest", "Error writing document", e) }
+        .addOnSuccessListener {
+            Log.d("FirebaseTest", "Document successfully written!")
+        }
+        .addOnFailureListener { e ->
+            Log.w("FirebaseTest", "Error writing document", e)
+        }
 }
-
