@@ -47,10 +47,16 @@ dependencies {
     implementation(libs.androidx.material)
     implementation(libs.ui.tooling.preview)
     implementation(libs.androidx.activity.compose.v170)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
     debugImplementation(libs.ui.tooling)
 
     // firebase
     implementation(platform(libs.firebase.bom))
+
+    //google play services
+    implementation(libs.play.services.location)
+    implementation(libs.play.services.auth)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
