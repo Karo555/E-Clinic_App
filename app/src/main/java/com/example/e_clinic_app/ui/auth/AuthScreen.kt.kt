@@ -10,11 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen(
-    onAuthSuccess: () -> Unit
+    onAuthSuccess: () -> Unit,       // goes to FirstLogin
+    onNavigateToHome: () -> Unit
 ) {
     val viewModel: AuthViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
@@ -79,8 +82,31 @@ fun AuthScreen(
             Button(onClick = {
                 if (authMode == AuthMode.LOGIN) {
                     viewModel.login {
-                        Log.d("AuthScreen", "Login success")
-                        onAuthSuccess()
+                        val currentUser = FirebaseAuth.getInstance().currentUser
+                        val db = FirebaseFirestore.getInstance()
+
+                        if (currentUser != null) {
+                            val uid = currentUser.uid
+                            val profileDoc = db.collection("users")
+                                .document(uid)
+                                .collection("profile")
+                                .document("basicInfo")
+
+                            profileDoc.get()
+                                .addOnSuccessListener { document ->
+                                    if (document.exists()) {
+                                        Log.d("AuthScreen", "Profile exists → go to Home")
+                                        onNavigateToHome()
+                                    } else {
+                                        Log.d("AuthScreen", "No profile → go to FirstLogin")
+                                        onAuthSuccess() // still means go to FirstLogin
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    Log.e("AuthScreen", "Error checking profile: ${it.message}")
+                                    onAuthSuccess() // fallback if something fails
+                                }
+                        }
                     }
                 } else {
                     viewModel.register {

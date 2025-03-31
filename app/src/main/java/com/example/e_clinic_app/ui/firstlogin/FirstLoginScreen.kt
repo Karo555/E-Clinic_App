@@ -1,6 +1,5 @@
 package com.example.e_clinic_app.ui.firstlogin
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -12,17 +11,21 @@ import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FirstLoginScreen() {
+fun FirstLoginScreen(
+    onSubmitSuccess: () -> Unit
+) {
     var fullName by remember { mutableStateOf("") }
-    var dob by remember { mutableStateOf("") } // we can use date picker later
+    var dob by remember { mutableStateOf("") }
     var genderExpanded by remember { mutableStateOf(false) }
     var gender by remember { mutableStateOf("Select Gender") }
     var height by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
     var conditions by remember { mutableStateOf("") }
+
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -46,7 +49,6 @@ fun FirstLoginScreen() {
             ) {
                 Text("📷 Upload ID / Medical Record")
             }
-
 
             TextField(
                 value = fullName,
@@ -117,26 +119,41 @@ fun FirstLoginScreen() {
                     .height(100.dp)
             )
 
+            errorMessage?.let {
+                Text(text = it, color = MaterialTheme.colorScheme.error)
+            }
+
             Button(
                 onClick = {
+                    errorMessage = null
+
+                    // Validation
+                    if (fullName.isBlank() || dob.isBlank() || gender == "Select Gender") {
+                        errorMessage = "Please fill in all required fields."
+                        return@Button
+                    }
+
+                    val heightVal = height.toFloatOrNull()
+                    val weightVal = weight.toFloatOrNull()
+                    if (heightVal == null || heightVal <= 0 || weightVal == null || weightVal <= 0) {
+                        errorMessage = "Height and weight must be valid numbers."
+                        return@Button
+                    }
+
                     val currentUser = FirebaseAuth.getInstance().currentUser
                     val db = FirebaseFirestore.getInstance()
 
                     if (currentUser != null) {
                         val uid = currentUser.uid
-                        Log.d("FirstLogin", "User ID: $uid")
-
                         val data = mapOf(
                             "fullName" to fullName,
                             "dob" to dob,
                             "gender" to gender,
-                            "height" to height,
-                            "weight" to weight,
+                            "height" to heightVal,
+                            "weight" to weightVal,
                             "conditions" to conditions,
                             "submittedAt" to System.currentTimeMillis()
                         )
-
-                        Log.d("FirstLogin", "Attempting to save data: $data")
 
                         db.collection("users")
                             .document(uid)
@@ -144,19 +161,35 @@ fun FirstLoginScreen() {
                             .document("basicInfo")
                             .set(data)
                             .addOnSuccessListener {
-                                Log.d("FirstLogin", "Medical data saved successfully.")
+                                showSuccessDialog = true
                             }
                             .addOnFailureListener {
-                                Log.e("FirstLogin", "Failed to save medical data", it)
+                                errorMessage = "Failed to save data: ${it.message}"
                             }
                     } else {
-                        Log.e("FirstLogin", "No current user found. Cannot save medical data.")
+                        errorMessage = "User not logged in."
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Submit")
             }
+        }
+
+        if (showSuccessDialog) {
+            AlertDialog(
+                onDismissRequest = {},
+                confirmButton = {
+                    TextButton(onClick = {
+                        showSuccessDialog = false
+                        onSubmitSuccess()
+                    }) {
+                        Text("Continue")
+                    }
+                },
+                title = { Text("Success") },
+                text = { Text("Your medical information has been saved.") }
+            )
         }
     }
 }
