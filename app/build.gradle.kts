@@ -60,6 +60,8 @@ dependencies {
     // Lifecycle ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
+    //navigation
+    implementation(libs.androidx.navigation.compose)
 
     // firebase
     implementation(platform(libs.firebase.bom))
