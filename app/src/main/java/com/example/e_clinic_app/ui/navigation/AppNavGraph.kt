@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.firstlogin.FirstLoginScreen
-import com.example.e_clinic_app.ui.home.HomeScreen
+import com.example.e_clinic_app.ui.home.MainScreen
 
 
 object Routes {
@@ -44,7 +44,7 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable(Routes.HOME) {
-            HomeScreen()
+            MainScreen()
         }
 
     }
