@@ -7,18 +7,11 @@ import androidx.navigation.compose.composable
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.firstlogin.FirstLoginScreen
 import com.example.e_clinic_app.ui.home.MainScreen
-
-
-object Routes {
-    const val AUTH = "auth"
-    const val FIRST_LOGIN = "first_login"
-    const val HOME = "home"
-
-}
+import com.example.e_clinic_app.ui.navigation.Routes
 
 @Composable
-fun AppNavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Routes.AUTH) {
+fun AppNavGraph(navController: NavHostController, startDestination: String) {
+    NavHost(navController = navController, startDestination = startDestination) {
         composable(Routes.AUTH) {
             AuthScreen(
                 onAuthSuccess = {
@@ -33,6 +26,7 @@ fun AppNavGraph(navController: NavHostController) {
                 }
             )
         }
+
         composable(Routes.FIRST_LOGIN) {
             FirstLoginScreen(
                 onSubmitSuccess = {
@@ -44,8 +38,7 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable(Routes.HOME) {
-            MainScreen()
+            MainScreen() // Bottom nav screen
         }
-
     }
 }

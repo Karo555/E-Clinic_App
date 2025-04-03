@@ -5,12 +5,26 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.e_clinic_app.ui.navigation.Routes
 import com.example.e_clinic_app.ui.theme.EClinic_AppTheme
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+import com.example.e_clinic_app.ui.navigation.AppNavGraph
+import androidx.compose.material3.CircularProgressIndicator
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,7 +34,41 @@ class MainActivity : ComponentActivity() {
         setContent {
             EClinic_AppTheme {
                 val navController = rememberNavController()
-                AppNavGraph(navController = navController)
+                var startDestination by remember { mutableStateOf<String?>(null) }
+
+                LaunchedEffect(Unit) {
+                    val user = FirebaseAuth.getInstance().currentUser
+                    if (user == null) {
+                        startDestination = Routes.AUTH
+                    } else {
+                        try {
+                            val uid = user.uid
+                            val snapshot = FirebaseFirestore.getInstance()
+                                .collection("users")
+                                .document(uid)
+                                .collection("profile")
+                                .document("basicInfo")
+                                .get()
+                                .await()
+
+                            startDestination = if (snapshot.exists()) {
+                                Routes.HOME
+                            } else {
+                                Routes.FIRST_LOGIN
+                            }
+                        } catch (e: Exception) {
+                            startDestination = Routes.AUTH // fallback
+                        }
+                    }
+                }
+
+                if (startDestination != null) {
+                    AppNavGraph(navController = navController, startDestination = startDestination!!)
+                } else {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
         }
     }
