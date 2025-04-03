@@ -49,7 +49,10 @@ dependencies {
     implementation(libs.androidx.activity.compose.v170)
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.generativeai)
     debugImplementation(libs.ui.tooling)
+    implementation(libs.androidx.material.icons.extended)
+
 
     // Firebase Auth
     implementation(libs.google.firebase.auth.ktx)
