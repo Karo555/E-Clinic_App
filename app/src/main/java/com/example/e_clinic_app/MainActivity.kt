@@ -23,7 +23,6 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import com.example.e_clinic_app.ui.navigation.AppNavGraph
 import androidx.compose.material3.CircularProgressIndicator
 
 class MainActivity : ComponentActivity() {
@@ -43,21 +42,39 @@ class MainActivity : ComponentActivity() {
                     } else {
                         try {
                             val uid = user.uid
-                            val snapshot = FirebaseFirestore.getInstance()
+                            val userDoc = FirebaseFirestore.getInstance()
                                 .collection("users")
                                 .document(uid)
-                                .collection("profile")
-                                .document("basicInfo")
                                 .get()
                                 .await()
 
-                            startDestination = if (snapshot.exists()) {
+                            val role = userDoc.getString("role") ?: "Patient"
+                            val profilePath = when (role) {
+                                "Doctor" -> "doctorInfo"
+                                "Patient" -> "basicInfo"
+                                else -> "basicInfo" // fallback
+                            }
+
+                            val profileSnapshot = FirebaseFirestore.getInstance()
+                                .collection("users")
+                                .document(uid)
+                                .collection("profile")
+                                .document(profilePath)
+                                .get()
+                                .await()
+
+                            startDestination = if (profileSnapshot.exists()) {
                                 Routes.HOME
                             } else {
-                                Routes.FIRST_LOGIN
+                                when (role) {
+                                    "Doctor" -> Routes.DOCTOR_FIRST_LOGIN
+                                    "Patient" -> Routes.FIRST_LOGIN
+                                    else -> Routes.FIRST_LOGIN
+                                }
                             }
+
                         } catch (e: Exception) {
-                            startDestination = Routes.AUTH // fallback
+                            startDestination = Routes.AUTH
                         }
                     }
                 }
@@ -65,7 +82,10 @@ class MainActivity : ComponentActivity() {
                 if (startDestination != null) {
                     AppNavGraph(navController = navController, startDestination = startDestination!!)
                 } else {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator()
                     }
                 }

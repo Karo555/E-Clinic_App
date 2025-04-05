@@ -16,8 +16,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen(
-    onAuthSuccess: () -> Unit,       // goes to FirstLogin
-    onNavigateToHome: () -> Unit
+    onNavigateToHome: () -> Unit,
+    onNavigateToFirstLogin: () -> Unit,
+    onNavigateToDoctorFirstLogin: () -> Unit
 ) {
     val viewModel: AuthViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
@@ -66,7 +67,7 @@ fun AuthScreen(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
-                        UserRole.values().forEach { role ->
+                        UserRole.entries.forEach { role ->
                             DropdownMenuItem(
                                 text = { Text(role.name) },
                                 onClick = {
@@ -85,33 +86,61 @@ fun AuthScreen(
                         val currentUser = FirebaseAuth.getInstance().currentUser
                         val db = FirebaseFirestore.getInstance()
 
-                        if (currentUser != null) {
-                            val uid = currentUser.uid
-                            val profileDoc = db.collection("users")
-                                .document(uid)
-                                .collection("profile")
-                                .document("basicInfo")
+                        currentUser?.let { user ->
+                            val uid = user.uid
+                            val userDocRef = db.collection("users").document(uid)
 
-                            profileDoc.get()
-                                .addOnSuccessListener { document ->
-                                    if (document.exists()) {
-                                        Log.d("AuthScreen", "Profile exists → go to Home")
-                                        onNavigateToHome()
-                                    } else {
-                                        Log.d("AuthScreen", "No profile → go to FirstLogin")
-                                        onAuthSuccess() // still means go to FirstLogin
+                            userDocRef.get()
+                                .addOnSuccessListener { userDoc ->
+                                    val role = userDoc.getString("role") ?: "Patient" // default fallback
+
+                                    when (role) {
+                                        "Patient" -> {
+                                            db.collection("users")
+                                                .document(uid)
+                                                .collection("profile")
+                                                .document("basicInfo")
+                                                .get()
+                                                .addOnSuccessListener { profile ->
+                                                    if (profile.exists()) {
+                                                        onNavigateToHome()
+                                                    } else {
+                                                        onNavigateToFirstLogin()
+                                                    }
+                                                }
+                                        }
+
+                                        "Doctor" -> {
+                                            db.collection("users")
+                                                .document(uid)
+                                                .collection("profile")
+                                                .document("doctorInfo")
+                                                .get()
+                                                .addOnSuccessListener { profile ->
+                                                    if (profile.exists()) {
+                                                        onNavigateToHome()
+                                                    } else {
+                                                        onNavigateToDoctorFirstLogin()
+                                                    }
+                                                }
+                                        }
+
+                                        else -> {
+                                            // Admin or unknown role
+                                            onNavigateToHome()
+                                        }
                                     }
                                 }
                                 .addOnFailureListener {
-                                    Log.e("AuthScreen", "Error checking profile: ${it.message}")
-                                    onAuthSuccess() // fallback if something fails
+                                    // Fallback in case userDoc can't be read
+                                    onNavigateToFirstLogin()
                                 }
                         }
                     }
                 } else {
                     viewModel.register {
                         Log.d("AuthScreen", "Register success")
-                        onAuthSuccess()
+                        onNavigateToHome()
                     }
                 }
             }) {

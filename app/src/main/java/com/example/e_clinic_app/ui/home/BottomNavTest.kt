@@ -11,18 +11,19 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.Icons.Default
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.filled.Chat
 
 
 @Preview(showBackground = true)
 @Composable
 fun BottomNavItemPreview() {
     val items = listOf(
-        BottomNavItem("Home", Icons.Default.Home, "home"),
-        BottomNavItem("Chat", Icons.Filled.Chat, "chat"),
-        BottomNavItem("Settings", Icons.Default.Settings, "settings")
+        BottomNavItem("Home", Default.Home, "home"),
+        BottomNavItem("Chat", Icons.AutoMirrored.Filled.Chat, "chat"),
+        BottomNavItem("Settings", Default.Settings, "settings")
     )
 
     Scaffold(
