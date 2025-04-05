@@ -1,153 +1,277 @@
 package com.example.e_clinic_app.ui.firstlogin
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.KeyboardType
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorFirstLoginScreen(
     onSubmitSuccess: () -> Unit
 ) {
-    var fullName by remember { mutableStateOf("") }
+    val scrollState = rememberScrollState()
+    val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+    val specializationOptions = listOf(
+        "Cardiology", "Dermatology", "Endocrinology", "Gastroenterology", "General Practice",
+        "Geriatrics", "Gynecology", "Hematology", "Neurology", "Oncology", "Ophthalmology",
+        "Orthopedics", "Pediatrics", "Psychiatry", "Pulmonology", "Radiology", "Rheumatology",
+        "Surgery", "Urology"
+    )
+
+    // Form state
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
     var specialization by remember { mutableStateOf("") }
     var experienceYears by remember { mutableStateOf("") }
     var licenseNumber by remember { mutableStateOf("") }
     var clinic by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
-    var availability by remember { mutableStateOf("") }
+    var availableDays by remember { mutableStateOf(setOf<String>()) }
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSubmitting by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    // Dropdown state
+    var specializationExpanded by remember { mutableStateOf(false) }
+    val filteredSpecializations = specializationOptions.filter {
+        it.contains(specialization, ignoreCase = true)
+    }
+
+    fun isValid(): Boolean {
+        return firstName.isNotBlank() &&
+                lastName.isNotBlank() &&
+                specialization.isNotBlank() &&
+                experienceYears.toIntOrNull()?.let { it >= 0 } == true &&
+                licenseNumber.isNotBlank() &&
+                clinic.isNotBlank() &&
+                bio.isNotBlank() &&
+                availableDays.isNotEmpty()
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Doctor Profile Setup") })
+        }
+    ) { innerPadding ->
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Doctor Profile Setup", style = MaterialTheme.typography.headlineSmall)
-
-            TextField(
-                value = fullName,
-                onValueChange = { fullName = it },
-                label = { Text("Full Name") },
+            // Placeholder for ID upload
+            Button(
+                onClick = { /* future implementation */ },
                 modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("📷 Upload ID to auto-fill (coming soon)")
+            }
+
+            OutlinedTextField(
+                value = firstName,
+                onValueChange = { firstName = it },
+                label = { Text("First Name *") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = firstName.isBlank()
             )
 
-            TextField(
-                value = specialization,
-                onValueChange = { specialization = it },
-                label = { Text("Specialization") },
-                modifier = Modifier.fillMaxWidth()
+            OutlinedTextField(
+                value = lastName,
+                onValueChange = { lastName = it },
+                label = { Text("Last Name *") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = lastName.isBlank()
             )
 
-            TextField(
+            ExposedDropdownMenuBox(
+                expanded = specializationExpanded,
+                onExpandedChange = { specializationExpanded = !specializationExpanded }
+            ) {
+                OutlinedTextField(
+                    value = specialization,
+                    onValueChange = {
+                        specialization = it
+                        specializationExpanded = true
+                    },
+                    label = { Text("Specialization *") },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = specializationExpanded)
+                    },
+                    isError = specialization.isBlank(),
+                    singleLine = true
+                )
+
+                ExposedDropdownMenu(
+                    expanded = specializationExpanded && filteredSpecializations.isNotEmpty(),
+                    onDismissRequest = { specializationExpanded = false }
+                ) {
+                    filteredSpecializations.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                specialization = option
+                                specializationExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            OutlinedTextField(
                 value = experienceYears,
                 onValueChange = { experienceYears = it },
-                label = { Text("Years of Experience") },
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Years of Experience *") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = experienceYears.toIntOrNull()?.let { it < 0 } != false
             )
 
-            TextField(
+            OutlinedTextField(
                 value = licenseNumber,
                 onValueChange = { licenseNumber = it },
-                label = { Text("Medical License Number") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Medical License Number *") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = licenseNumber.isBlank()
             )
 
-            TextField(
+            OutlinedTextField(
                 value = clinic,
                 onValueChange = { clinic = it },
-                label = { Text("Clinic / Hospital Affiliation") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Clinic / Hospital Affiliation *") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = clinic.isBlank()
             )
 
-            TextField(
+            OutlinedTextField(
                 value = bio,
                 onValueChange = { bio = it },
-                label = { Text("Short Bio") },
+                label = { Text("Short Bio *") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
+                    .height(100.dp),
+                isError = bio.isBlank()
             )
 
-            TextField(
-                value = availability,
-                onValueChange = { availability = it },
-                label = { Text("Availability (e.g., Mon–Fri 9–17)") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Text("Available Days (typical) *", style = MaterialTheme.typography.labelLarge)
+            daysOfWeek.forEach { day ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .toggleable(
+                            value = day in availableDays,
+                            onValueChange = {
+                                availableDays = if (it) availableDays + day else availableDays - day
+                            }
+                        )
+                ) {
+                    Checkbox(checked = day in availableDays, onCheckedChange = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(day)
+                }
+            }
 
             errorMessage?.let {
-                Text(text = it, color = MaterialTheme.colorScheme.error)
+                Text(it, color = MaterialTheme.colorScheme.error)
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = {
                     errorMessage = null
 
-                    // Basic validation
-                    if (
-                        fullName.isBlank() || specialization.isBlank() ||
-                        experienceYears.toIntOrNull() == null || licenseNumber.isBlank()
-                    ) {
-                        errorMessage = "Please fill all required fields correctly."
+                    if (!isValid()) {
+                        errorMessage = "Please correct all required fields."
                         return@Button
                     }
 
                     isSubmitting = true
-                    val currentUser = FirebaseAuth.getInstance().currentUser
+                    val user = FirebaseAuth.getInstance().currentUser
                     val db = FirebaseFirestore.getInstance()
 
-                    currentUser?.let { user ->
-                        val uid = user.uid
-                        val doctorData = mapOf(
-                            "fullName" to fullName,
-                            "specialization" to specialization,
+                    user?.let { currentUser ->
+                        val data = mapOf(
+                            "firstName" to firstName.trim(),
+                            "lastName" to lastName.trim(),
+                            "specialization" to specialization.trim(),
                             "experienceYears" to experienceYears.toInt(),
-                            "licenseNumber" to licenseNumber,
-                            "clinic" to clinic,
-                            "bio" to bio,
-                            "availability" to availability,
+                            "licenseNumber" to licenseNumber.trim(),
+                            "clinic" to clinic.trim(),
+                            "bio" to bio.trim(),
+                            "availability" to mapOf(
+                                "days" to availableDays.toList()
+                            ),
                             "submittedAt" to System.currentTimeMillis()
                         )
 
                         db.collection("users")
-                            .document(uid)
+                            .document(currentUser.uid)
                             .collection("profile")
                             .document("doctorInfo")
-                            .set(doctorData)
+                            .set(data)
                             .addOnSuccessListener {
                                 isSubmitting = false
                                 onSubmitSuccess()
                             }
                             .addOnFailureListener {
                                 isSubmitting = false
-                                errorMessage = "Failed to save data: ${it.message}"
+                                errorMessage = "Error: ${it.message}"
                             }
                     } ?: run {
                         isSubmitting = false
-                        errorMessage = "User not logged in."
+                        errorMessage = "User session expired."
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isSubmitting
+                enabled = !isSubmitting,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Save & Continue")
             }
+
+            // Preview card
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text("🔍 Preview", style = MaterialTheme.typography.titleMedium)
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Dr. $firstName $lastName", style = MaterialTheme.typography.titleLarge)
+                    Text("Specialization: $specialization")
+                    Text("Clinic: $clinic")
+                    Text("Experience: ${experienceYears.toIntOrNull() ?: "-"} years")
+                    Text("Available Days: ${availableDays.joinToString()}")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(bio)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(48.dp))
         }
     }
 }

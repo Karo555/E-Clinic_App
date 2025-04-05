@@ -1,7 +1,5 @@
 package com.example.e_clinic_app.ui.auth
 
-
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -139,8 +137,42 @@ fun AuthScreen(
                     }
                 } else {
                     viewModel.register {
-                        Log.d("AuthScreen", "Register success")
-                        onNavigateToHome()
+                        val currentUser = FirebaseAuth.getInstance().currentUser
+                        val db = FirebaseFirestore.getInstance()
+
+                        currentUser?.let { user ->
+                            val uid = user.uid
+
+                            db.collection("users").document(uid).get()
+                                .addOnSuccessListener { userDoc ->
+                                    val role = userDoc.getString("role") ?: "Patient"
+
+                                    when (role) {
+                                        "Patient" -> {
+                                            onNavigateToFirstLogin()
+                                        }
+
+                                        "Doctor" -> {
+                                            db.collection("users").document(uid)
+                                                .collection("profile")
+                                                .document("doctorInfo")
+                                                .get()
+                                                .addOnSuccessListener { profile ->
+                                                    if (profile.exists()) {
+                                                        onNavigateToHome()
+                                                    } else {
+                                                        onNavigateToDoctorFirstLogin()
+                                                    }
+                                                }
+                                        }
+
+                                        else -> onNavigateToHome()
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    onNavigateToFirstLogin() // fallback
+                                }
+                        }
                     }
                 }
             }) {
