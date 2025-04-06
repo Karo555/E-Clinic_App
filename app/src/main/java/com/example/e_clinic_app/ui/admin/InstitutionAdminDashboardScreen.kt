@@ -2,6 +2,7 @@ package com.example.e_clinic_app.ui.admin
 
 import android.app.Activity
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
@@ -15,7 +16,9 @@ import com.example.e_clinic_app.MainActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.ui.admin.components.DoctorListCard
+import com.example.e_clinic_app.ui.admin.model.DoctorDisplayData
 import com.google.firebase.firestore.QueryDocumentSnapshot
+import com.google.android.gms.tasks.Tasks
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,6 +32,8 @@ fun InstitutionAdminDashboardScreen() {
     var doctors by remember { mutableStateOf<List<QueryDocumentSnapshot>>(emptyList()) }
     var doctorLoading by remember { mutableStateOf(true) }
     var loading by remember { mutableStateOf(true) }
+    var doctorsDisplayData by remember { mutableStateOf<List<DoctorDisplayData>>(emptyList()) }
+
 
     LaunchedEffect(Unit) {
         val user = FirebaseAuth.getInstance().currentUser
@@ -38,12 +43,17 @@ fun InstitutionAdminDashboardScreen() {
             db.collection("users").document(uid).get()
                 .addOnSuccessListener { doc ->
                     val institutionId = doc.getString("institutionId")
+                    Log.d("AdminDashboard", "Loaded admin institutionId: $institutionId") // ✅ ADD THIS
+
+
                     if (institutionId != null) {
                         // Fetch institution name
                         db.collection("institutions").document(institutionId)
                             .get()
                             .addOnSuccessListener { instDoc ->
-                                institutionName = instDoc.getString("name") ?: "Unknown Institution"
+                                val name = instDoc.getString("name")
+                                Log.d("AdminDashboard", "Institution name fetched: $name") // ✅ Log what was retrieved
+                                institutionName = name ?: "Unknown Institution"
                                 loading = false
                             }
                             .addOnFailureListener {
@@ -51,14 +61,44 @@ fun InstitutionAdminDashboardScreen() {
                                 loading = false
                             }
 
-                        // Fetch doctors from this institution
+                        // Fetch doctors assigned to this institution
                         db.collection("users")
                             .whereEqualTo("role", "Doctor")
                             .whereEqualTo("institutionId", institutionId)
                             .get()
                             .addOnSuccessListener { doctorDocs ->
-                                doctors = doctorDocs.documents as List<QueryDocumentSnapshot>
-                                doctorLoading = false
+                                Log.d("AdminDashboard", "Doctors returned by query: ${doctorDocs.size()}") // ✅ ADD THIS
+                                doctorDocs.forEach {
+                                    Log.d("AdminDashboard", "Doctor UID: ${it.id}, institutionId: ${it.getString("institutionId")}") // ✅ ADD THIS
+                                }
+                                val doctorUids = doctorDocs.map { it.id }
+
+                                val profileFetches = doctorUids.map { doctorUid ->
+                                    db.collection("users").document(doctorUid)
+                                        .collection("profile")
+                                        .document("doctorInfo")
+                                        .get()
+                                        .continueWith { task ->
+                                            val profile = task.result
+                                            Log.d("AdminDashboard", "Fetched doctor profile for UID ${uid}: ${profile?.getString("firstName")}") // ✅ ADD THIS
+                                            DoctorDisplayData(
+                                                uid = doctorUid,
+                                                fullName = "Dr. ${profile?.getString("firstName") ?: "Unknown"} ${profile?.getString("lastName") ?: ""}",
+                                                specialization = profile?.getString("specialization") ?: "Unknown"
+                                            )
+                                        }
+                                }
+
+                                Tasks.whenAllSuccess<DoctorDisplayData>(profileFetches)
+                                    .addOnSuccessListener { result ->
+                                        doctorsDisplayData = result
+                                        doctorLoading = false
+                                        Log.d("AdminDashboard", "Successfully built doctor display list. Size: ${result.size}") // ✅ ADD THIS
+
+                                    }
+                                    .addOnFailureListener {
+                                        doctorLoading = false
+                                    }
                             }
                             .addOnFailureListener {
                                 doctorLoading = false
@@ -130,15 +170,11 @@ fun InstitutionAdminDashboardScreen() {
                     Text("No doctors found in this institution.")
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        doctors.forEach { doc ->
-                            val fullName = "Dr. ${doc.getString("firstName") ?: ""} ${doc.getString("lastName") ?: ""}"
-                            val specialization = doc.getString("specialization") ?: "Unknown"
+                        doctorsDisplayData.forEach { doctor ->
                             DoctorListCard(
-                                fullName = fullName,
-                                specialization = specialization,
-                                onClick = {
-                                    // TODO: Navigate to edit/view doctor profile
-                                }
+                                fullName = doctor.fullName,
+                                specialization = doctor.specialization,
+                                onClick = { /* placeholder for future actions */ }
                             )
                         }
                     }
