@@ -11,6 +11,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +28,7 @@ fun AuthScreen(
     val authMode by viewModel.authMode.collectAsState()
 
     var expanded by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -82,126 +85,24 @@ fun AuthScreen(
             }
 
             Button(onClick = {
-                if (authMode == AuthMode.LOGIN) {
-                    viewModel.login {
-                        val currentUser = FirebaseAuth.getInstance().currentUser
-                        val db = FirebaseFirestore.getInstance()
-
-                        currentUser?.let { user ->
-                            val uid = user.uid
-
-                            db.collection("users").document(uid).get()
-                                .addOnSuccessListener { userDoc ->
-                                    val role = userDoc.getString("role")
-                                    val adminLevel = userDoc.getString("adminLevel") ?: "global"
-
-                                    if (role == null) {
-                                        Log.e("AuthScreen", "❌ Missing role in Firestore for user: $uid")
-                                        return@addOnSuccessListener
-                                    }
-
-                                    Log.d("AuthScreen", "✅ Logged in as role: $role")
-
-                                    when (role) {
-                                        "Patient" -> {
-                                            db.collection("users")
-                                                .document(uid)
-                                                .collection("profile")
-                                                .document("basicInfo")
-                                                .get()
-                                                .addOnSuccessListener { profile ->
-                                                    if (profile.exists()) {
-                                                        Log.d("AuthScreen", "🎯 Patient profile exists. Navigating to Home.")
-                                                        onNavigateToHome()
-                                                    } else {
-                                                        Log.d("AuthScreen", "📝 Patient profile missing. Navigating to FirstLogin.")
-                                                        onNavigateToFirstLogin()
-                                                    }
-                                                }
-                                        }
-
-                                        "Doctor" -> {
-                                            db.collection("users")
-                                                .document(uid)
-                                                .collection("profile")
-                                                .document("doctorInfo")
-                                                .get()
-                                                .addOnSuccessListener { profile ->
-                                                    if (profile.exists()) {
-                                                        Log.d("AuthScreen", "🎯 Doctor profile exists. Navigating to Home.")
-                                                        onNavigateToHome()
-                                                    } else {
-                                                        Log.d("AuthScreen", "📝 Doctor profile missing. Navigating to DoctorFirstLogin.")
-                                                        onNavigateToDoctorFirstLogin()
-                                                    }
-                                                }
-                                        }
-
-                                        "Admin" -> {
-                                            when (adminLevel) {
-                                                "institution" -> {
-                                                    Log.d("AuthScreen", "🏥 Institution Admin login")
-                                                    onNavigateToInstitutionAdminDashboard()
-                                                }
-                                                "global" -> {
-                                                    Log.d("AuthScreen", "🌍 Global Admin login")
-                                                    onNavigateToGlobalAdminDashboard()
-                                                }
-                                                else -> {
-                                                    Log.w("AuthScreen", "⚠️ Unknown admin level: $adminLevel — defaulting to Home")
-                                                    onNavigateToHome()
-                                              }
-                                            }
-                                        }
-
-                                        else -> {
-                                            Log.w("AuthScreen", "⚠️ Unknown role: $role — defaulting to Home")
-                                            onNavigateToHome()
-                                        }
-                                    }
-                                }
-                                .addOnFailureListener {
-                                    Log.e("AuthScreen", "❌ Failed to fetch user document: ${it.message}")
-                                }
+                coroutineScope.launch {
+                    if (authMode == AuthMode.LOGIN) {
+                        viewModel.login {
+                            coroutineScope.launch {
+                                handleLogin(
+                                    onNavigateToHome,
+                                    onNavigateToFirstLogin,
+                                    onNavigateToDoctorFirstLogin,
+                                    onNavigateToGlobalAdminDashboard,
+                                    onNavigateToInstitutionAdminDashboard
+                                )
+                            }
                         }
-                    }
-                } else {
-                    viewModel.register {
-                        val currentUser = FirebaseAuth.getInstance().currentUser
-                        val db = FirebaseFirestore.getInstance()
-
-                        currentUser?.let { user ->
-                            val uid = user.uid
-
-                            db.collection("users").document(uid).get()
-                                .addOnSuccessListener { userDoc ->
-                                    val role = userDoc.getString("role") ?: "Patient"
-
-                                    when (role) {
-                                        "Patient" -> {
-                                            onNavigateToFirstLogin()
-                                        }
-
-                                        "Doctor" -> {
-                                            db.collection("users").document(uid)
-                                                .collection("profile")
-                                                .document("doctorInfo")
-                                                .get()
-                                                .addOnSuccessListener { profile ->
-                                                    if (profile.exists()) {
-                                                        onNavigateToHome()
-                                                    } else {
-                                                        onNavigateToDoctorFirstLogin()
-                                                    }
-                                                }
-                                        }
-
-                                        else -> onNavigateToHome()
-                                    }
-                                }
-                                .addOnFailureListener {
-                                    onNavigateToFirstLogin() // fallback
-                                }
+                    } else {
+                        viewModel.register {
+                            coroutineScope.launch {
+                                handleRegister(onNavigateToFirstLogin, onNavigateToDoctorFirstLogin, onNavigateToHome)
+                            }
                         }
                     }
                 }
@@ -220,6 +121,136 @@ fun AuthScreen(
             if (state.isSuccess) {
                 Text("Success!", color = MaterialTheme.colorScheme.primary)
             }
+        }
+    }
+}
+
+private suspend fun handleLogin(
+    onNavigateToHome: () -> Unit,
+    onNavigateToFirstLogin: () -> Unit,
+    onNavigateToDoctorFirstLogin: () -> Unit,
+    onNavigateToGlobalAdminDashboard: () -> Unit,
+    onNavigateToInstitutionAdminDashboard: () -> Unit
+) {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val db = FirebaseFirestore.getInstance()
+
+    currentUser?.let { user ->
+        val uid = user.uid
+
+        try {
+            val userDoc = db.collection("users").document(uid).get().await()
+            val role = userDoc.getString("role")
+            val adminLevel = userDoc.getString("adminLevel") ?: "global"
+
+            if (role == null) {
+                Log.e("AuthScreen", "❌ Missing role in Firestore for user: $uid")
+                return
+            }
+
+            Log.d("AuthScreen", "✅ Logged in as role: $role")
+
+            when (role) {
+                "Patient" -> {
+                    val profile = db.collection("users")
+                        .document(uid)
+                        .collection("profile")
+                        .document("basicInfo")
+                        .get()
+                        .await()
+
+                    if (profile.exists()) {
+                        Log.d("AuthScreen", "🎯 Patient profile exists. Navigating to Home.")
+                        onNavigateToHome()
+                    } else {
+                        Log.d("AuthScreen", "📝 Patient profile missing. Navigating to FirstLogin.")
+                        onNavigateToFirstLogin()
+                    }
+                }
+
+                "Doctor" -> {
+                    val profile = db.collection("users")
+                        .document(uid)
+                        .collection("profile")
+                        .document("doctorInfo")
+                        .get()
+                        .await()
+
+                    if (profile.exists()) {
+                        Log.d("AuthScreen", "🎯 Doctor profile exists. Navigating to Home.")
+                        onNavigateToHome()
+                    } else {
+                        Log.d("AuthScreen", "📝 Doctor profile missing. Navigating to DoctorFirstLogin.")
+                        onNavigateToDoctorFirstLogin()
+                    }
+                }
+
+                "Admin" -> {
+                    when (adminLevel) {
+                        "institution" -> {
+                            Log.d("AuthScreen", "🏥 Institution Admin login")
+                            onNavigateToInstitutionAdminDashboard()
+                        }
+                        "global" -> {
+                            Log.d("AuthScreen", "🌍 Global Admin login")
+                            onNavigateToGlobalAdminDashboard()
+                        }
+                        else -> {
+                            Log.w("AuthScreen", "⚠️ Unknown admin level: $adminLevel — defaulting to Home")
+                            onNavigateToHome()
+                        }
+                    }
+                }
+
+                else -> {
+                    Log.w("AuthScreen", "⚠️ Unknown role: $role — defaulting to Home")
+                    onNavigateToHome()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("AuthScreen", "❌ Failed to fetch user document: ${e.message}")
+        }
+    }
+}
+
+private suspend fun handleRegister(
+    onNavigateToFirstLogin: () -> Unit,
+    onNavigateToDoctorFirstLogin: () -> Unit,
+    onNavigateToHome: () -> Unit
+) {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val db = FirebaseFirestore.getInstance()
+
+    currentUser?.let { user ->
+        val uid = user.uid
+
+        try {
+            val userDoc = db.collection("users").document(uid).get().await()
+            val role = userDoc.getString("role") ?: "Patient"
+
+            when (role) {
+                "Patient" -> {
+                    onNavigateToFirstLogin()
+                }
+
+                "Doctor" -> {
+                    val profile = db.collection("users").document(uid)
+                        .collection("profile")
+                        .document("doctorInfo")
+                        .get()
+                        .await()
+
+                    if (profile.exists()) {
+                        onNavigateToHome()
+                    } else {
+                        onNavigateToDoctorFirstLogin()
+                    }
+                }
+
+                else -> onNavigateToHome()
+            }
+        } catch (e: Exception) {
+            onNavigateToFirstLogin() // fallback
         }
     }
 }

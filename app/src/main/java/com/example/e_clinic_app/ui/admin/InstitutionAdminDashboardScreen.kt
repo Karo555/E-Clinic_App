@@ -11,11 +11,7 @@ import androidx.navigation.NavController
 import com.example.e_clinic_app.ui.admin.model.DoctorDisplayData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import com.example.e_clinic_app.ui.admin.components.DoctorListCard
 
 @Composable
@@ -30,90 +26,80 @@ fun InstitutionAdminDashboardScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         user?.uid?.let { uid ->
-            db.collection("users").document(uid).get()
-                .addOnSuccessListener { doc ->
-                    val institutionId = doc.getString("institutionId")
-                    Log.d("AdminDashboard", "Loaded admin institutionId: $institutionId")
+            try {
+                val userDoc = db.collection("users").document(uid).get().await()
+                val institutionId = userDoc.getString("institutionId")
+                Log.d("AdminDashboard", "Loaded admin institutionId: $institutionId")
 
-                    if (institutionId != null) {
-                        // Fetch institution name
-                        db.collection("institutions").document(institutionId)
+                if (institutionId != null) {
+                    try {
+                        val instDoc = db.collection("institutions").document(institutionId).get().await()
+                        val name = instDoc.getString("name")
+                        Log.d("AdminDashboard", "Institution name fetched: $name")
+                        institutionName = name ?: "Unknown Institution"
+                    } catch (e: Exception) {
+                        institutionName = "Error loading institution"
+                        Log.e("AdminDashboard", "Institution fetch failed: ${e.message}", e)
+                    }
+
+                    try {
+                        val doctorQuerySnapshot = db.collection("users")
+                            .whereEqualTo("role", "Doctor")
+                            .whereEqualTo("institutionId", institutionId)
                             .get()
-                            .addOnSuccessListener { instDoc ->
-                                val name = instDoc.getString("name")
-                                Log.d("AdminDashboard", "Institution name fetched: $name")
-                                institutionName = name ?: "Unknown Institution"
-                                loading = false
-                            }
-                            .addOnFailureListener {
-                                institutionName = "Error loading institution"
-                                loading = false
-                            }
+                            .await()
 
-                        // Fetch doctors and their profiles
-                        CoroutineScope(Dispatchers.IO).launch {
-                            try {
-                                val doctorQuerySnapshot = db.collection("users")
-                                    .whereEqualTo("role", "Doctor")
-                                    .whereEqualTo("institutionId", institutionId)
-                                    .get()
-                                    .await()
+                        Log.d("AdminDashboard", "Doctors returned by query: ${doctorQuerySnapshot.size()}")
 
-                                Log.d("AdminDashboard", "Doctors returned by query: ${doctorQuerySnapshot.size()}")
+                        val result = doctorQuerySnapshot.documents.mapNotNull { docSnapshot ->
+                            val doctorUid = docSnapshot.id
+                            val profileSnapshot = db.collection("users")
+                                .document(doctorUid)
+                                .collection("profile")
+                                .document("doctorInfo")
+                                .get()
+                                .await()
 
-                                val result = doctorQuerySnapshot.documents.mapNotNull { docSnapshot ->
-                                    val doctorUid = docSnapshot.id
-                                    val profileSnapshot = db.collection("users")
-                                        .document(doctorUid)
-                                        .collection("profile")
-                                        .document("doctorInfo")
-                                        .get()
-                                        .await()
+                            if (profileSnapshot.exists()) {
+                                val firstName = profileSnapshot.getString("firstName") ?: "Unknown"
+                                val lastName = profileSnapshot.getString("lastName") ?: ""
+                                val specialization = profileSnapshot.getString("specialization") ?: "Unknown"
 
-                                    if (profileSnapshot.exists()) {
-                                        val firstName = profileSnapshot.getString("firstName") ?: "Unknown"
-                                        val lastName = profileSnapshot.getString("lastName") ?: ""
-                                        val specialization = profileSnapshot.getString("specialization") ?: "Unknown"
+                                Log.d(
+                                    "AdminDashboard",
+                                    "Fetched profile for $doctorUid: $firstName $lastName ($specialization)"
+                                )
 
-                                        Log.d(
-                                            "AdminDashboard",
-                                            "Fetched profile for $doctorUid: $firstName $lastName ($specialization)"
-                                        )
-
-                                        DoctorDisplayData(
-                                            uid = doctorUid,
-                                            fullName = "Dr. $firstName $lastName",
-                                            specialization = specialization
-                                        )
-                                    } else {
-                                        Log.d("AdminDashboard", "No profile found for UID: $doctorUid")
-                                        null
-                                    }
-                                }
-
-                                withContext(Dispatchers.Main) {
-                                    Log.d("AdminDashboard", "Final doctor display list size: ${result.size}")
-                                    doctorsDisplayData = result
-                                    doctorLoading = false
-                                }
-                            } catch (e: Exception) {
-                                Log.e("AdminDashboard", "Error fetching doctor data: ${e.message}", e)
-                                withContext(Dispatchers.Main) {
-                                    doctorLoading = false
-                                }
+                                DoctorDisplayData(
+                                    uid = doctorUid,
+                                    fullName = "Dr. $firstName $lastName",
+                                    specialization = specialization
+                                )
+                            } else {
+                                Log.d("AdminDashboard", "No profile found for UID: $doctorUid")
+                                null
                             }
                         }
-                    } else {
-                        institutionName = "No institution assigned"
-                        loading = false
+
+                        doctorsDisplayData = result
+                        doctorLoading = false
+
+                    } catch (e: Exception) {
+                        Log.e("AdminDashboard", "Error fetching doctor data: ${e.message}", e)
                         doctorLoading = false
                     }
-                }
-                .addOnFailureListener {
-                    institutionName = "Error loading user info"
-                    loading = false
+
+                } else {
+                    institutionName = "No institution assigned"
                     doctorLoading = false
                 }
+            } catch (e: Exception) {
+                institutionName = "Error loading user info"
+                doctorLoading = false
+                Log.e("AdminDashboard", "User fetch failed: ${e.message}", e)
+            }
+
+            loading = false
         }
     }
 
