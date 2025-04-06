@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.KeyboardType
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.e_clinic_app.data.institutionsByCity
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +33,7 @@ fun DoctorFirstLoginScreen(
         "Surgery", "Urology"
     )
 
-    // Form state
+    // doctor profile fields
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var specialization by remember { mutableStateOf("") }
@@ -41,13 +43,21 @@ fun DoctorFirstLoginScreen(
     var bio by remember { mutableStateOf("") }
     var availableDays by remember { mutableStateOf(setOf<String>()) }
 
+    // error message
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSubmitting by remember { mutableStateOf(false) }
 
-    // Dropdown state
+    //city dropdown
+    var selectedCity by remember { mutableStateOf("") }
+    var isCityDropdownExpanded by remember { mutableStateOf(false) }
+    val cityList = institutionsByCity.keys.toList()
+
+
+    // dropdown state
     var specializationExpanded by remember { mutableStateOf(false) }
     val filteredSpecializations = specializationOptions.filter {
         it.contains(specialization, ignoreCase = true)
+
     }
 
     fun isValid(): Boolean {
@@ -155,14 +165,42 @@ fun DoctorFirstLoginScreen(
                 isError = licenseNumber.isBlank()
             )
 
-            OutlinedTextField(
-                value = clinic,
-                onValueChange = { clinic = it },
-                label = { Text("Clinic / Hospital Affiliation *") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = clinic.isBlank()
-            )
+            ExposedDropdownMenuBox(
+                expanded = isCityDropdownExpanded,
+                onExpandedChange = { isCityDropdownExpanded = !isCityDropdownExpanded }
+            ) {
+                OutlinedTextField(
+                    value = selectedCity,
+                    onValueChange = {
+                        selectedCity = it
+                        isCityDropdownExpanded = true
+                    },
+                    readOnly = true,
+                    label = { Text("Select City *") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isCityDropdownExpanded)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    isError = selectedCity.isBlank()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = isCityDropdownExpanded,
+                    onDismissRequest = { isCityDropdownExpanded = false }
+                ) {
+                    cityList.forEach { city ->
+                        DropdownMenuItem(
+                            text = { Text(city) },
+                            onClick = {
+                                selectedCity = city
+                                isCityDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
 
             OutlinedTextField(
                 value = bio,

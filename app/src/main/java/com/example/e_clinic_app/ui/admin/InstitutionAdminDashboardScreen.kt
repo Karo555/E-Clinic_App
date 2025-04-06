@@ -14,6 +14,9 @@ import androidx.compose.ui.unit.dp
 import com.example.e_clinic_app.MainActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.e_clinic_app.ui.admin.components.DoctorListCard
+import com.google.firebase.firestore.QueryDocumentSnapshot
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,14 +26,20 @@ fun InstitutionAdminDashboardScreen() {
     val db = FirebaseFirestore.getInstance()
 
     var institutionName by remember { mutableStateOf<String?>(null) }
+    var doctors by remember { mutableStateOf<List<QueryDocumentSnapshot>>(emptyList()) }
+    var doctorLoading by remember { mutableStateOf(true) }
     var loading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
+        val user = FirebaseAuth.getInstance().currentUser
+        val db = FirebaseFirestore.getInstance()
+
         user?.uid?.let { uid ->
             db.collection("users").document(uid).get()
                 .addOnSuccessListener { doc ->
                     val institutionId = doc.getString("institutionId")
                     if (institutionId != null) {
+                        // Fetch institution name
                         db.collection("institutions").document(institutionId)
                             .get()
                             .addOnSuccessListener { instDoc ->
@@ -41,10 +50,29 @@ fun InstitutionAdminDashboardScreen() {
                                 institutionName = "Error loading institution"
                                 loading = false
                             }
+
+                        // Fetch doctors from this institution
+                        db.collection("users")
+                            .whereEqualTo("role", "Doctor")
+                            .whereEqualTo("institutionId", institutionId)
+                            .get()
+                            .addOnSuccessListener { doctorDocs ->
+                                doctors = doctorDocs.documents as List<QueryDocumentSnapshot>
+                                doctorLoading = false
+                            }
+                            .addOnFailureListener {
+                                doctorLoading = false
+                            }
                     } else {
                         institutionName = "No institution assigned"
                         loading = false
+                        doctorLoading = false
                     }
+                }
+                .addOnFailureListener {
+                    institutionName = "Error loading user info"
+                    loading = false
+                    doctorLoading = false
                 }
         }
     }
@@ -92,8 +120,30 @@ fun InstitutionAdminDashboardScreen() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("📋 Feature shortcuts coming soon...")
-                // TODO: Add cards/buttons for managing doctors, schedules, etc.
+                Divider()
+
+                Text("👩‍⚕️ Doctors in ${institutionName ?: "your institution"}", style = MaterialTheme.typography.titleMedium)
+
+                if (doctorLoading) {
+                    CircularProgressIndicator()
+                } else if (doctors.isEmpty()) {
+                    Text("No doctors found in this institution.")
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        doctors.forEach { doc ->
+                            val fullName = "Dr. ${doc.getString("firstName") ?: ""} ${doc.getString("lastName") ?: ""}"
+                            val specialization = doc.getString("specialization") ?: "Unknown"
+                            DoctorListCard(
+                                fullName = fullName,
+                                specialization = specialization,
+                                onClick = {
+                                    // TODO: Navigate to edit/view doctor profile
+                                }
+                            )
+                        }
+                    }
+                }
+
             }
         }
     }
