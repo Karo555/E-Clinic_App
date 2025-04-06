@@ -18,7 +18,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.ui.admin.components.DoctorListCard
 import com.example.e_clinic_app.ui.admin.model.DoctorDisplayData
 import com.google.firebase.firestore.QueryDocumentSnapshot
-import com.google.android.gms.tasks.Tasks
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,62 +52,56 @@ fun InstitutionAdminDashboardScreen() {
 
 
                     if (institutionId != null) {
-                        // Fetch institution name
-                        db.collection("institutions").document(institutionId)
-                            .get()
-                            .addOnSuccessListener { instDoc ->
-                                val name = instDoc.getString("name")
-                                Log.d("AdminDashboard", "Institution name fetched: $name") // ✅ Log what was retrieved
-                                institutionName = name ?: "Unknown Institution"
-                                loading = false
-                            }
-                            .addOnFailureListener {
-                                institutionName = "Error loading institution"
-                                loading = false
-                            }
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                val doctorQuerySnapshot = db.collection("users")
+                                    .whereEqualTo("role", "Doctor")
+                                    .whereEqualTo("institutionId", institutionId)
+                                    .get()
+                                    .await()
 
-                        // Fetch doctors assigned to this institution
-                        db.collection("users")
-                            .whereEqualTo("role", "Doctor")
-                            .whereEqualTo("institutionId", institutionId)
-                            .get()
-                            .addOnSuccessListener { doctorDocs ->
-                                Log.d("AdminDashboard", "Doctors returned by query: ${doctorDocs.size()}") // ✅ ADD THIS
-                                doctorDocs.forEach {
-                                    Log.d("AdminDashboard", "Doctor UID: ${it.id}, institutionId: ${it.getString("institutionId")}") // ✅ ADD THIS
-                                }
-                                val doctorUids = doctorDocs.map { it.id }
+                                Log.d("AdminDashboard", "Doctors returned by query: ${doctorQuerySnapshot.size()}")
 
-                                val profileFetches = doctorUids.map { doctorUid ->
-                                    db.collection("users").document(doctorUid)
+                                val result = doctorQuerySnapshot.documents.mapNotNull { docSnapshot ->
+                                    val uid = docSnapshot.id
+                                    val profileSnapshot = db.collection("users")
+                                        .document(uid)
                                         .collection("profile")
                                         .document("doctorInfo")
                                         .get()
-                                        .continueWith { task ->
-                                            val profile = task.result
-                                            Log.d("AdminDashboard", "Fetched doctor profile for UID ${uid}: ${profile?.getString("firstName")}") // ✅ ADD THIS
-                                            DoctorDisplayData(
-                                                uid = doctorUid,
-                                                fullName = "Dr. ${profile?.getString("firstName") ?: "Unknown"} ${profile?.getString("lastName") ?: ""}",
-                                                specialization = profile?.getString("specialization") ?: "Unknown"
-                                            )
-                                        }
+                                        .await()
+
+                                    if (profileSnapshot.exists()) {
+                                        val firstName = profileSnapshot.getString("firstName") ?: "Unknown"
+                                        val lastName = profileSnapshot.getString("lastName") ?: ""
+                                        val specialization = profileSnapshot.getString("specialization") ?: "Unknown"
+
+                                        Log.d("AdminDashboard", "Fetched profile for $uid: $firstName $lastName ($specialization)")
+
+                                        DoctorDisplayData(
+                                            uid = uid,
+                                            fullName = "Dr. $firstName $lastName",
+                                            specialization = specialization
+                                        )
+                                    } else {
+                                        Log.d("AdminDashboard", "No profile found for UID: $uid")
+                                        null
+                                    }
                                 }
 
-                                Tasks.whenAllSuccess<DoctorDisplayData>(profileFetches)
-                                    .addOnSuccessListener { result ->
-                                        doctorsDisplayData = result
-                                        doctorLoading = false
-                                        Log.d("AdminDashboard", "Successfully built doctor display list. Size: ${result.size}") // ✅ ADD THIS
+                                withContext(Dispatchers.Main) {
+                                    Log.d("AdminDashboard", "Final doctor display list size: ${result.size}")
+                                    doctorsDisplayData = result
+                                    doctorLoading = false
+                                }
 
-                                    }
-                                    .addOnFailureListener {
-                                        doctorLoading = false
-                                    }
+                            } catch (e: Exception) {
+                                Log.e("AdminDashboard", "Error fetching doctor data: ${e.message}", e)
+                                withContext(Dispatchers.Main) {
+                                    doctorLoading = false
+                                }
                             }
-                            .addOnFailureListener {
-                                doctorLoading = false
-                            }
+                        }
                     } else {
                         institutionName = "No institution assigned"
                         loading = false
