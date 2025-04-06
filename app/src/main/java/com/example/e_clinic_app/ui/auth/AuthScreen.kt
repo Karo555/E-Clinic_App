@@ -1,5 +1,6 @@
 package com.example.e_clinic_app.ui.auth
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,7 +17,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 fun AuthScreen(
     onNavigateToHome: () -> Unit,
     onNavigateToFirstLogin: () -> Unit,
-    onNavigateToDoctorFirstLogin: () -> Unit
+    onNavigateToDoctorFirstLogin: () -> Unit,
+    onNavigateToGlobalAdminDashboard: () -> Unit,
+    onNavigateToInstitutionAdminDashboard: () -> Unit
 ) {
     val viewModel: AuthViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
@@ -86,11 +89,18 @@ fun AuthScreen(
 
                         currentUser?.let { user ->
                             val uid = user.uid
-                            val userDocRef = db.collection("users").document(uid)
 
-                            userDocRef.get()
+                            db.collection("users").document(uid).get()
                                 .addOnSuccessListener { userDoc ->
-                                    val role = userDoc.getString("role") ?: "Patient" // default fallback
+                                    val role = userDoc.getString("role")
+                                    val adminLevel = userDoc.getString("adminLevel") ?: "global"
+
+                                    if (role == null) {
+                                        Log.e("AuthScreen", "❌ Missing role in Firestore for user: $uid")
+                                        return@addOnSuccessListener
+                                    }
+
+                                    Log.d("AuthScreen", "✅ Logged in as role: $role")
 
                                     when (role) {
                                         "Patient" -> {
@@ -101,8 +111,10 @@ fun AuthScreen(
                                                 .get()
                                                 .addOnSuccessListener { profile ->
                                                     if (profile.exists()) {
+                                                        Log.d("AuthScreen", "🎯 Patient profile exists. Navigating to Home.")
                                                         onNavigateToHome()
                                                     } else {
+                                                        Log.d("AuthScreen", "📝 Patient profile missing. Navigating to FirstLogin.")
                                                         onNavigateToFirstLogin()
                                                     }
                                                 }
@@ -116,22 +128,40 @@ fun AuthScreen(
                                                 .get()
                                                 .addOnSuccessListener { profile ->
                                                     if (profile.exists()) {
+                                                        Log.d("AuthScreen", "🎯 Doctor profile exists. Navigating to Home.")
                                                         onNavigateToHome()
                                                     } else {
+                                                        Log.d("AuthScreen", "📝 Doctor profile missing. Navigating to DoctorFirstLogin.")
                                                         onNavigateToDoctorFirstLogin()
                                                     }
                                                 }
                                         }
 
+                                        "Admin" -> {
+                                            when (adminLevel) {
+                                                "institution" -> {
+                                                    Log.d("AuthScreen", "🏥 Institution Admin login")
+                                                    onNavigateToInstitutionAdminDashboard()
+                                                }
+                                                "global" -> {
+                                                    Log.d("AuthScreen", "🌍 Global Admin login")
+                                                    onNavigateToGlobalAdminDashboard()
+                                                }
+                                                else -> {
+                                                    Log.w("AuthScreen", "⚠️ Unknown admin level: $adminLevel — defaulting to Home")
+                                                    onNavigateToHome()
+                                              }
+                                            }
+                                        }
+
                                         else -> {
-                                            // Admin or unknown role
+                                            Log.w("AuthScreen", "⚠️ Unknown role: $role — defaulting to Home")
                                             onNavigateToHome()
                                         }
                                     }
                                 }
                                 .addOnFailureListener {
-                                    // Fallback in case userDoc can't be read
-                                    onNavigateToFirstLogin()
+                                    Log.e("AuthScreen", "❌ Failed to fetch user document: ${it.message}")
                                 }
                         }
                     }

@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
+import com.example.e_clinic_app.ui.admin.InstitutionAdminDashboardScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.firstlogin.FirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
@@ -27,8 +29,17 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                 },
                 onNavigateToHome = {
                     navController.navigate(Routes.HOME) {
-                        popUpTo(0) { inclusive = true }  // clears everything
-                        launchSingleTop = true
+                        popUpTo(Routes.AUTH) { inclusive = true }
+                    }
+                },
+                onNavigateToGlobalAdminDashboard = {
+                    navController.navigate(Routes.ADMIN_DASHBOARD_GLOBAL) {
+                        popUpTo(Routes.AUTH) { inclusive = true }
+                    }
+                },
+                onNavigateToInstitutionAdminDashboard = {
+                    navController.navigate(Routes.ADMIN_DASHBOARD_INSTITUTION) {
+                        popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 }
             )
@@ -56,6 +67,14 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
 
         composable(Routes.HOME) {
             MainScreen()
+        }
+
+        composable(Routes.ADMIN_DASHBOARD_GLOBAL) {
+            GlobalAdminDashboardScreen()
+        }
+
+        composable(Routes.ADMIN_DASHBOARD_INSTITUTION) {
+            InstitutionAdminDashboardScreen()
         }
     }
 }

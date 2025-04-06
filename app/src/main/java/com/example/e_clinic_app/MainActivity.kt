@@ -2,6 +2,7 @@ package com.example.e_clinic_app
 import androidx.navigation.compose.rememberNavController
 import com.example.e_clinic_app.ui.navigation.AppNavGraph
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -35,47 +36,61 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 var startDestination by remember { mutableStateOf<String?>(null) }
 
-                LaunchedEffect(Unit) {
+                LaunchedEffect(true) {
                     val user = FirebaseAuth.getInstance().currentUser
+                    val db = FirebaseFirestore.getInstance()
+
                     if (user == null) {
                         startDestination = Routes.AUTH
                     } else {
-                        try {
-                            val uid = user.uid
-                            val userDoc = FirebaseFirestore.getInstance()
-                                .collection("users")
-                                .document(uid)
-                                .get()
-                                .await()
+                        val uid = user.uid
+                        db.collection("users").document(uid).get()
+                            .addOnSuccessListener { doc ->
+                                val role = doc.getString("role")
 
-                            val role = userDoc.getString("role") ?: "Patient"
-                            val profilePath = when (role) {
-                                "Doctor" -> "doctorInfo"
-                                "Patient" -> "basicInfo"
-                                else -> "basicInfo" // fallback
-                            }
-
-                            val profileSnapshot = FirebaseFirestore.getInstance()
-                                .collection("users")
-                                .document(uid)
-                                .collection("profile")
-                                .document(profilePath)
-                                .get()
-                                .await()
-
-                            startDestination = if (profileSnapshot.exists()) {
-                                Routes.HOME
-                            } else {
                                 when (role) {
-                                    "Doctor" -> Routes.DOCTOR_FIRST_LOGIN
-                                    "Patient" -> Routes.FIRST_LOGIN
-                                    else -> Routes.FIRST_LOGIN
+                                    "Patient" -> {
+                                        db.collection("users").document(uid)
+                                            .collection("profile")
+                                            .document("basicInfo")
+                                            .get()
+                                            .addOnSuccessListener { profile ->
+                                                startDestination = if (profile.exists()) {
+                                                    Routes.HOME
+                                                } else {
+                                                    Routes.FIRST_LOGIN
+                                                }
+                                            }
+                                    }
+
+                                    "Doctor" -> {
+                                        db.collection("users").document(uid)
+                                            .collection("profile")
+                                            .document("doctorInfo")
+                                            .get()
+                                            .addOnSuccessListener { profile ->
+                                                startDestination = if (profile.exists()) {
+                                                    Routes.HOME
+                                                } else {
+                                                    Routes.DOCTOR_FIRST_LOGIN
+                                                }
+                                            }
+                                    }
+
+                                    "Admin" -> {
+                                        val adminLevel = doc.getString("adminLevel") ?: "global"
+                                        startDestination = when (adminLevel) {
+                                            "institution" -> Routes.ADMIN_DASHBOARD_INSTITUTION
+                                            "global" -> Routes.ADMIN_DASHBOARD_GLOBAL
+                                            else -> Routes.HOME // fallback
+                                        }
+                                    }
+
+                                    else -> {
+                                        startDestination = Routes.HOME // fallback
+                                    }
                                 }
                             }
-
-                        } catch (e: Exception) {
-                            startDestination = Routes.AUTH
-                        }
                     }
                 }
 
