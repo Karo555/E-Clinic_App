@@ -8,6 +8,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.e_clinic_app.data.model.MedicalCondition
+import com.example.e_clinic_app.ui.admin.components.MedicalConditionPicker
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -110,14 +112,13 @@ fun FirstLoginScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            TextField(
-                value = conditions,
-                onValueChange = { conditions = it },
-                label = { Text("Known Medical Conditions") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
+            var knownConditions by remember { mutableStateOf<List<MedicalCondition>>(emptyList()) }
+
+            MedicalConditionPicker(
+                selectedConditions = knownConditions,
+                onSelectionChanged = { knownConditions = it }
             )
+
 
             errorMessage?.let {
                 Text(text = it, color = MaterialTheme.colorScheme.error)

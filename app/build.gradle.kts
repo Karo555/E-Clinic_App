@@ -53,6 +53,8 @@ dependencies {
     debugImplementation(libs.ui.tooling)
     implementation(libs.androidx.material.icons.extended)
 
+    // coroutines
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Firebase Auth
     implementation(libs.google.firebase.auth.ktx)

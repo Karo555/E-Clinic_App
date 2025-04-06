@@ -1,33 +1,129 @@
 package com.example.e_clinic_app.ui.home
 
+<<<<<<< HEAD
 import androidx.compose.foundation.layout.Box
+=======
+import android.util.Log
+>>>>>>> 756ebfd11b740e052517104bb1d4e988af64b7f6
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun HomeTabScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    var role by remember { mutableStateOf<String?>(null) }
+    var fullName by remember { mutableStateOf<String?>(null) }
+    var specialization by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user != null) {
+            val uid = user.uid
+            val db = FirebaseFirestore.getInstance()
+
+            try {
+                val userDoc = db.collection("users").document(uid).get().await()
+                role = userDoc.getString("role")
+
+                when (role) {
+                    "Doctor" -> {
+                        val docInfo = db.collection("users")
+                            .document(uid)
+                            .collection("profile")
+                            .document("doctorInfo")
+                            .get()
+                            .await()
+
+                        fullName = docInfo.getString("fullName")
+                        specialization = docInfo.getString("specialization")
+                    }
+
+                    "Patient" -> {
+                        val patInfo = db.collection("users")
+                            .document(uid)
+                            .collection("profile")
+                            .document("basicInfo")
+                            .get()
+                            .await()
+
+                        fullName = patInfo.getString("fullName")
+                    }
+
+                    else -> {
+                        fullName = "Unknown User"
+                    }
+                }
+
+            } catch (e: Exception) {
+                Log.e("HomeTabScreen", "Error loading user info: ${e.message}")
+                fullName = "Error loading user"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    if (isLoading) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
         Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = "🏥 Welcome to E-Clinic!",
+                text = "🏥 Welcome${if (!fullName.isNullOrBlank()) ", $fullName!" else "!"}",
                 style = MaterialTheme.typography.headlineMedium
             )
-            Text(
-                text = "You’ve successfully completed onboarding.\nMore features coming soon!",
-                style = MaterialTheme.typography.bodyLarge
-            )
+
+            when (role) {
+                "Doctor" -> {
+                    specialization?.let {
+                        Text("Specialization: $it", style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Text(
+                        text = "🩺 Doctor Dashboard (Coming soon)",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    // Placeholder dashboard cards
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("📅 Manage Availability")
+                            Text("Coming soon...")
+                        }
+                    }
+
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("👥 View Patients")
+                            Text("Coming soon...")
+                        }
+                    }
+                }
+
+                "Patient" -> {
+                    Text("🧾 Your medical history and visits will show here soon.")
+                }
+
+                else -> {
+                    Text("⚠️ Unknown user role.")
+                }
+            }
         }
     }
 }

@@ -2,7 +2,7 @@ package com.example.e_clinic_app.ui.home
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -20,7 +20,7 @@ fun MainScreen() {
 
     val bottomNavItems = listOf(
         BottomNavItem("Home", Icons.Default.Home, "home"),
-        BottomNavItem("Chat", Icons.Default.Chat, "chat"),
+        BottomNavItem("Chat", Icons.AutoMirrored.Filled.Chat, "chat"),
         BottomNavItem("Settings", Icons.Default.Settings, "settings")
     )
 
