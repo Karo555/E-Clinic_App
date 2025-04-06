@@ -18,6 +18,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.data.institutionsByCity
 
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorFirstLoginScreen(
@@ -39,7 +40,6 @@ fun DoctorFirstLoginScreen(
     var specialization by remember { mutableStateOf("") }
     var experienceYears by remember { mutableStateOf("") }
     var licenseNumber by remember { mutableStateOf("") }
-    var clinic by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
     var availableDays by remember { mutableStateOf(setOf<String>()) }
 
@@ -52,6 +52,11 @@ fun DoctorFirstLoginScreen(
     var isCityDropdownExpanded by remember { mutableStateOf(false) }
     val cityList = institutionsByCity.keys.toList()
 
+    //institutions
+    var selectedInstitutionName by remember { mutableStateOf("") }
+    var selectedInstitutionId by remember { mutableStateOf<String?>(null) }
+    var isInstitutionDropdownExpanded by remember { mutableStateOf(false) }
+    val institutionsInSelectedCity = institutionsByCity[selectedCity] ?: emptyList()
 
     // dropdown state
     var specializationExpanded by remember { mutableStateOf(false) }
@@ -66,7 +71,7 @@ fun DoctorFirstLoginScreen(
                 specialization.isNotBlank() &&
                 experienceYears.toIntOrNull()?.let { it >= 0 } == true &&
                 licenseNumber.isNotBlank() &&
-                clinic.isNotBlank() &&
+                selectedInstitutionId != null &&
                 bio.isNotBlank() &&
                 availableDays.isNotEmpty()
     }
@@ -165,6 +170,7 @@ fun DoctorFirstLoginScreen(
                 isError = licenseNumber.isBlank()
             )
 
+            //city dropdown
             ExposedDropdownMenuBox(
                 expanded = isCityDropdownExpanded,
                 onExpandedChange = { isCityDropdownExpanded = !isCityDropdownExpanded }
@@ -201,6 +207,45 @@ fun DoctorFirstLoginScreen(
                     }
                 }
             }
+
+            //institution dropdown
+            if (selectedCity.isNotBlank()) {
+                ExposedDropdownMenuBox(
+                    expanded = isInstitutionDropdownExpanded,
+                    onExpandedChange = { isInstitutionDropdownExpanded = !isInstitutionDropdownExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = selectedInstitutionName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Select Institution *") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isInstitutionDropdownExpanded)
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        isError = selectedInstitutionId == null
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = isInstitutionDropdownExpanded,
+                        onDismissRequest = { isInstitutionDropdownExpanded = false }
+                    ) {
+                        institutionsInSelectedCity.forEach { institution ->
+                            DropdownMenuItem(
+                                text = { Text(institution.name) },
+                                onClick = {
+                                    selectedInstitutionName = institution.name
+                                    selectedInstitutionId = institution.id
+                                    isInstitutionDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
 
             OutlinedTextField(
                 value = bio,
@@ -247,36 +292,49 @@ fun DoctorFirstLoginScreen(
                     }
 
                     isSubmitting = true
-                    val user = FirebaseAuth.getInstance().currentUser
+                    val currentUser = FirebaseAuth.getInstance().currentUser
                     val db = FirebaseFirestore.getInstance()
 
-                    user?.let { currentUser ->
-                        val data = mapOf(
+                    currentUser?.let { user ->
+                        val doctorInfo = mapOf(
                             "firstName" to firstName.trim(),
                             "lastName" to lastName.trim(),
                             "specialization" to specialization.trim(),
                             "experienceYears" to experienceYears.toInt(),
                             "licenseNumber" to licenseNumber.trim(),
-                            "clinic" to clinic.trim(),
+                            "institutionName" to selectedInstitutionName,
                             "bio" to bio.trim(),
-                            "availability" to mapOf(
-                                "days" to availableDays.toList()
-                            ),
+                            "availability" to mapOf("days" to availableDays.toList()),
                             "submittedAt" to System.currentTimeMillis()
                         )
 
-                        db.collection("users")
-                            .document(currentUser.uid)
-                            .collection("profile")
-                            .document("doctorInfo")
-                            .set(data)
+                        val rootData = mapOf(
+                            "institutionId" to selectedInstitutionId,
+                            "updatedAt" to System.currentTimeMillis()
+                        )
+
+                        // First, update root doc
+                        db.collection("users").document(user.uid)
+                            .update(rootData)
                             .addOnSuccessListener {
-                                isSubmitting = false
-                                onSubmitSuccess()
+                                // Then save the detailed profile
+                                db.collection("users")
+                                    .document(user.uid)
+                                    .collection("profile")
+                                    .document("doctorInfo")
+                                    .set(doctorInfo)
+                                    .addOnSuccessListener {
+                                        isSubmitting = false
+                                        onSubmitSuccess()
+                                    }
+                                    .addOnFailureListener {
+                                        isSubmitting = false
+                                        errorMessage = "Error saving doctor profile: ${it.message}"
+                                    }
                             }
                             .addOnFailureListener {
                                 isSubmitting = false
-                                errorMessage = "Error: ${it.message}"
+                                errorMessage = "Error saving institution ID: ${it.message}"
                             }
                     } ?: run {
                         isSubmitting = false
@@ -301,7 +359,7 @@ fun DoctorFirstLoginScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Dr. $firstName $lastName", style = MaterialTheme.typography.titleLarge)
                     Text("Specialization: $specialization")
-                    Text("Clinic: $clinic")
+                    Text("Institution: $selectedInstitutionName")
                     Text("Experience: ${experienceYears.toIntOrNull() ?: "-"} years")
                     Text("Available Days: ${availableDays.joinToString()}")
                     Spacer(modifier = Modifier.height(8.dp))
