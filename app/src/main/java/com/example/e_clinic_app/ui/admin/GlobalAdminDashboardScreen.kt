@@ -8,13 +8,38 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import android.app.Activity
+import android.content.Intent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.ui.platform.LocalContext
+import com.google.firebase.auth.FirebaseAuth
+import com.example.e_clinic_app.MainActivity
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GlobalAdminDashboardScreen() {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("🌍 Global Admin Dashboard") })
+            val context = LocalContext.current
+
+            TopAppBar(
+                title = { Text("🌍 Global Admin Dashboard") },
+                actions = {
+                    IconButton(onClick = {
+                        FirebaseAuth.getInstance().signOut()
+                        val intent = Intent(context, MainActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        context.startActivity(intent)
+                        (context as? Activity)?.finish()
+                    }) {
+                        Icon(Icons.Default.Logout, contentDescription = "Log out")
+                    }
+                }
+            )
+
         }
     ) { innerPadding ->
         Column(
