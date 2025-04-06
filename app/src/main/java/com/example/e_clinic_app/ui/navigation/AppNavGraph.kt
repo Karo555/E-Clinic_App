@@ -74,7 +74,7 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
         }
 
         composable(Routes.ADMIN_DASHBOARD_INSTITUTION) {
-            InstitutionAdminDashboardScreen()
+            InstitutionAdminDashboardScreen(navController = navController)
         }
     }
 }
