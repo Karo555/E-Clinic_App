@@ -2,10 +2,13 @@ package com.example.e_clinic_app.ui.auth
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 enum class AuthMode { LOGIN, REGISTER }
 enum class UserRole { Admin, Patient, Doctor }
@@ -63,18 +66,15 @@ class AuthViewModel : ViewModel() {
             isLoading = true
         )
 
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
-                    onSuccess()
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = task.exception?.message
-                    )
-                }
+        viewModelScope.launch {
+            try {
+                auth.signInWithEmailAndPassword(email, password).await()
+                _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = e.message)
             }
+        }
     }
 
     fun register(onSuccess: () -> Unit) {
@@ -94,47 +94,38 @@ class AuthViewModel : ViewModel() {
             isLoading = true
         )
 
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("AuthViewModel", "Firebase user created")
+        viewModelScope.launch {
+            try {
+                val result = auth.createUserWithEmailAndPassword(email, password).await()
+                Log.d("AuthViewModel", "Firebase user created")
 
-                    val uid = auth.currentUser?.uid
-                    if (uid == null) {
-                        Log.e("AuthViewModel", "UID is null after registration")
-                        _uiState.value = _uiState.value.copy(
-                            isLoading = false,
-                            errorMessage = "User ID is null. Registration failed."
-                        )
-                        return@addOnCompleteListener
-                    }
-
-                    val userMap = mapOf(
-                        "email" to email,
-                        "role" to _uiState.value.role.name,
-                        "createdAt" to System.currentTimeMillis()
-                    )
-
-                    firestore.collection("users").document(uid).set(userMap)
-                        .addOnSuccessListener {
-                            Log.d("AuthViewModel", "User data saved to Firestore")
-                            _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
-                            onSuccess()
-                        }
-                        .addOnFailureListener {
-                            Log.e("AuthViewModel", "Firestore write failed: ${it.message}")
-                            _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = it.message)
-                        }
-                } else {
-                    Log.e("AuthViewModel", "Firebase Auth failed: ${task.exception?.message}")
+                val uid = result.user?.uid
+                if (uid == null) {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = task.exception?.message
+                        errorMessage = "User ID is null. Registration failed."
                     )
+                    return@launch
                 }
-            }
-    }
 
+                val userMap = mapOf(
+                    "email" to email,
+                    "role" to _uiState.value.role.name,
+                    "createdAt" to System.currentTimeMillis()
+                )
+
+                firestore.collection("users").document(uid).set(userMap).await()
+
+                Log.d("AuthViewModel", "User data saved to Firestore")
+                _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
+                onSuccess()
+
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Registration failed: ${e.message}")
+                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = e.message)
+            }
+        }
+    }
 
     fun resetState() {
         _uiState.value = AuthUiState()

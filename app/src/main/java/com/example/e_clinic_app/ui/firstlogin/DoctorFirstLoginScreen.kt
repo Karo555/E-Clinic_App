@@ -16,7 +16,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.data.institutionsByCity
-
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +76,7 @@ fun DoctorFirstLoginScreen(
                 bio.isNotBlank() &&
                 availableDays.isNotEmpty()
     }
-
+    val coroutineScope = rememberCoroutineScope()
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Doctor Profile Setup") })
@@ -295,52 +296,53 @@ fun DoctorFirstLoginScreen(
                     val currentUser = FirebaseAuth.getInstance().currentUser
                     val db = FirebaseFirestore.getInstance()
 
-                    currentUser?.let { user ->
-                        val doctorInfo = mapOf(
-                            "firstName" to firstName.trim(),
-                            "lastName" to lastName.trim(),
-                            "specialization" to specialization.trim(),
-                            "experienceYears" to experienceYears.toInt(),
-                            "licenseNumber" to licenseNumber.trim(),
-                            "institutionName" to selectedInstitutionName,
-                            "bio" to bio.trim(),
-                            "availability" to mapOf("days" to availableDays.toList()),
-                            "submittedAt" to System.currentTimeMillis()
-                        )
-
-                        val rootData = mapOf(
-                            "institutionId" to selectedInstitutionId,
-                            "updatedAt" to System.currentTimeMillis()
-                        )
-
-                        // First, update root doc
-                        db.collection("users").document(user.uid)
-                            .update(rootData)
-                            .addOnSuccessListener {
-                                // Then save the detailed profile
-                                db.collection("users")
-                                    .document(user.uid)
-                                    .collection("profile")
-                                    .document("doctorInfo")
-                                    .set(doctorInfo)
-                                    .addOnSuccessListener {
-                                        isSubmitting = false
-                                        onSubmitSuccess()
-                                    }
-                                    .addOnFailureListener {
-                                        isSubmitting = false
-                                        errorMessage = "Error saving doctor profile: ${it.message}"
-                                    }
-                            }
-                            .addOnFailureListener {
-                                isSubmitting = false
-                                errorMessage = "Error saving institution ID: ${it.message}"
-                            }
-                    } ?: run {
+                    if (currentUser == null) {
                         isSubmitting = false
                         errorMessage = "User session expired."
+                        return@Button
                     }
-                },
+
+                    coroutineScope.launch {
+                        try {
+                            val doctorInfo = mapOf(
+                                "firstName" to firstName.trim(),
+                                "lastName" to lastName.trim(),
+                                "specialization" to specialization.trim(),
+                                "experienceYears" to experienceYears.toInt(),
+                                "licenseNumber" to licenseNumber.trim(),
+                                "institutionName" to selectedInstitutionName,
+                                "bio" to bio.trim(),
+                                "availability" to mapOf("days" to availableDays.toList()),
+                                "submittedAt" to System.currentTimeMillis()
+                            )
+
+                            val rootData = mapOf(
+                                "institutionId" to selectedInstitutionId,
+                                "updatedAt" to System.currentTimeMillis()
+                            )
+
+                            // Update root document
+                            db.collection("users").document(currentUser.uid)
+                                .update(rootData)
+                                .await()
+
+                            // Save doctor profile
+                            db.collection("users")
+                                .document(currentUser.uid)
+                                .collection("profile")
+                                .document("doctorInfo")
+                                .set(doctorInfo)
+                                .await()
+
+                            isSubmitting = false
+                            onSubmitSuccess()
+                        } catch (e: Exception) {
+                            isSubmitting = false
+                            errorMessage = "Error saving data: ${e.message}"
+                        }
+                    }
+                }
+                ,
                 enabled = !isSubmitting,
                 modifier = Modifier.fillMaxWidth()
             ) {
