@@ -1,10 +1,7 @@
 package com.example.e_clinic_app.ui.home
 
-<<<<<<< HEAD
 import androidx.compose.foundation.layout.Box
-=======
 import android.util.Log
->>>>>>> 756ebfd11b740e052517104bb1d4e988af64b7f6
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*

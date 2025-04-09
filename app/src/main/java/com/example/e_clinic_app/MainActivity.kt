@@ -1,47 +1,15 @@
 package com.example.e_clinic_app
-<<<<<<< HEAD
-import android.R
-import androidx.navigation.compose.rememberNavController
-import com.example.e_clinic_app.ui.navigation.AppNavGraph
-=======
-
->>>>>>> 756ebfd11b740e052517104bb1d4e988af64b7f6
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-<<<<<<< HEAD
-import androidx.compose.runtime.Composable
-=======
 import androidx.compose.runtime.*
->>>>>>> 756ebfd11b740e052517104bb1d4e988af64b7f6
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-<<<<<<< HEAD
-import com.example.e_clinic_app.ui.theme.EClinic_AppTheme
-import com.google.firebase.FirebaseApp
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-=======
 import androidx.navigation.compose.rememberNavController
 import com.example.e_clinic_app.ui.navigation.AppNavGraph
 import com.example.e_clinic_app.ui.navigation.Routes
@@ -50,7 +18,6 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
->>>>>>> 756ebfd11b740e052517104bb1d4e988af64b7f6
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,12 +27,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             EClinic_AppTheme {
                 val navController = rememberNavController()
-<<<<<<< HEAD
-                AppNavGraph(
-                    navController = navController,
-                    startDestination = "home"
-                )
-=======
                 var startDestination by remember { mutableStateOf<String?>(null) }
 
                 LaunchedEffect(true) {
@@ -137,7 +98,6 @@ class MainActivity : ComponentActivity() {
                         CircularProgressIndicator()
                     }
                 }
->>>>>>> 756ebfd11b740e052517104bb1d4e988af64b7f6
             }
         }
     }
