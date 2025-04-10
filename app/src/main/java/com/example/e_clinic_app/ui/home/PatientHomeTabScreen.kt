@@ -18,9 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun PatientHomeTabScreen(navController: NavController) { // Pass NavController
@@ -60,18 +62,27 @@ fun PatientHomeTabScreen(navController: NavController) { // Pass NavController
             "Visits" to "visits"
         )
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            navigationItems.forEach { (label, route) ->
-                Card(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clickable { navController.navigate(route) }, // Navigate on click
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Text(text = label, fontSize = 12.sp)
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            for (i in navigationItems.chunked(2)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    i.forEach { (label, route) ->
+                        androidx.compose.material.Card(
+                            modifier = Modifier
+                                .size(140.dp)
+                                .clickable { navController.navigate(route) },
+                            elevation = 4.dp,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize().padding(8.dp)
+                            ) {
+                                Text(text = label, fontSize = 14.sp)
+                            }
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
 
@@ -132,3 +143,15 @@ fun PatientHomeTabScreen(navController: NavController) { // Pass NavController
 
 // Sample Data Class
 data class Doctor(val name: String, val rating: Double, val price: String)
+
+@Composable
+fun PatientHomeTabPreview() {
+    val navController = rememberNavController()
+    PatientHomeTabScreen(navController)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPatientHome() {
+    PatientHomeTabPreview()
+}
