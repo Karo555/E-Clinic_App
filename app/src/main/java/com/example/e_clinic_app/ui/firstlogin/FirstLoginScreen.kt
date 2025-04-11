@@ -1,7 +1,9 @@
 package com.example.e_clinic_app.ui.firstlogin
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,10 +37,13 @@ fun FirstLoginScreen(
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
+        val scrollState = rememberScrollState()
+        //beginning of the column
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
+                .verticalScroll(scrollState)
         ) {
             Text("Enter Your Medical Information", style = MaterialTheme.typography.headlineSmall)
 
@@ -176,6 +181,8 @@ fun FirstLoginScreen(
                 Text("Submit")
             }
         }
+        //end of the column
+
 
         if (showSuccessDialog) {
             AlertDialog(
