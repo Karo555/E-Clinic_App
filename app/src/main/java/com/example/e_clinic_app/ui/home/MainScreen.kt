@@ -8,14 +8,15 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
 import com.example.e_clinic_app.ui.chat.ChatTabScreen
 import com.example.e_clinic_app.ui.settings.SettingsTabScreen
 
 @Composable
-fun MainScreen() {
-    val navController = rememberNavController()
+fun MainScreen(navController: NavController) {
+    val internalNavController = rememberNavController()
 
     val bottomNavItems = listOf(
         BottomNavItem("Home", Icons.Default.Home, "home"),
@@ -23,7 +24,7 @@ fun MainScreen() {
         BottomNavItem("Settings", Icons.Default.Settings, "settings")
     )
 
-    val currentDestination by navController.currentBackStackEntryAsState()
+    val currentDestination by internalNavController.currentBackStackEntryAsState()
     val currentRoute = currentDestination?.destination?.route
 
     Scaffold(
@@ -35,8 +36,8 @@ fun MainScreen() {
                         label = { Text(item.label) },
                         selected = currentRoute == item.route,
                         onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().route!!) {
+                            internalNavController.navigate(item.route) {
+                                popUpTo(internalNavController.graph.findStartDestination().route!!) {
                                     saveState = true
                                 }
                                 launchSingleTop = true
@@ -49,7 +50,7 @@ fun MainScreen() {
         }
     ) { innerPadding ->
         NavHost(
-            navController = navController,
+            navController = internalNavController,
             startDestination = "home",
             modifier = Modifier.padding(innerPadding)
         ) {

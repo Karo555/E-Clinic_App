@@ -1,197 +1,153 @@
 package com.example.e_clinic_app.ui.firstlogin
 
+import android.util.Log
+import com.example.e_clinic_app.ui.admin.components.MedicalConditionPicker
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.e_clinic_app.data.model.MedicalCondition
-import com.example.e_clinic_app.ui.admin.components.MedicalConditionPicker
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FirstLoginScreen(
-    onSubmitSuccess: () -> Unit
+    onSubmitSuccess: () -> Unit,
+    isEditing: Boolean = false
 ) {
+    Log.d("FirstLoginScreen", "isEditing: $isEditing")
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var knownConditions by remember { mutableStateOf<List<MedicalCondition>>(emptyList()) }
     var isSaving by remember { mutableStateOf(false) }
-    var dob by remember { mutableStateOf("") }
-    var genderExpanded by remember { mutableStateOf(false) }
-    var gender by remember { mutableStateOf("Select Gender") }
-    var height by remember { mutableStateOf("") }
-    var weight by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
     var showSuccessDialog by remember { mutableStateOf(false) }
+
+    var firstNameError by remember { mutableStateOf(false) }
+    var lastNameError by remember { mutableStateOf(false) }
+    var conditionError by remember { mutableStateOf(false) }
+
     val scrollState = rememberScrollState()
     val db = FirebaseFirestore.getInstance()
-    val currentUser = FirebaseAuth.getInstance().currentUser
+    val user = FirebaseAuth.getInstance().currentUser
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        //beginning of the column
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
-                .verticalScroll(scrollState)
-        ) {
-            Text("Enter Your Medical Information", style = MaterialTheme.typography.headlineSmall)
-
-            Button(
-                onClick = {
-                    // TODO: implement image upload & OCR to extract PESEL/DOB/etc
-                    println("Upload placeholder clicked")
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("📷 Upload ID / Medical Record")
-            }
-
-            TextField(
-                value = firstName,
-                onValueChange = { firstName = it },
-                label = { Text("First Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            TextField(
-                value = lastName,
-                onValueChange = { lastName = it },
-                label = { Text("Last Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            TextField(
-                value = dob,
-                onValueChange = { dob = it },
-                label = { Text("Date of Birth (YYYY-MM-DD)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            ExposedDropdownMenuBox(
-                expanded = genderExpanded,
-                onExpandedChange = { genderExpanded = !genderExpanded }
-            ) {
-                TextField(
-                    value = gender,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Gender") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = genderExpanded,
-                    onDismissRequest = { genderExpanded = false }
-                ) {
-                    listOf("Male", "Female", "Other").forEach {
-                        DropdownMenuItem(
-                            text = { Text(it) },
-                            onClick = {
-                                gender = it
-                                genderExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            TextField(
-                value = height,
-                onValueChange = { height = it },
-                label = { Text("Height (cm)") },
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            TextField(
-                value = weight,
-                onValueChange = { weight = it },
-                label = { Text("Weight (kg)") },
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            MedicalConditionPicker(
-                selectedConditions = knownConditions,
-                onSelectionChanged = { knownConditions = it }
-            )
-
-
-            errorMessage?.let {
-                Text(text = it, color = MaterialTheme.colorScheme.error)
-            }
-
-            Button(
-                onClick = {
-                    errorMessage = null
-
-                    // Validation
-                    if (firstName.isBlank() || lastName.isBlank() || dob.isBlank() || gender == "Select Gender") {
-                        errorMessage = "Please fill in all required fields."
-                        return@Button
-                    }
-
-                    val heightVal = height.toFloatOrNull()
-                    val weightVal = weight.toFloatOrNull()
-                    if (heightVal == null || heightVal <= 0 || weightVal == null || weightVal <= 0) {
-                        errorMessage = "Height and weight must be valid numbers."
-                        return@Button
-                    }
-
-                    if (currentUser != null) {
-                        val uid = currentUser.uid
-                        val data = mapOf(
-                            "firstName" to firstName,
-                            "lastName" to lastName,
-                            "dob" to dob,
-                            "gender" to gender,
-                            "height" to heightVal,
-                            "weight" to weightVal,
-                            "knownConditions" to knownConditions.map {
-                                mapOf("category" to it.category, "type" to it.type)
-                            },
-                            "submittedAt" to System.currentTimeMillis()
-                        )
-
-                        db.collection("users")
-                            .document(uid)
-                            .collection("profile")
-                            .document("basicInfo")
-                            .set(data)
-                            .addOnSuccessListener {
-                                showSuccessDialog = true
-                            }
-                            .addOnFailureListener {
-                                errorMessage = "Failed to save data: ${it.message}"
-                            }
-                    } else {
-                        errorMessage = "User not logged in."
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Submit")
+    // Optional: preload data if editing
+    LaunchedEffect(isEditing) {
+        Log.d("FirstLoginScreen", "Loading data for editing")
+        if (isEditing && user != null) {
+            Log.d("FirstLoginScreen", "User ID: ${user.uid}")
+            val doc = db.collection("users").document(user.uid)
+                .collection("profile").document("basicInfo").get().await()
+            if (doc.exists()) {
+                Log.d("FirstLoginScreen", "Document exists")
+                firstName = doc.getString("firstName") ?: ""
+                lastName = doc.getString("lastName") ?: ""
+                @Suppress("UNCHECKED_CAST")
+                val conditions = doc.get("knownConditions") as? List<Map<String, String>>
+                knownConditions = conditions?.map {
+                    MedicalCondition(it["category"] ?: "", it["type"])
+                } ?: emptyList()
             }
         }
-        //end of the column
+    }
 
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = if (isEditing) "Update Your Medical Info" else "Patient Medical Form",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        OutlinedTextField(
+            value = firstName,
+            onValueChange = {
+                firstName = it
+                firstNameError = false
+            },
+            label = { Text("First Name") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = firstNameError
+        )
+        if (firstNameError) Text("First name cannot be empty", color = MaterialTheme.colorScheme.error)
+
+        OutlinedTextField(
+            value = lastName,
+            onValueChange = {
+                lastName = it
+                lastNameError = false
+            },
+            label = { Text("Last Name") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = lastNameError
+        )
+        if (lastNameError) Text("Last name cannot be empty", color = MaterialTheme.colorScheme.error)
+
+        MedicalConditionPicker(
+            selectedConditions = knownConditions,
+            onSelectionChanged = {
+                knownConditions = it
+                conditionError = false
+            }
+        )
+        if (conditionError) Text("Please select at least one valid medical condition", color = MaterialTheme.colorScheme.error)
+
+        Button(
+            onClick = {
+                Log.d("FirstLoginScreen", "Button clicked")
+                // Validation
+                var hasError = false
+                if (firstName.isBlank()) {
+                    firstNameError = true
+                    hasError = true
+                }
+                if (lastName.isBlank()) {
+                    lastNameError = true
+                    hasError = true
+                }
+                if (knownConditions.isEmpty() || knownConditions.any { it.category == "Allergy" && it.type == null }) {
+                    conditionError = true
+                    hasError = true
+                }
+
+                if (!hasError && user != null) {
+                    Log.d("FirstLoginScreen", "Saving data for user: ${user.uid}")
+                    isSaving = true
+                    val basicInfo = hashMapOf(
+                        "firstName" to firstName,
+                        "lastName" to lastName,
+                        "knownConditions" to knownConditions.map {
+                            mapOf("category" to it.category, "type" to it.type)
+                        }
+                    )
+
+                    db.collection("users").document(user.uid)
+                        .collection("profile")
+                        .document("basicInfo")
+                        .set(basicInfo)
+                        .addOnSuccessListener {
+                            Log.d("FirstLoginScreen", "Data saved successfully")
+                            isSaving = false
+                            showSuccessDialog = true
+                        }
+                        .addOnFailureListener {
+                            Log.d("FirstLoginScreen", "Error saving data: ${it.message}")
+                            isSaving = false
+                        }
+                }
+            },
+            enabled = !isSaving,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (isSaving) "Saving..." else if (isEditing) "Save" else "Submit")
+        }
 
         if (showSuccessDialog) {
             AlertDialog(
@@ -205,7 +161,9 @@ fun FirstLoginScreen(
                     }
                 },
                 title = { Text("Success") },
-                text = { Text("Your medical information has been saved.") }
+                text = {
+                    Text(if (isEditing) "Your information has been updated." else "Your medical information has been saved.")
+                }
             )
         }
     }

@@ -71,8 +71,8 @@ class MainActivity : ComponentActivity() {
                                 "Admin" -> {
                                     val adminLevel = doc.getString("adminLevel") ?: "global"
                                     startDestination = when (adminLevel) {
-                                        "institution" -> Routes.ADMIN_DASHBOARD_INSTITUTION
-                                        "global" -> Routes.ADMIN_DASHBOARD_GLOBAL
+                                        "institution" -> Routes.INSTITUTION_ADMIN_DASHBOARD
+                                        "global" -> Routes.GLOBAL_ADMIN_DASHBOARD
                                         else -> Routes.HOME // fallback
                                     }
                                 }

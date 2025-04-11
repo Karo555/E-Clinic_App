@@ -101,7 +101,11 @@ fun AuthScreen(
                     } else {
                         viewModel.register {
                             coroutineScope.launch {
-                                handleRegister(onNavigateToFirstLogin, onNavigateToDoctorFirstLogin, onNavigateToHome)
+                                handleRegister(
+                                    onNavigateToFirstLogin,
+                                    onNavigateToDoctorFirstLogin,
+                                    onNavigateToHome
+                                )
                             }
                         }
                     }

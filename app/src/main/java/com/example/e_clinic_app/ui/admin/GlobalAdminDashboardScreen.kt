@@ -13,13 +13,14 @@ import android.content.Intent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.example.e_clinic_app.MainActivity
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GlobalAdminDashboardScreen() {
+fun GlobalAdminDashboardScreen(navController: NavController) {
     Scaffold(
         topBar = {
             val context = LocalContext.current
