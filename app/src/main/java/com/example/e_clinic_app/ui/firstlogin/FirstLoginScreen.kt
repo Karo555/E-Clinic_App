@@ -15,21 +15,26 @@ import com.example.e_clinic_app.ui.admin.components.MedicalConditionPicker
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FirstLoginScreen(
     onSubmitSuccess: () -> Unit
 ) {
-    var fullName by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var knownConditions by remember { mutableStateOf<List<MedicalCondition>>(emptyList()) }
+    var isSaving by remember { mutableStateOf(false) }
     var dob by remember { mutableStateOf("") }
     var genderExpanded by remember { mutableStateOf(false) }
     var gender by remember { mutableStateOf("Select Gender") }
     var height by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
-    var conditions by remember { mutableStateOf("") }
-
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showSuccessDialog by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    val db = FirebaseFirestore.getInstance()
+    val currentUser = FirebaseAuth.getInstance().currentUser
 
     Box(
         modifier = Modifier
@@ -37,7 +42,6 @@ fun FirstLoginScreen(
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
-        val scrollState = rememberScrollState()
         //beginning of the column
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -58,9 +62,16 @@ fun FirstLoginScreen(
             }
 
             TextField(
-                value = fullName,
-                onValueChange = { fullName = it },
-                label = { Text("Full Name") },
+                value = firstName,
+                onValueChange = { firstName = it },
+                label = { Text("First Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            TextField(
+                value = lastName,
+                onValueChange = { lastName = it },
+                label = { Text("Last Name") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -117,8 +128,6 @@ fun FirstLoginScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            var knownConditions by remember { mutableStateOf<List<MedicalCondition>>(emptyList()) }
-
             MedicalConditionPicker(
                 selectedConditions = knownConditions,
                 onSelectionChanged = { knownConditions = it }
@@ -134,7 +143,7 @@ fun FirstLoginScreen(
                     errorMessage = null
 
                     // Validation
-                    if (fullName.isBlank() || dob.isBlank() || gender == "Select Gender") {
+                    if (firstName.isBlank() || lastName.isBlank() || dob.isBlank() || gender == "Select Gender") {
                         errorMessage = "Please fill in all required fields."
                         return@Button
                     }
@@ -146,18 +155,18 @@ fun FirstLoginScreen(
                         return@Button
                     }
 
-                    val currentUser = FirebaseAuth.getInstance().currentUser
-                    val db = FirebaseFirestore.getInstance()
-
                     if (currentUser != null) {
                         val uid = currentUser.uid
                         val data = mapOf(
-                            "fullName" to fullName,
+                            "firstName" to firstName,
+                            "lastName" to lastName,
                             "dob" to dob,
                             "gender" to gender,
                             "height" to heightVal,
                             "weight" to weightVal,
-                            "conditions" to conditions,
+                            "knownConditions" to knownConditions.map {
+                                mapOf("category" to it.category, "type" to it.type)
+                            },
                             "submittedAt" to System.currentTimeMillis()
                         )
 

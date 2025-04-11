@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
                                     startDestination = if (profile.exists()) {
                                         Routes.HOME
                                     } else {
-                                        Routes.FIRST_LOGIN
+                                        Routes.MEDICAL_INTRO
                                     }
                                 }
 

@@ -10,6 +10,7 @@ import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.firstlogin.FirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.home.MainScreen
+import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
 
 
 @Composable
@@ -76,5 +77,10 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
         composable(Routes.ADMIN_DASHBOARD_INSTITUTION) {
             InstitutionAdminDashboardScreen(navController = navController)
         }
+
+        composable(Routes.MEDICAL_INTRO) {
+            MedicalIntroScreen(navController = navController)
+        }
+
     }
 }

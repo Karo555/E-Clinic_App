@@ -7,4 +7,5 @@ object Routes {
     const val HOME = "home"
     const val ADMIN_DASHBOARD_GLOBAL = "admin_dashboard_global"
     const val ADMIN_DASHBOARD_INSTITUTION = "admin_dashboard_institution"
+    const val MEDICAL_INTRO = "medical_intro"
 }
