@@ -9,6 +9,7 @@ import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.admin.InstitutionAdminDashboardScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
+import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
 import com.example.e_clinic_app.ui.firstlogin.FirstLoginScreen
 import com.example.e_clinic_app.ui.home.MainScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
@@ -80,15 +81,19 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
         }
 
         composable(Routes.EDIT_MEDICAL_INFO) {
-            FirstLoginScreen(
+            EditMedicalInfoScreen(
                 isEditing = true,
                 onSubmitSuccess = {
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.EDIT_MEDICAL_INFO) { inclusive = true }
                     }
+                },
+                onCancel = {
+                    navController.popBackStack()
                 }
             )
         }
+
 
         composable(Routes.GLOBAL_ADMIN_DASHBOARD) {
             GlobalAdminDashboardScreen(navController = navController)
