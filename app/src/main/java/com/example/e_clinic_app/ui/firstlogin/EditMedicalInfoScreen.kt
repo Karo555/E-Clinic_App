@@ -7,6 +7,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
@@ -15,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.e_clinic_app.data.model.Medication
 import com.example.e_clinic_app.ui.admin.components.MedicalConditionPicker
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,6 +35,14 @@ fun EditMedicalInfoScreen(
     var showDiscardDialog by remember { mutableStateOf(false) }
     var personalExpanded by remember { mutableStateOf(false) }
     var conditionsExpanded by remember { mutableStateOf(false) }
+
+    //medications
+    var medsExpanded by remember { mutableStateOf(false) }
+    var showMedDialog by remember { mutableStateOf(false) }
+    var editIndex by remember { mutableStateOf<Int?>(null) }
+    var tempName by remember { mutableStateOf("") }
+    var tempDose by remember { mutableStateOf("") }
+    var tempFreq by remember { mutableStateOf("") }
 
     // initial load
     LaunchedEffect(isEditing) {
@@ -127,6 +138,95 @@ fun EditMedicalInfoScreen(
                         selectedConditions = state.knownConditions,
                         onSelectionChanged = { viewModel.onConditionsChange(it) }
                     )
+                }
+
+                // Medications section
+                ExpandableSection(
+                    title    = "Medications",
+                    expanded = medsExpanded,
+                    onToggle = { medsExpanded = !medsExpanded }
+                ) {
+                    if (state.medications.isEmpty()) {
+                        Text("No medications added.")
+                    } else {
+                        state.medications.forEachIndexed { idx, med ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("${med.name}, ${med.dose}, ${med.frequency}")
+                                Row {
+                                    IconButton(onClick = {
+                                        editIndex = idx
+                                        tempName = med.name
+                                        tempDose = med.dose
+                                        tempFreq = med.frequency
+                                        showMedDialog = true
+                                    }) {
+                                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                    }
+                                    IconButton(onClick = { viewModel.removeMedication(idx) }) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Remove")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+
+                    Button(onClick = {
+                        editIndex = null
+                        tempName = ""; tempDose = ""; tempFreq = ""
+                        showMedDialog = true
+                    }) {
+                        Text("Add Medication")
+                    }
+
+                    // Add/Edit Medication Dialog
+                    if (showMedDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showMedDialog = false },
+                            title = {
+                                Text(if (editIndex == null) "Add Medication" else "Edit Medication")
+                            },
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedTextField(
+                                        value = tempName,
+                                        onValueChange = { tempName = it },
+                                        label = { Text("Name") }
+                                    )
+                                    OutlinedTextField(
+                                        value = tempDose,
+                                        onValueChange = { tempDose = it },
+                                        label = { Text("Dose") }
+                                    )
+                                    OutlinedTextField(
+                                        value = tempFreq,
+                                        onValueChange = { tempFreq = it },
+                                        label = { Text("Frequency") }
+                                    )
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    val med = Medication(tempName, tempDose, tempFreq)
+                                    if (editIndex == null) viewModel.addMedication(med)
+                                    else viewModel.updateMedication(editIndex!!, med)
+                                    showMedDialog = false
+                                }) {
+                                    Text("Save")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showMedDialog = false }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
