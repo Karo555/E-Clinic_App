@@ -130,4 +130,22 @@ class AuthViewModel : ViewModel() {
     fun resetState() {
         _uiState.value = AuthUiState()
     }
+
+    fun sendPasswordResetEmail(onComplete: (Boolean, String?) -> Unit) {
+        val email = _uiState.value.email.trim()
+        if (email.isBlank()) {
+            onComplete(false, "Please enter your email address.")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                auth.sendPasswordResetEmail(email).await()
+                onComplete(true, null)
+            } catch (e: Exception) {
+                onComplete(false, e.message)
+            }
+        }
+    }
+
 }

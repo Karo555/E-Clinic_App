@@ -52,6 +52,21 @@ fun AuthScreen(
                 visualTransformation = PasswordVisualTransformation()
             )
 
+            TextButton(onClick = {
+                coroutineScope.launch {
+                    viewModel.sendPasswordResetEmail { success, message ->
+                        if (success) {
+                            Log.d("AuthScreen", "📧 Password reset email sent.")
+                            // Optional: Show Snackbar or Toast here if using scaffold
+                        } else {
+                            Log.e("AuthScreen", "❌ Failed to send reset email: $message")
+                        }
+                    }
+                }
+            }) {
+                Text("Forgot Password?")
+            }
+
             if (authMode == AuthMode.REGISTER) {
                 ExposedDropdownMenuBox(
                     expanded = expanded,
