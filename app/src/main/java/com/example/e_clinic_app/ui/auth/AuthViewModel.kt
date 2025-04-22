@@ -127,12 +127,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun resetState() {
-        _uiState.value = AuthUiState()
-    }
-
-    fun sendPasswordResetEmail(onComplete: (Boolean, String?) -> Unit) {
-        val email = _uiState.value.email.trim()
+    fun sendPasswordResetEmail(email: String, onComplete: (Boolean, String?) -> Unit) {
         if (email.isBlank()) {
             onComplete(false, "Please enter your email address.")
             return
@@ -148,4 +143,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun resetState() {
+        _uiState.value = AuthUiState()
+    }
 }

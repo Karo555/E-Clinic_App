@@ -8,9 +8,9 @@ import androidx.navigation.compose.composable
 import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.admin.InstitutionAdminDashboardScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
+import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
-import com.example.e_clinic_app.ui.firstlogin.FirstLoginScreen
 import com.example.e_clinic_app.ui.home.MainScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
@@ -47,6 +47,17 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                     navController.navigate(Routes.INSTITUTION_ADMIN_DASHBOARD) {
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
+                },
+                onNavigateToResetPassword = {
+                    navController.navigate(Routes.RESET_PASSWORD)
+                }
+            )
+        }
+
+        composable(Routes.RESET_PASSWORD) {
+            ResetPasswordScreen(
+                onBackToLogin = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -64,7 +75,6 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                 }
             )
         }
-
 
         composable(Routes.DOCTOR_FIRST_LOGIN) {
             DoctorFirstLoginScreen(
@@ -93,7 +103,6 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                 }
             )
         }
-
 
         composable(Routes.GLOBAL_ADMIN_DASHBOARD) {
             GlobalAdminDashboardScreen(navController = navController)

@@ -11,6 +11,9 @@ object Routes {
     const val HOME = "home"
     const val EDIT_MEDICAL_INFO = "edit_medical_info"
 
+    //reset
+    const val RESET_PASSWORD = "reset_password"
+
     //admin dashboards
     const val GLOBAL_ADMIN_DASHBOARD = "global_admin_dashboard"
     const val INSTITUTION_ADMIN_DASHBOARD = "institution_admin_dashboard"
