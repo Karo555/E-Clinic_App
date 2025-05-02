@@ -1,4 +1,4 @@
-package com.example.e_clinic_app.ui.home
+package com.example.e_clinic_app.ui.home.patient
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
