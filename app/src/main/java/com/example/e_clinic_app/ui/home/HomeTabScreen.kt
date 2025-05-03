@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -114,7 +115,7 @@ fun HomeTabScreen() {
                 }
 
                 "Patient" -> {
-                    Text("🧾 Your medical history and visits will show here soon.")
+                    PatientHomeTabScreen(navController = rememberNavController())
                 }
 
                 else -> {
