@@ -7,18 +7,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavController
+import com.example.e_clinic_app.ui.navigation.Routes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 @Composable
-fun HomeTabScreen() {
+fun HomeTabScreen(navController: NavController) {
     var role by remember { mutableStateOf<String?>(null) }
     var fullName by remember { mutableStateOf<String?>(null) }
     var specialization by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var navigateTo by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         val user = FirebaseAuth.getInstance().currentUser
@@ -41,6 +42,7 @@ fun HomeTabScreen() {
 
                         fullName = docInfo.getString("fullName")
                         specialization = docInfo.getString("specialization")
+                        navigateTo = Routes.DOCTOR_HOME
                     }
 
                     "Patient" -> {
@@ -52,6 +54,12 @@ fun HomeTabScreen() {
                             .await()
 
                         fullName = patInfo.getString("fullName")
+                        navigateTo = Routes.PATIENT_HOME
+                    }
+
+                    "Admin" -> {
+                        fullName = "Admin"
+                        navigateTo = Routes.ADMIN_HOME
                     }
 
                     else -> {
@@ -68,60 +76,17 @@ fun HomeTabScreen() {
         }
     }
 
+    LaunchedEffect(navigateTo) {
+        navigateTo?.let {
+            navController.navigate(it) {
+                popUpTo(Routes.HOME) { inclusive = true }
+            }
+        }
+    }
+
     if (isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
-        }
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = "🏥 Welcome${if (!fullName.isNullOrBlank()) ", $fullName!" else "!"}",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            when (role) {
-                "Doctor" -> {
-                    specialization?.let {
-                        Text("Specialization: $it", style = MaterialTheme.typography.bodyLarge)
-                    }
-
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                    Text(
-                        text = "🩺 Doctor Dashboard (Coming soon)",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    // Placeholder dashboard cards
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("📅 Manage Availability")
-                            Text("Coming soon...")
-                        }
-                    }
-
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("👥 View Patients")
-                            Text("Coming soon...")
-                        }
-                    }
-                }
-
-                "Patient" -> {
-                    PatientHomeTabScreen(navController = rememberNavController())
-                }
-
-                else -> {
-                    Text("⚠️ Unknown user role.")
-                }
-            }
         }
     }
 }
