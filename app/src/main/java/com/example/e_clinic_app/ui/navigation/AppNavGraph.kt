@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.admin.InstitutionAdminDashboardScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
@@ -16,7 +17,7 @@ import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
 
 @Composable
-fun AppNavGraph(navController: NavHostController, startDestination: String) {
+fun AppNavGraph(navController: NavHostController, startDestination: String, viewModel: DoctorHomeViewModel = DoctorHomeViewModel()) {
     Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination")
 
     NavHost(navController = navController, startDestination = startDestination) {
@@ -87,7 +88,7 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
         }
 
         composable(Routes.HOME) {
-            MainScreen(navController = navController)
+            MainScreen(navController = navController, viewModel = viewModel)
         }
 
         composable(Routes.EDIT_MEDICAL_INFO) {

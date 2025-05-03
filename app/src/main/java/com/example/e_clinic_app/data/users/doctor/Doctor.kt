@@ -12,5 +12,6 @@ data class Doctor(
     override val role: Role = Role.DOCTOR,
     override val phoneNumber: String?,
     val specialization:Specialization,
+    var rating:Double,
 
 ):UsersEntity()

@@ -11,11 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
+import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.ui.chat.ChatTabScreen
+import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
 import com.example.e_clinic_app.ui.settings.SettingsTabScreen
 
 @Composable
-fun MainScreen(navController: NavController) {
+fun MainScreen(navController: NavController, viewModel: DoctorHomeViewModel) {
     val internalNavController = rememberNavController()
 
     val bottomNavItems = listOf(
@@ -54,7 +56,7 @@ fun MainScreen(navController: NavController) {
             startDestination = "home",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("home") { HomeTabScreen() }
+            composable("home") { DoctorHomeTabScreen(navController,viewModel) }
             composable("chat") { ChatTabScreen() }
             composable("settings") { SettingsTabScreen(navController) }
         }

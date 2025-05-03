@@ -12,14 +12,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 
 @Composable
-fun DoctorHomeTabScreen(navController: NavController) {
+fun DoctorHomeTabScreen(navController: NavController, viewModel: DoctorHomeViewModel) {
+    LaunchedEffect(Unit) {
+        viewModel.fetchAppointments(viewModel.firestore)
+    }
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFFEFF7F9))) {
         // Doctor Profile Section
         Row(
@@ -62,7 +65,7 @@ fun DoctorHomeTabScreen(navController: NavController) {
 
         // Upcoming Appointments
         Text(text = "Upcoming Appointments", fontSize = 18.sp, modifier = Modifier.padding(16.dp))
-        val appointments = listOf("John Doe - 10:00 AM", "Jane Smith - 11:30 AM", "Chris Evans - 1:00 PM")
+        val appointments = viewModel.appointmentsList
         LazyRow(modifier = Modifier.padding(16.dp)) {
             items(appointments) { appointment ->
                 Card(
@@ -70,7 +73,7 @@ fun DoctorHomeTabScreen(navController: NavController) {
                     elevation = 4.dp,
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(text = appointment, modifier = Modifier.padding(16.dp), fontSize = 14.sp)
+                    Text(text = appointment.patient.lastName, modifier = Modifier.padding(16.dp), fontSize = 14.sp)
                 }
             }
         }
@@ -84,16 +87,4 @@ fun DoctorHomeTabScreen(navController: NavController) {
             Text(text = "Set Availability", color = Color.White, fontSize = 16.sp)
         }
     }
-}
-
-@Composable
-fun DoctorHomeTabPreview() {
-    val navController = rememberNavController()
-    DoctorHomeTabScreen(navController)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewDoctorHome() {
-    DoctorHomeTabPreview()
 }
