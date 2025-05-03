@@ -11,7 +11,10 @@ import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
+import com.example.e_clinic_app.ui.home.AdminHomeTabScreen
+import com.example.e_clinic_app.ui.home.DoctorHomeTabScreen
 import com.example.e_clinic_app.ui.home.MainScreen
+import com.example.e_clinic_app.ui.home.PatientHomeTabScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
 
@@ -69,7 +72,7 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
         composable(Routes.FIRST_LOGIN) {
             MedicalFormStepperScreen(
                 onFormCompleted = {
-                    navController.navigate(Routes.HOME) {
+                    navController.navigate(Routes.PATIENT_HOME) {
                         popUpTo(Routes.FIRST_LOGIN) { inclusive = true }
                     }
                 }
@@ -79,7 +82,7 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
         composable(Routes.DOCTOR_FIRST_LOGIN) {
             DoctorFirstLoginScreen(
                 onSubmitSuccess = {
-                    navController.navigate(Routes.HOME) {
+                    navController.navigate(Routes.DOCTOR_HOME) {
                         popUpTo(Routes.DOCTOR_FIRST_LOGIN) { inclusive = true }
                     }
                 }
@@ -110,6 +113,18 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
 
         composable(Routes.INSTITUTION_ADMIN_DASHBOARD) {
             InstitutionAdminDashboardScreen(navController = navController)
+        }
+
+        composable(Routes.PATIENT_HOME) {
+            PatientHomeTabScreen(navController = navController)
+        }
+
+        composable(Routes.DOCTOR_HOME) {
+            DoctorHomeTabScreen(navController = navController)
+        }
+
+        composable(Routes.ADMIN_HOME) {
+            AdminHomeTabScreen(navController = navController)
         }
     }
 }

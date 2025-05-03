@@ -54,7 +54,7 @@ fun MainScreen(navController: NavController) {
             startDestination = "home",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("home") { HomeTabScreen() }
+            composable("home") { HomeTabScreen(navController) }
             composable("chat") { ChatTabScreen() }
             composable("settings") { SettingsTabScreen(navController) }
         }

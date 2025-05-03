@@ -10,6 +10,9 @@ object Routes {
     //post log in
     const val HOME = "home"
     const val EDIT_MEDICAL_INFO = "edit_medical_info"
+    const val PATIENT_HOME = "patient_home"
+    const val DOCTOR_HOME = "doctor_home"
+    const val ADMIN_HOME = "admin_home"
 
     //reset
     const val RESET_PASSWORD = "reset_password"
