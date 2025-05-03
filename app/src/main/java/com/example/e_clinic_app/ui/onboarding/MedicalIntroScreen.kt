@@ -27,18 +27,24 @@ fun MedicalIntroScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Welcome to your medical profile setup",
+                text = "Medical profile setup",
                 style = MaterialTheme.typography.headlineMedium
             )
 
             Text(
                 text = "To ensure your doctor has the most accurate info, we’ll guide you through a short form.",
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
 
             Text(
-                text = "⏱ Estimated time: ~10 minutes\n\n✔️ What to have ready:\n- Medical history\n- Medications\n- Known conditions",
-                style = MaterialTheme.typography.bodyMedium
+                text = "What to have ready:\n1) medical history\n2) medications\n3) known conditions\n " +
+                        "\n",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = "⏱ Estimated time: ~10 minutes\n",
+                style = MaterialTheme.typography.bodyLarge
             )
         }
 
