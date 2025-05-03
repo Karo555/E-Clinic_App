@@ -445,10 +445,9 @@ fun StepMedications(
 
     // 5) The main “Yes/No + list + FAB” screen:
     Column(
-        Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Do you take any medications?")
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
