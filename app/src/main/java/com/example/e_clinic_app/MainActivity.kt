@@ -11,6 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import com.example.e_clinic_app.data.model.DrugSeeder
+import com.example.e_clinic_app.data.repository.DrugRepository
 import com.example.e_clinic_app.ui.navigation.AppNavGraph
 import com.example.e_clinic_app.ui.navigation.Routes
 import com.example.e_clinic_app.ui.theme.EClinic_AppTheme
@@ -21,6 +23,7 @@ import kotlinx.coroutines.tasks.await
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        DrugSeeder.seed(DrugRepository())
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
         enableEdgeToEdge()
