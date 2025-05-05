@@ -12,59 +12,100 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
+import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
 
 @Composable
 fun PatientHomeTabScreen(navController: NavController, viewModel: PatientDashboardViewModel) {
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFEFF7F9))) {
-        // User Info Section
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8FAFC))
+            .padding(top = 16.dp)
+    ) {
+        // Header Section
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Hi Hello in Demo!", fontSize = 20.sp)
+            Column {
+                Text(
+                    text = "Hello, User!",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Find care that fits you",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
-            Box(
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "Profile",
                 modifier = Modifier
                     .size(40.dp)
-                    .background(Color.Gray, shape = CircleShape)
+                    .clickable { /* Navigate to profile */ },
+                tint = Color(0xFF3B82F6)
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Search Bar
-        TextField(
+        OutlinedTextField(
             value = "",
             onValueChange = {},
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            placeholder = { Text("Find Your Doctor") },
-            trailingIcon = {
-                IconButton(onClick = { /* Clear search */ }) {
-                    Icon(imageVector = Icons.Default.Clear, contentDescription = "Clear")
-                }
-            }
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            placeholder = { Text("Search doctors, specialties...") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = Color.Gray
+                )
+            },
+            shape = RoundedCornerShape(12.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFF3B82F6),
+                unfocusedContainerColor = Color(0xFFE5E7EB)
+            ),
+            singleLine = true
         )
 
-        // Navigation Panels
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Navigation Grid
         val navigationItems = listOf(
             "Browse Doctors" to "browseDoctors",
             "Your Doctors" to "yourDoctors",
@@ -72,85 +113,132 @@ fun PatientHomeTabScreen(navController: NavController, viewModel: PatientDashboa
             "Visits" to "visits"
         )
 
-        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            for (i in navigationItems.chunked(2)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    i.forEach { (label, route) ->
-                        androidx.compose.material.Card(
-                            modifier = Modifier
-                                .size(140.dp)
-                                .clickable { navController.navigate(route) },
-                            elevation = 4.dp,
-                            shape = RoundedCornerShape(12.dp)
+        LazyVerticalGrid (
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(navigationItems) { (label, route) ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .clickable { navController.navigate(route) },
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1F2A44)
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Specialties Section
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Text(
+                text = "Specialties",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            val specialties = listOf("Dentist", "Cardiologist", "Optometrist", "Dietitian")
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(specialties) { specialty ->
+                    Card(
+                        modifier = Modifier
+                            .clickable { /* Navigate to Specialty Screen */ },
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Text(
+                            text = specialty,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                            color = Color(0xFF3B82F6)
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Recommended Doctors
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Text(
+                text = "Recommended Doctors",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            val doctors = listOf(
+                Doctor("Dr. Crick", 3.7, "$25.00/hour"),
+                Doctor("Dr. Strain", 3.0, "$22.00/hour"),
+                Doctor("Dr. Lachinet", 2.9, "$29.00/hour")
+            )
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(doctors) { doctor ->
+                    Card(
+                        modifier = Modifier
+                            .width(160.dp)
+                            .clickable { navController.navigate("doctorDetail/${doctor.name}") },
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalAlignment = Alignment.Start
                         ) {
                             Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxSize().padding(8.dp)
-                            ) {
-                                Text(text = label, fontSize = 14.sp)
-                            }
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(Color(0xFFE5E7EB), shape = CircleShape)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = doctor.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "⭐ ${doctor.rating}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFFF59E0B)
+                            )
+                            Text(
+                                text = doctor.price,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray
+                            )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
+        BottomNavigationBar(navController)
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Specialties Section
-        val specialties = listOf("Dentist", "Cardiologist", "Optometrist", "Dietitian")
-        LazyRow(modifier = Modifier.padding(16.dp)) {
-            items(specialties) { specialty ->
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.Blue),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clickable { /* Navigate to Specialty Screen */ }
-                ) {
-                    Text(
-                        text = specialty,
-                        color = Color.White,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
-            }
-        }
-
-        // Recommended Doctors
-        val doctors = listOf(
-            Doctor("Dr. Crick", 3.7, "$25.00/hour"),
-            Doctor("Dr. Strain", 3.0, "$22.00/hour"),
-            Doctor("Dr. Lachinet", 2.9, "$29.00/hour")
-        )
-        LazyRow(modifier = Modifier.padding(16.dp)) {
-            items(doctors) { doctor ->
-                Card(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clickable { navController.navigate("doctorDetail/${doctor.name}") }, // Navigate to doctor details
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            modifier = Modifier.size(50.dp).background(Color.Gray, shape = CircleShape)
-                        )
-                        Text(text = doctor.name, fontWeight = FontWeight.Bold)
-                        Text(text = "⭐ ${doctor.rating}")
-                        Text(text = doctor.price, fontSize = 12.sp)
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
 // Sample Data Class
 data class Doctor(val name: String, val rating: Double, val price: String)
-

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
 
 @Composable
 fun AdminHomeTabScreen(navController: NavController) {
@@ -79,17 +80,6 @@ fun AdminHomeTabScreen(navController: NavController) {
                 }
             }
         }
+        BottomNavigationBar(navController)
     }
-}
-
-@Composable
-fun AdminHomeTabPreview() {
-    val navController = rememberNavController()
-    AdminHomeTabScreen(navController)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewAdminHome() {
-    AdminHomeTabPreview()
 }

@@ -25,7 +25,6 @@ object Routes {
 
 
     //tabs for nested navigation
-    const val HOME_TAB = "home_tab"
     const val CHAT_TAB = "chat_tab"
     const val VISITS_TAB = "visits_tab"
     const val SETTINGS_TAB = "settings_tab"
