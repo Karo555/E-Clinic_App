@@ -35,14 +35,14 @@ import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
 
 @Composable
-fun PatientHomeTabScreen(navController: NavController, viewModel: PatientDashboardViewModel) { // Pass NavController
+fun PatientHomeTabScreen(navController: NavController, viewModel: PatientDashboardViewModel) {
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFFEFF7F9))) {
         // User Info Section
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Hi [name]!", fontSize = 20.sp)
+            Text(text = "Hi Hello in Demo!", fontSize = 20.sp)
             Spacer(modifier = Modifier.weight(1f))
             Box(
                 modifier = Modifier

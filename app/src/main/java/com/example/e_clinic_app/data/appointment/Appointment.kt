@@ -11,4 +11,6 @@ data class Appointment(
     val patient: Patient,
     val date:Timestamp,
     val status:AppointmentStatus,
+    val extraData: Map<String, Any> // probaly a map of extra data related
+// to the appointment such as location
 )

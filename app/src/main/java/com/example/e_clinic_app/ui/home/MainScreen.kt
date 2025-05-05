@@ -17,8 +17,9 @@ import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
 import com.example.e_clinic_app.ui.settings.SettingsTabScreen
 
 @Composable
-fun MainScreen(navController: NavController, viewModel: DoctorHomeViewModel) {
+fun MainScreen(navController: NavController) {
     val internalNavController = rememberNavController()
+   //  TODO("Implement the internal navigation controller")
 
     val bottomNavItems = listOf(
         BottomNavItem("Home", Icons.Default.Home, "home"),
@@ -56,7 +57,7 @@ fun MainScreen(navController: NavController, viewModel: DoctorHomeViewModel) {
             startDestination = "home",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("home") { DoctorHomeTabScreen(navController,viewModel) }
+            composable("home") { HomeTabScreen(navController) }
             composable("chat") { ChatTabScreen() }
             composable("settings") { SettingsTabScreen(navController) }
         }

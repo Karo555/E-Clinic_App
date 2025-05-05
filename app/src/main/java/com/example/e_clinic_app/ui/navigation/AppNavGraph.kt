@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
+import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
 import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.admin.InstitutionAdminDashboardScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
@@ -13,11 +14,13 @@ import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
 import com.example.e_clinic_app.ui.home.MainScreen
+import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
+import com.example.e_clinic_app.ui.home.patient.PatientHomeTabScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
 
 @Composable
-fun AppNavGraph(navController: NavHostController, startDestination: String, viewModel: DoctorHomeViewModel = DoctorHomeViewModel()) {
+fun AppNavGraph(navController: NavHostController, startDestination: String, patientDashboardViewModel: PatientDashboardViewModel = PatientDashboardViewModel() , doctorHomeViewModel: DoctorHomeViewModel = DoctorHomeViewModel()) {
     Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination")
 
     NavHost(navController = navController, startDestination = startDestination) {
@@ -88,7 +91,7 @@ fun AppNavGraph(navController: NavHostController, startDestination: String, view
         }
 
         composable(Routes.HOME) {
-            MainScreen(navController = navController, viewModel = viewModel)
+            MainScreen(navController = navController)
         }
 
         composable(Routes.EDIT_MEDICAL_INFO) {
@@ -111,6 +114,13 @@ fun AppNavGraph(navController: NavHostController, startDestination: String, view
 
         composable(Routes.INSTITUTION_ADMIN_DASHBOARD) {
             InstitutionAdminDashboardScreen(navController = navController)
+        }
+
+        composable(Routes.PATIENT_DASHBOARD){
+            PatientHomeTabScreen(navController, patientDashboardViewModel)
+        }
+        composable(Routes.DOCTOR_DASHBOARD){
+            DoctorHomeTabScreen(navController, doctorHomeViewModel)
         }
     }
 }

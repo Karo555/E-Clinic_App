@@ -85,7 +85,7 @@ fun DoctorHomeTabScreen(navController: NavController, viewModel: DoctorHomeViewM
                     elevation = 4.dp,
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(text = appointment.patient.lastName, modifier = Modifier.padding(16.dp), fontSize = 14.sp)
+                    Text(text = appointment.patient.firstName, modifier = Modifier.padding(16.dp), fontSize = 14.sp)
                 }
             }
         }

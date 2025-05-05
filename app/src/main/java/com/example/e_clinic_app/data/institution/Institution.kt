@@ -9,5 +9,7 @@ data class Institution (
     val city: String,
     val address: String,
     val phone: String,
-    val email: Email
+    val email: Email,
+    val domain: String,
+    val extraDetails: Map<String,Any> // extra details about the institution
 )

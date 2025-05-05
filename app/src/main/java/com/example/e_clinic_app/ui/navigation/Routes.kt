@@ -18,6 +18,12 @@ object Routes {
     const val GLOBAL_ADMIN_DASHBOARD = "global_admin_dashboard"
     const val INSTITUTION_ADMIN_DASHBOARD = "institution_admin_dashboard"
 
+    //patient dashboard
+    const val PATIENT_DASHBOARD = "patient_dashboard"
+    //doctor dashboard
+    const val DOCTOR_DASHBOARD = "doctor_dashboard"
+
+
     //tabs for nested navigation
     const val HOME_TAB = "home_tab"
     const val CHAT_TAB = "chat_tab"

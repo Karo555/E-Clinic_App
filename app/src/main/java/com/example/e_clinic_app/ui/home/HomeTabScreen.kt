@@ -8,12 +8,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import com.example.e_clinic_app.ui.navigation.AppNavGraph
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 @Composable
-fun HomeTabScreen() {
+fun HomeTabScreen(navController: NavController) {
     var role by remember { mutableStateOf<String?>(null) }
     var fullName by remember { mutableStateOf<String?>(null) }
     var specialization by remember { mutableStateOf<String?>(null) }
@@ -84,38 +87,12 @@ fun HomeTabScreen() {
                 style = MaterialTheme.typography.headlineMedium
             )
 
+            // change to nav controllers
+
             when (role) {
-                "Doctor" -> {
-                    specialization?.let {
-                        Text("Specialization: $it", style = MaterialTheme.typography.bodyLarge)
-                    }
+                "Doctor" -> navController.navigate("doctor_dashboard")
 
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                    Text(
-                        text = "🩺 Doctor Dashboard (Coming soon)",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    // Placeholder dashboard cards
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("📅 Manage Availability")
-                            Text("Coming soon...")
-                        }
-                    }
-
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("👥 View Patients")
-                            Text("Coming soon...")
-                        }
-                    }
-                }
-
-                "Patient" -> {
-                    Text("🧾 Your medical history and visits will show here soon.")
-                }
+                "Patient" -> navController.navigate("patient_dashboard")
 
                 else -> {
                     Text("⚠️ Unknown user role.")
