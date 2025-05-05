@@ -1,5 +1,6 @@
 package com.example.e_clinic_app.ui.navigation
 
+import AdminHomeTabScreen
 import ChatTabScreen
 import SettingsTabScreen
 import android.util.Log
@@ -10,7 +11,6 @@ import androidx.navigation.compose.composable
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
 import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
-import com.example.e_clinic_app.ui.admin.InstitutionAdminDashboardScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
@@ -144,14 +144,14 @@ fun AppNavGraph(navController: NavHostController, startDestination: String, pati
             )
         }
 
-        // Defines a composable function for the Global Admin Dashboard screen.
+        // TODO  Defines a composable function for the Global Admin Dashboard screen.
         composable(Routes.GLOBAL_ADMIN_DASHBOARD) {
             GlobalAdminDashboardScreen(navController = navController)
         }
 
         // Defines a composable function for the Institution Admin Dashboard screen.
         composable(Routes.INSTITUTION_ADMIN_DASHBOARD) {
-            InstitutionAdminDashboardScreen(navController = navController)
+            AdminHomeTabScreen(navController = navController)
         }
 
         // Defines a composable function for the Patient Dashboard screen.
