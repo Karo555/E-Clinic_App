@@ -1,5 +1,7 @@
 package com.example.e_clinic_app.ui.navigation
 
+import ChatTabScreen
+import SettingsTabScreen
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -11,7 +13,6 @@ import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.admin.InstitutionAdminDashboardScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
-import com.example.e_clinic_app.ui.chat.ChatTabScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
 import com.example.e_clinic_app.ui.home.HomeTabScreen
@@ -19,7 +20,6 @@ import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
 import com.example.e_clinic_app.ui.home.patient.PatientHomeTabScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
-import com.example.e_clinic_app.ui.settings.SettingsTabScreen
 
 /**
  * Configures and initializes the navigation graph for the application.

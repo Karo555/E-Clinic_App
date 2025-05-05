@@ -1,23 +1,18 @@
 package com.example.e_clinic_app.ui.bottomNavBar
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.*
-import com.example.e_clinic_app.ui.chat.ChatTabScreen
-import com.example.e_clinic_app.ui.home.HomeTabScreen
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.e_clinic_app.ui.navigation.Routes
-import com.example.e_clinic_app.ui.settings.SettingsTabScreen
-//TODO: Change the logic of the bottom navigation bar to use the same navController as the main activity
-
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
