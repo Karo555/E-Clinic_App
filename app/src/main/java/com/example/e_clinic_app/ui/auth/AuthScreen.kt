@@ -88,7 +88,7 @@ fun AuthScreen(
                     }
                 }
             }
-
+//TODO( "transfer the button logic to viewModel part")
             Button(onClick = {
                 coroutineScope.launch {
                     if (authMode == AuthMode.LOGIN) {
