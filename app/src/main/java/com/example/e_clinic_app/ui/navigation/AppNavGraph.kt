@@ -30,7 +30,11 @@ import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
  * @param doctorHomeViewModel An instance of DoctorHomeViewModel used for managing state related to the doctor dashboard.
  */
 @Composable
-fun AppNavGraph(navController: NavHostController, startDestination: String, patientDashboardViewModel: PatientDashboardViewModel = PatientDashboardViewModel() , doctorHomeViewModel: DoctorHomeViewModel = DoctorHomeViewModel()) {
+fun AppNavGraph(navController: NavHostController,
+                startDestination: String,
+                patientDashboardViewModel: PatientDashboardViewModel = PatientDashboardViewModel() ,
+                doctorHomeViewModel: DoctorHomeViewModel = DoctorHomeViewModel()) {
+
     Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination")
 
     NavHost(navController = navController, startDestination = startDestination) {
