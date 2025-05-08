@@ -108,7 +108,11 @@ class MedicalFormStepperViewModel : ViewModel() {
                     mapOf("category" to it.category, "type" to it.type)
                 },
                 "medications" to state.medications.map {
-                    mapOf("name" to it.drug.name, "dose" to it.drug.defaultFrequency, "frequency" to it.frequency)
+                    mapOf(
+                        "name" to it.drug.name,
+                        "dose" to it.drug.defaultFrequency,
+                        "frequency" to it.frequency
+                    )
                 }
             )
 
@@ -125,12 +129,14 @@ class MedicalFormStepperViewModel : ViewModel() {
                 }
         }
     }
+
     fun setHasMedications(has: Boolean) {
-              _uiState.value = _uiState.value.copy(hasMedications = has)
-           }
-       fun applyMedicationSelection() {
-               if (_uiState.value.hasMedications == false) {
-                       updateMedications(emptyList())
-                   }
-           }
+        _uiState.value = _uiState.value.copy(hasMedications = has)
+    }
+
+    fun applyMedicationSelection() {
+        if (_uiState.value.hasMedications == false) {
+            updateMedications(emptyList())
+        }
+    }
 }

@@ -26,7 +26,8 @@ fun DoctorFirstLoginScreen(
     onSubmitSuccess: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    val daysOfWeek =
+        listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
     val specializationOptions = listOf(
         "Cardiology", "Dermatology", "Endocrinology", "Gastroenterology", "General Practice",
@@ -76,6 +77,7 @@ fun DoctorFirstLoginScreen(
                 bio.isNotBlank() &&
                 availableDays.isNotEmpty()
     }
+
     val coroutineScope = rememberCoroutineScope()
     Scaffold(
         topBar = {
@@ -213,7 +215,9 @@ fun DoctorFirstLoginScreen(
             if (selectedCity.isNotBlank()) {
                 ExposedDropdownMenuBox(
                     expanded = isInstitutionDropdownExpanded,
-                    onExpandedChange = { isInstitutionDropdownExpanded = !isInstitutionDropdownExpanded }
+                    onExpandedChange = {
+                        isInstitutionDropdownExpanded = !isInstitutionDropdownExpanded
+                    }
                 ) {
                     OutlinedTextField(
                         value = selectedInstitutionName,
@@ -341,8 +345,7 @@ fun DoctorFirstLoginScreen(
                             errorMessage = "Error saving data: ${e.message}"
                         }
                     }
-                }
-                ,
+                },
                 enabled = !isSubmitting,
                 modifier = Modifier.fillMaxWidth()
             ) {

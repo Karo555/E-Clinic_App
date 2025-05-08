@@ -108,7 +108,11 @@ fun DoctorHomeTabScreen(navController: NavController, viewModel: DoctorHomeViewM
                                     .padding(12.dp),
                                 verticalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Icon(imageVector = item.icon, contentDescription = item.label, tint = colorScheme.primary)
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.label,
+                                    tint = colorScheme.primary
+                                )
                                 Text(item.label, style = typography.bodyLarge)
                             }
                         }
@@ -142,7 +146,11 @@ fun DoctorHomeTabScreen(navController: NavController, viewModel: DoctorHomeViewM
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text(appointment.patient.firstName, style = typography.bodyLarge)
-                            Text("Today • 14:00", style = typography.labelSmall, color = colorScheme.onSurfaceVariant)
+                            Text(
+                                "Today • 14:00",
+                                style = typography.labelSmall,
+                                color = colorScheme.onSurfaceVariant
+                            )
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null)
@@ -166,4 +174,5 @@ fun DoctorHomeTabScreen(navController: NavController, viewModel: DoctorHomeViewM
         }
     }
 }
+
 data class NavItem(val label: String, val icon: ImageVector, val route: String)

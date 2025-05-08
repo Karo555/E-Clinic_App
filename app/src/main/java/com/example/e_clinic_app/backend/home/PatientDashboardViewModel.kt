@@ -1,5 +1,6 @@
 package com.example.e_clinic_app.backend.home
 
+import android.util.Log
 import com.example.e_clinic_app.data.appointment.Appointment
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -17,7 +18,7 @@ class PatientDashboardViewModel :StandardDashboard() {
                 // Notify observers or update UI as needed0
             }
             .addOnFailureListener { exception ->
-                // Log or handle the error appropriately
+                Log.e("PatientDashboardViewModel", "Error fetching appointments", exception)
             }
     }
 }
