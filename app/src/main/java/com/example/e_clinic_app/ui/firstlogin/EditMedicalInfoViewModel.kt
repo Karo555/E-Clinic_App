@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.e_clinic_app.data.model.DosageUnit
 import com.example.e_clinic_app.data.model.Drug
+import com.example.e_clinic_app.data.model.Frequency
 import com.example.e_clinic_app.data.model.MedicalCondition
 import com.example.e_clinic_app.data.model.Medication
 import com.google.firebase.auth.FirebaseAuth
@@ -61,14 +62,17 @@ class EditMedicalInfoViewModel : ViewModel() {
                         Medication(
                             Drug(
                                 it["name"] as? String ?: "",
-                                name = TODO(),
-                                formulation = TODO(),
-                                availableUnits = TODO(),
-                                commonDosages = TODO(),
-                                defaultFrequency = TODO(),
-                                searchableNames = TODO(),
-                                createdAt = TODO(),
-                                updatedAt = TODO()
+                                name = "aspirin",
+                                formulation = "tablet",
+                                availableUnits = listOf(DosageUnit.TAB),
+                                commonDosages = mapOf(
+                                    DosageUnit.MG to listOf(10.0, 20.0, 50.0),
+                                    DosageUnit.ML to listOf(5.0, 10.0)
+                                ),
+                                defaultFrequency = Frequency.AS_NEEDED,
+                                searchableNames = listOf("aspirin", "acetylsalicylic acid"),
+                                createdAt = null,
+                                updatedAt = null
                             ), // Assuming `Drug` takes a `String` as a parameter
                             it["dose"]?.toDoubleOrNull() ?: 0.0,
                             DosageUnit.valueOf(it["frequency"] as? String ?: "DEFAULT"),
@@ -144,7 +148,9 @@ class EditMedicalInfoViewModel : ViewModel() {
                     mapOf("category" to it.category, "type" to it.type)
                 },
                 "medications" to state.medications.map {
-                mapOf("name" to it.drug.name, "dose" to it.dosage, "frequency" to it.dosageUnit.name)            )
+                    mapOf("name" to it.drug.name, "dose" to it.drug.defaultFrequency, "frequency" to it.drug.defaultFrequency)
+                }
+            )
 
             db.collection("users")
                 .document(user.uid)

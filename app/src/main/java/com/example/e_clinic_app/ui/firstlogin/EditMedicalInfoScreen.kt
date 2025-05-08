@@ -140,7 +140,7 @@ fun EditMedicalInfoScreen(
                     StepMedications(
                         medications = state.medications,
                         hasMedications = state.hasMedications ?: false,
-                        onHasMedicationsChange = { viewModel.onHasMedicationsChange(it) ?: {} },
+                        onHasMedicationsChange = { viewModel.onHasMedicationsChange(it)  },
                         onMedicationsChange = { viewModel.onMedicationsChange(it) }
                     )
                 }

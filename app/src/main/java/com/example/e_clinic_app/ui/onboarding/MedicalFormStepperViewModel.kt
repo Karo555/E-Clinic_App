@@ -108,7 +108,7 @@ class MedicalFormStepperViewModel : ViewModel() {
                     mapOf("category" to it.category, "type" to it.type)
                 },
                 "medications" to state.medications.map {
-                    mapOf("name" to it.name, "dose" to it.dose, "frequency" to it.frequency)
+                    mapOf("name" to it.drug.name, "dose" to it.drug.defaultFrequency, "frequency" to it.frequency)
                 }
             )
 
