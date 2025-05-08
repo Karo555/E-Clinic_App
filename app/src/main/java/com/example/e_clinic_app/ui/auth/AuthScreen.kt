@@ -3,10 +3,14 @@ package com.example.e_clinic_app.ui.auth
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -27,6 +31,7 @@ fun AuthScreen(
     val viewModel: AuthViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
     val authMode by viewModel.authMode.collectAsState()
+    val passwordVisible by viewModel.passwordVisible.collectAsState()
 
     var expanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -50,7 +55,15 @@ fun AuthScreen(
                 value = state.password,
                 onValueChange = { viewModel.onPasswordChange(it) },
                 label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                        )
+                    }
+                }
             )
 
             TextButton(onClick = { onNavigateToResetPassword() }) {
@@ -164,7 +177,7 @@ fun AuthScreen(
                                             else -> onNavigateToHome()
                                         }
                                     } catch (e: Exception) {
-                                        onNavigateToFirstLogin() // fallback
+                                        onNavigateToFirstLogin()
                                     }
                                 }
                             }

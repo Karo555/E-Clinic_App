@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -28,10 +29,13 @@ class AuthViewModel : ViewModel() {
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     private val _uiState = MutableStateFlow(AuthUiState())
-    val uiState: StateFlow<AuthUiState> = _uiState
+    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
     private val _authMode = MutableStateFlow(AuthMode.LOGIN)
-    val authMode: StateFlow<AuthMode> = _authMode
+    val authMode: StateFlow<AuthMode> = _authMode.asStateFlow()
+
+    private val _passwordVisible = MutableStateFlow(false)
+    val passwordVisible: StateFlow<Boolean> = _passwordVisible.asStateFlow()
 
     fun toggleAuthMode() {
         _authMode.value = if (_authMode.value == AuthMode.LOGIN) AuthMode.REGISTER else AuthMode.LOGIN
@@ -47,6 +51,10 @@ class AuthViewModel : ViewModel() {
 
     fun onRoleChange(role: UserRole) {
         _uiState.value = _uiState.value.copy(role = role)
+    }
+
+    fun togglePasswordVisibility() {
+        _passwordVisible.value = !_passwordVisible.value
     }
 
     fun login(onSuccess: () -> Unit) {

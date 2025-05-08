@@ -2,6 +2,8 @@ package com.example.e_clinic_app.ui.firstlogin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.e_clinic_app.data.model.DosageUnit
+import com.example.e_clinic_app.data.model.Drug
 import com.example.e_clinic_app.data.model.MedicalCondition
 import com.example.e_clinic_app.data.model.Medication
 import com.google.firebase.auth.FirebaseAuth
@@ -18,13 +20,12 @@ data class EditMedicalUiState(
     val isSaving: Boolean = false,
     val saveSuccess: Boolean = false,
     val errorMessage: String? = null,
-    // initial values for change detection:
     val initialFirstName: String = "",
     val initialLastName: String = "",
     val initialConditions: List<MedicalCondition> = emptyList(),
-    //medication
     val medications: List<Medication> = emptyList(),
-    val initialMedications: List<Medication> = emptyList()
+    val initialMedications: List<Medication> = emptyList(),
+    val hasMedications: Boolean = false // Added field
 )
 
 class EditMedicalInfoViewModel : ViewModel() {
@@ -49,27 +50,44 @@ class EditMedicalInfoViewModel : ViewModel() {
 
             if (doc.exists()) {
                 val fn = doc.getString("firstName") ?: ""
-                val ln = doc.getString("lastName")  ?: ""
+                val ln = doc.getString("lastName") ?: ""
                 @Suppress("UNCHECKED_CAST")
                 val conditions = (doc.get("knownConditions") as? List<Map<String, String>>)
                     ?.map { MedicalCondition(it["category"] ?: "", it["type"] ?: "") }
                     ?: emptyList()
                 @Suppress("UNCHECKED_CAST")
                 val meds = (doc.get("medications") as? List<Map<String, String>>)
-                    ?.map { Medication(it["name"] ?: "", it["dose"] ?: "", it["frequency"] ?: "") }
-                    ?: emptyList()
+                ?.map {
+                        Medication(
+                            Drug(
+                                it["name"] as? String ?: "",
+                                name = TODO(),
+                                formulation = TODO(),
+                                availableUnits = TODO(),
+                                commonDosages = TODO(),
+                                defaultFrequency = TODO(),
+                                searchableNames = TODO(),
+                                createdAt = TODO(),
+                                updatedAt = TODO()
+                            ), // Assuming `Drug` takes a `String` as a parameter
+                            it["dose"]?.toDoubleOrNull() ?: 0.0,
+                            DosageUnit.valueOf(it["frequency"] as? String ?: "DEFAULT"),
+                            frequency = TODO() // Assuming `DosageUnit` is an enum and has a default value
+                        )
+                    } ?: emptyList()                    ?: emptyList()
 
                 _uiState.update {
                     it.copy(
-                        firstName          = fn,
-                        lastName           = ln,
-                        knownConditions    = conditions,
-                        initialFirstName   = fn,
-                        initialLastName    = ln,
-                        initialConditions  = conditions,
-                        medications        = meds,
+                        firstName = fn,
+                        lastName = ln,
+                        knownConditions = conditions,
+                        initialFirstName = fn,
+                        initialLastName = ln,
+                        initialConditions = conditions,
+                        medications = meds,
                         initialMedications = meds,
-                        isLoading          = false
+                        hasMedications = meds.isNotEmpty(), // Set hasMedications
+                        isLoading = false
                     )
                 }
             } else {
@@ -89,30 +107,30 @@ class EditMedicalInfoViewModel : ViewModel() {
     fun onConditionsChange(list: List<MedicalCondition>) {
         _uiState.update { it.copy(knownConditions = list) }
     }
-    /** Replace entire list */
+
     fun onMedicationsChange(list: List<Medication>) {
         _uiState.update { it.copy(medications = list) }
     }
 
-    /** Add one */
+    fun onHasMedicationsChange(hasMedications: Boolean) { // Added function
+        _uiState.update { it.copy(hasMedications = hasMedications) }
+    }
+
     fun addMedication(med: Medication) {
         val newList = _uiState.value.medications + med
         onMedicationsChange(newList)
     }
 
-    /** Update at index */
     fun updateMedication(index: Int, med: Medication) {
         val list = _uiState.value.medications.toMutableList().apply { this[index] = med }
         onMedicationsChange(list)
     }
 
-    /** Remove at index */
     fun removeMedication(index: Int) {
         val list = _uiState.value.medications.toMutableList().apply { removeAt(index) }
         onMedicationsChange(list)
     }
 
-    /** Save to Firestore */
     fun saveBasicInfo() {
         val state = _uiState.value
         if (user == null) return
@@ -121,14 +139,12 @@ class EditMedicalInfoViewModel : ViewModel() {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
             val data = mapOf(
                 "firstName" to state.firstName,
-                "lastName"  to state.lastName,
+                "lastName" to state.lastName,
                 "knownConditions" to state.knownConditions.map {
                     mapOf("category" to it.category, "type" to it.type)
                 },
-                "medications"     to state.medications.map {
-                    mapOf("name" to it.name, "dose" to it.dose, "frequency" to it.frequency)
-                }
-            )
+                "medications" to state.medications.map {
+                mapOf("name" to it.drug.name, "dose" to it.dosage, "frequency" to it.dosageUnit.name)            )
 
             db.collection("users")
                 .document(user.uid)
@@ -138,11 +154,10 @@ class EditMedicalInfoViewModel : ViewModel() {
                 .addOnSuccessListener {
                     _uiState.update {
                         it.copy(
-                            isSaving    = false,
+                            isSaving = false,
                             saveSuccess = true,
-                            // update initial values so hasChanges() resets
-                            initialFirstName  = state.firstName,
-                            initialLastName   = state.lastName,
+                            initialFirstName = state.firstName,
+                            initialLastName = state.lastName,
                             initialConditions = state.knownConditions,
                             initialMedications = state.medications
                         )
@@ -154,16 +169,14 @@ class EditMedicalInfoViewModel : ViewModel() {
         }
     }
 
-    /** Whether current fields differ from what we loaded */
     fun hasChanges(): Boolean {
         val s = _uiState.value
         return s.firstName != s.initialFirstName ||
-                s.lastName  != s.initialLastName ||
+                s.lastName != s.initialLastName ||
                 s.knownConditions != s.initialConditions ||
                 s.medications != s.initialMedications
     }
 
-    /** Reset saveSuccess flag after handling */
     fun clearSaveSuccess() {
         _uiState.update { it.copy(saveSuccess = false) }
     }

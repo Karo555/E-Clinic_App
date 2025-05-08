@@ -14,8 +14,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.foundation.clickable
 import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.icons.filled.ArrowDropDown
 import kotlinx.coroutines.launch
 import androidx.compose.material3.rememberModalBottomSheetState
+import com.example.e_clinic_app.data.model.DosageUnit
+import com.example.e_clinic_app.data.model.Drug
+import com.example.e_clinic_app.data.model.Frequency
+import com.example.e_clinic_app.presentation.viewmodel.MedicationsViewModel
 
 @Composable
 fun StepperBottomNavBar(
@@ -290,43 +295,43 @@ fun StepMedicalConditions(
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StepMedications(
     medications: List<Medication>,
     hasMedications: Boolean?,
     onHasMedicationsChange: (Boolean) -> Unit,
-    onMedicationsChange: (List<Medication>) -> Unit
+    onMedicationsChange: (List<Medication>) -> Unit,
+    viewModel: MedicationsViewModel = viewModel()
 ) {
-    // 1) picker options
-    val doseOptions      = listOf("50 mg", "100 mg", "200 mg", "500 mg")
-    val frequencyOptions = listOf("Daily", "Twice daily", "Weekly", "As needed")
+    val drugs by viewModel.drugs.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
-    // 2) local sheet state + control flag
+    // sheet state
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope      = rememberCoroutineScope()
-    var openSheet  by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var openSheet by remember { mutableStateOf(false) }
 
-    // 3) form‑field state
-    var medName      by remember { mutableStateOf("") }
-    var medDose      by remember { mutableStateOf("") }
-    var medFrequency by remember { mutableStateOf("") }
-    var doseExpanded by remember { mutableStateOf(false) }
-    var freqExpanded by remember { mutableStateOf(false) }
-    var showError    by remember { mutableStateOf(false) }
+    // form state
+    var selectedDrug by remember { mutableStateOf<Drug?>(null) }
+    var availableUnits by remember { mutableStateOf<List<DosageUnit>>(emptyList()) }
+    var selectedUnit by remember { mutableStateOf<DosageUnit?>(null) }
+    var commonDosages by remember { mutableStateOf<List<Double>>(emptyList()) }
+    var selectedAmount by remember { mutableStateOf<Double?>(null) }
+    var expandedDrug by remember { mutableStateOf(false) }
+    var expandedUnit by remember { mutableStateOf(false) }
+    var expandedAmount by remember { mutableStateOf(false) }
+    var selectedFrequency by remember { mutableStateOf<Frequency?>(null) }
+    var expandedFrequency by remember { mutableStateOf(false) }
+    var showError by remember { mutableStateOf(false) }
 
-    // 4) only compose the sheet when openSheet == true
     if (openSheet) {
-        // animate it open when it enters composition
         LaunchedEffect(openSheet) {
-            if (openSheet) {
-                scope.launch { sheetState.show() }
-            }
+            if (openSheet) sheetState.show()
         }
-
         ModalBottomSheet(
-            sheetState       = sheetState,
+            sheetState = sheetState,
             onDismissRequest = { openSheet = false }
         ) {
             Column(
@@ -337,40 +342,103 @@ fun StepMedications(
             ) {
                 Text("Add a Medication", style = MaterialTheme.typography.headlineSmall)
 
-                // Name field
-                OutlinedTextField(
-                    value         = medName,
-                    onValueChange = { medName = it; showError = false },
-                    label         = { Text("Name") },
-                    modifier      = Modifier.fillMaxWidth()
-                )
-
-                // Dose picker
+                // Drug picker
                 ExposedDropdownMenuBox(
-                    expanded         = doseExpanded,
-                    onExpandedChange = { doseExpanded = it }
+                    expanded = expandedDrug,
+                    onExpandedChange = { expandedDrug = it }
                 ) {
                     OutlinedTextField(
-                        value         = medDose,
-                        readOnly      = true,
+                        value = selectedDrug?.name.orEmpty(),
                         onValueChange = {},
-                        label         = { Text("Dose") },
-                        trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(doseExpanded) },
-                        modifier      = Modifier
+                        readOnly = true,
+                        label = { Text("Medication") },
+                        trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null) },
+                        modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor()
-                            .clickable { doseExpanded = true }
+                            .clickable { expandedDrug = true }
                     )
                     ExposedDropdownMenu(
-                        expanded         = doseExpanded,
-                        onDismissRequest = { doseExpanded = false }
+                        expanded = expandedDrug,
+                        onDismissRequest = { expandedDrug = false }
                     ) {
-                        doseOptions.forEach { option ->
+                        drugs.forEach { drug ->
                             DropdownMenuItem(
-                                text    = { Text(option) },
+                                text = { Text(drug.name) },
                                 onClick = {
-                                    medDose = option
-                                    doseExpanded = false
+                                    selectedDrug = drug
+                                    availableUnits = drug.availableUnits
+                                    selectedUnit = drug.availableUnits.firstOrNull()
+                                    commonDosages = drug.commonDosages[selectedUnit] ?: emptyList()
+                                    selectedAmount = commonDosages.firstOrNull()
+                                    selectedFrequency = drug.defaultFrequency
+                                    expandedDrug = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Unit picker
+                ExposedDropdownMenuBox(
+                    expanded = expandedUnit,
+                    onExpandedChange = { expandedUnit = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedUnit?.name.orEmpty(),
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Unit") },
+                        trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                            .clickable { expandedUnit = true }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedUnit,
+                        onDismissRequest = { expandedUnit = false }
+                    ) {
+                        availableUnits.forEach { unit ->
+                            DropdownMenuItem(
+                                text = { Text(unit.name) },
+                                onClick = {
+                                    selectedUnit = unit
+                                    commonDosages = selectedDrug?.commonDosages?.get(unit) ?: emptyList()
+                                    selectedAmount = commonDosages.firstOrNull()
+                                    expandedUnit = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Amount picker
+                ExposedDropdownMenuBox(
+                    expanded = expandedAmount,
+                    onExpandedChange = { expandedAmount = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedAmount?.toString().orEmpty(),
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Dose") },
+                        trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                            .clickable { expandedAmount = true }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedAmount,
+                        onDismissRequest = { expandedAmount = false }
+                    ) {
+                        commonDosages.forEach { amount ->
+                            DropdownMenuItem(
+                                text = { Text(amount.toString()) },
+                                onClick = {
+                                    selectedAmount = amount
+                                    expandedAmount = false
                                 }
                             )
                         }
@@ -379,58 +447,55 @@ fun StepMedications(
 
                 // Frequency picker
                 ExposedDropdownMenuBox(
-                    expanded         = freqExpanded,
-                    onExpandedChange = { freqExpanded = it }
+                    expanded = expandedFrequency,
+                    onExpandedChange = { expandedFrequency = it }
                 ) {
                     OutlinedTextField(
-                        value         = medFrequency,
-                        readOnly      = true,
+                        value = selectedFrequency?.name.orEmpty(),
                         onValueChange = {},
-                        label         = { Text("Frequency") },
-                        trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(freqExpanded) },
-                        modifier      = Modifier
+                        readOnly = true,
+                        label = { Text("Frequency") },
+                        trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null) },
+                        modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor()
-                            .clickable { freqExpanded = true }
+                            .clickable { expandedFrequency = true }
                     )
                     ExposedDropdownMenu(
-                        expanded         = freqExpanded,
-                        onDismissRequest = { freqExpanded = false }
+                        expanded = expandedFrequency,
+                        onDismissRequest = { expandedFrequency = false }
                     ) {
-                        frequencyOptions.forEach { option ->
+                        Frequency.values().forEach { freq ->
                             DropdownMenuItem(
-                                text    = { Text(option) },
+                                text = { Text(freq.name) },
                                 onClick = {
-                                    medFrequency = option
-                                    freqExpanded = false
+                                    selectedFrequency = freq
+                                    expandedFrequency = false
                                 }
                             )
                         }
                     }
                 }
 
-                // Rx scan placeholder
-                Button(
-                    onClick  = { /* TODO: integrate scanner */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("📷 Scan Rx (coming soon)")
-                }
-
-                if (showError) {
-                    Text("All fields are required", color = MaterialTheme.colorScheme.error)
-                }
-
-                // Save and close
                 Button(
                     onClick = {
-                        if (medName.isNotBlank() && medDose.isNotBlank() && medFrequency.isNotBlank()) {
-                            onMedicationsChange(medications + Medication(medName, medDose, medFrequency))
-                            medName      = ""
-                            medDose      = ""
-                            medFrequency = ""
-                            showError    = false
-                            openSheet    = false
+                        if (selectedDrug != null && selectedUnit != null && selectedAmount != null && selectedFrequency != null) {
+                            val newMed = Medication(
+                                drug = selectedDrug!!,
+                                amount = selectedAmount!!,
+                                unit = selectedUnit!!,
+                                frequency = selectedFrequency!!
+                            )
+                            onMedicationsChange(medications + newMed)
+                            // reset form
+                            selectedDrug = null
+                            availableUnits = emptyList()
+                            selectedUnit = null
+                            commonDosages = emptyList()
+                            selectedAmount = null
+                            selectedFrequency = null
+                            showError = false
+                            openSheet = false
                         } else {
                             showError = true
                         }
@@ -439,37 +504,38 @@ fun StepMedications(
                 ) {
                     Text("Save Medication")
                 }
+
+                if (showError) {
+                    Text("All fields must be selected", color = MaterialTheme.colorScheme.error)
+                }
             }
         }
     }
 
-    // 5) The main “Yes/No + list + FAB” screen:
+    // Main UI
     Column(
-        Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Do you take any medications?")
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Button(
-                onClick = {
-                    onHasMedicationsChange(true)
-                },
-                colors  = ButtonDefaults.buttonColors(
+                onClick = { onHasMedicationsChange(true) },
+                colors = ButtonDefaults.buttonColors(
                     containerColor = if (hasMedications == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor   = if (hasMedications == true) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    contentColor = if (hasMedications == true) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                 )
             ) { Text("Yes") }
 
             Button(
                 onClick = {
                     onHasMedicationsChange(false)
-                    openSheet = false   // make sure sheet is closed if user re‑toggles No
+                    openSheet = false
                 },
-                colors  = ButtonDefaults.buttonColors(
+                colors = ButtonDefaults.buttonColors(
                     containerColor = if (hasMedications == false) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor   = if (hasMedications == false) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    contentColor = if (hasMedications == false) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                 )
             ) { Text("No") }
         }
@@ -482,7 +548,7 @@ fun StepMedications(
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     medications.forEach { med ->
-                        Text("• ${med.name}, ${med.dose}, ${med.frequency}")
+                        Text("• ${med.drug.name}: ${med.amount} ${med.unit.name}, ${med.frequency.name}")
                     }
                 }
             }
@@ -494,12 +560,20 @@ fun StepMedications(
                         .align(Alignment.BottomEnd)
                         .padding(16.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Medication")
+                    Icon(Icons.Filled.Add, contentDescription = "Add Medication")
                 }
             }
         }
+
+        if (isLoading) {
+            CircularProgressIndicator()
+        }
+        error?.let {
+            Text("Error loading drugs: $it", color = MaterialTheme.colorScheme.error)
+        }
     }
 }
+
 
 @Composable
 fun StepReviewAndSubmit(
@@ -535,15 +609,17 @@ fun StepReviewAndSubmit(
         if (state.medications.isEmpty()) {
             Text("None provided")
         } else {
-            state.medications.forEach {
-                Text("• ${it.name}, ${it.dose}, ${it.frequency}")
+            state.medications.forEach { med: Medication ->
+                Text(
+                    "• ${med.drug.name}: ${med.amount} ${med.unit.name.lowercase()} — ${med.frequency.name.replace('_', ' ').lowercase().capitalize()}"
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (state.errorMessage != null) {
-            Text("Error: ${state.errorMessage}", color = MaterialTheme.colorScheme.error)
+        state.errorMessage?.let {
+            Text("Error: $it", color = MaterialTheme.colorScheme.error)
         }
     }
 }
