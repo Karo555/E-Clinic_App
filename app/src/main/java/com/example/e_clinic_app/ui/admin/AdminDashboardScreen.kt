@@ -6,10 +6,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.e_clinic_app.backend.home.AdminDashboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminDashboardScreen() {
+fun AdminDashboardScreen(viewModel: AdminDashboardViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Admin Dashboard") })

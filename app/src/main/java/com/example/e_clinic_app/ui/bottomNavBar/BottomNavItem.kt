@@ -1,4 +1,4 @@
-package com.example.e_clinic_app.ui.home
+package com.example.e_clinic_app.ui.bottomNavBar
 
 import androidx.compose.ui.graphics.vector.ImageVector
 
