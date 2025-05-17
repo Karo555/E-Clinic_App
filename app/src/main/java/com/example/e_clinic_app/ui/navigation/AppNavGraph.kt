@@ -1,5 +1,6 @@
 package com.example.e_clinic_app.ui.navigation
 
+import com.example.e_clinic_app.ui.chat.MessageScreen
 import AdminHomeTabScreen
 import ChatTabScreen
 import SettingsTabScreen
@@ -167,6 +168,12 @@ fun AppNavGraph(navController: NavHostController,
         composable(Routes.DOCTOR_DASHBOARD) {
             DoctorHomeTabScreen(navController, doctorHomeViewModel)
         }
+
+        composable("MessageScreen/{chatId}") { backStackEntry ->
+            val chatId = backStackEntry.arguments?.getString("chatId") ?: return@composable
+            MessageScreen(chatId)
+        }
+
 
     }
 }
