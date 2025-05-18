@@ -1,45 +1,41 @@
 package com.example.e_clinic_app.ui.auth
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.e_clinic_app.data.users.Role
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-enum class AuthMode { LOGIN, REGISTER }
-enum class UserRole { Admin, Patient, Doctor }
 
 data class AuthUiState(
     val email: String = "",
     val password: String = "",
-    val role: UserRole = UserRole.Patient,
+    val role: Role = Role.PATIENT,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val errorMessage: String? = null,
 )
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel () : ViewModel() {
+
+
+    private val db = FirebaseFirestore.getInstance()
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    private val _authMode = MutableStateFlow(AuthMode.LOGIN)
-    val authMode: StateFlow<AuthMode> = _authMode.asStateFlow()
 
     private val _passwordVisible = MutableStateFlow(false)
     val passwordVisible: StateFlow<Boolean> = _passwordVisible.asStateFlow()
 
-    fun toggleAuthMode() {
-        _authMode.value = if (_authMode.value == AuthMode.LOGIN) AuthMode.REGISTER else AuthMode.LOGIN
-    }
 
     fun onEmailChange(email: String) {
         _uiState.value = _uiState.value.copy(email = email)
@@ -49,88 +45,68 @@ class AuthViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(password = password)
     }
 
-    fun onRoleChange(role: UserRole) {
-        _uiState.value = _uiState.value.copy(role = role)
-    }
-
     fun togglePasswordVisibility() {
         _passwordVisible.value = !_passwordVisible.value
     }
 
-    fun login(onSuccess: () -> Unit) {
-        val email = _uiState.value.email.trim()
-        val password = _uiState.value.password
-
-        if (email.isBlank() || password.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Email and password must not be empty."
-            )
-            return
-        }
-
-        _uiState.value = _uiState.value.copy(
-            errorMessage = null,
-            isSuccess = false,
-            isLoading = true
-        )
-
+    fun login(
+    ) {
         viewModelScope.launch {
             try {
-                auth.signInWithEmailAndPassword(email, password).await()
-                _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
-                onSuccess()
+                val user = auth.currentUser ?: return@launch
+                val uid = user.uid
+
+                val rolePaths = listOf("patients", "doctors", "admins")
+                var role: String? = null
+
+                for (path in rolePaths) {
+                    val doc = db.collection("users_test").document(path)
+                        .collection(path).document(uid).get().await()
+                    if (doc.exists()) {
+                        role = path.removeSuffix("s")
+                        break
+                    }
+
+
+                }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = e.message)
+                _uiState.update { it.copy(errorMessage = "Login failed: ${e.message}") }
             }
         }
     }
 
-    fun register(onSuccess: () -> Unit) {
-        val email = _uiState.value.email.trim()
-        val password = _uiState.value.password
+    fun register(
+    ) {
+        viewModelScope.launch {
+            try {
+                val user = auth.currentUser ?: return@launch
+                val uid = user.uid
+                val role = _uiState.value.role.name.lowercase()
 
-        if (email.isBlank() || password.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Email and password must not be empty."
-            )
-            return
+                val userData = mapOf(
+                    "email" to user.email,
+                    "role" to role.replaceFirstChar { it.uppercase() }
+                )
+
+                db.collection("users_test").document("${role}s")
+                    .collection("${role}s").document(uid).set(userData).await()
+
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Registration failed: ${e.message}") }
+            }
         }
+    }
 
-        _uiState.value = _uiState.value.copy(
-            errorMessage = null,
-            isSuccess = false,
-            isLoading = true
-        )
+    private fun signInWithEmailAndPassword(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val email = _uiState.value.email
+        val password = _uiState.value.password
 
         viewModelScope.launch {
             try {
-                val result = auth.createUserWithEmailAndPassword(email, password).await()
-                Log.d("AuthViewModel", "Firebase user created")
-
-                val uid = result.user?.uid
-                if (uid == null) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "User ID is null. Registration failed."
-                    )
-                    return@launch
-                }
-
-                val userMap = mapOf(
-                    "email" to email,
-                    "role" to _uiState.value.role.name,
-                    "createdAt" to System.currentTimeMillis()
-                )
-
-                firestore.collection("users").document(uid).set(userMap).await()
-
-                Log.d("AuthViewModel", "User data saved to Firestore")
-                _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
+                auth.signInWithEmailAndPassword(email, password).await()
                 onSuccess()
-
             } catch (e: Exception) {
-                Log.e("AuthViewModel", "Registration failed: ${e.message}")
-                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = e.message)
+                onError(e.message ?: "Sign-in failed")
             }
         }
     }

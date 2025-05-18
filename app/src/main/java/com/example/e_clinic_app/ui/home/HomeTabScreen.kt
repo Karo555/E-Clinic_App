@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
+import com.example.e_clinic_app.ui.navigation.Routes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -78,6 +79,7 @@ fun HomeTabScreen(navController: NavController) {
         // Handle case where user is not logged in
         isLoading.value = false
         fullName.value = "No user logged in"
+        navController.navigate(Routes.LOGIN_SCREEN)
     }
 
     // Navigate based on role once data is loaded

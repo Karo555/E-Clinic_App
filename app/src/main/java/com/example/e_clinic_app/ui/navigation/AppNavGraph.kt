@@ -11,7 +11,9 @@ import androidx.navigation.compose.composable
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
 import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
-import com.example.e_clinic_app.ui.auth.AuthScreen
+import com.example.e_clinic_app.ui.auth.AuthViewModel
+import com.example.e_clinic_app.ui.auth.LoginScreen
+import com.example.e_clinic_app.ui.auth.RegisterScreen
 import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
@@ -30,12 +32,14 @@ import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
  * @param doctorHomeViewModel An instance of DoctorHomeViewModel used for managing state related to the doctor dashboard.
  */
 @Composable
-fun AppNavGraph(navController: NavHostController,
-                startDestination: String,
-                patientDashboardViewModel: PatientDashboardViewModel = PatientDashboardViewModel() ,
-                doctorHomeViewModel: DoctorHomeViewModel = DoctorHomeViewModel()) {
+fun AppNavGraph(
+    navController: NavHostController,
+    patientDashboardViewModel: PatientDashboardViewModel = PatientDashboardViewModel(),
+    doctorHomeViewModel: DoctorHomeViewModel = DoctorHomeViewModel()
+) {
+    val startDestination = Routes.HOME
 
-    Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination")
+    Log.d("AppNavGraph", "Initializing NavHost with startDestination  $startDestination")
 
     NavHost(navController = navController, startDestination = startDestination) {
 
@@ -44,61 +48,25 @@ fun AppNavGraph(navController: NavHostController,
             HomeTabScreen(navController = navController)
         }
         // Chat screen
-        composable(Routes.CHAT_TAB){
+        composable(Routes.CHAT_TAB) {
             ChatTabScreen(navController = navController)
         }
         // Settings screen
-        composable(Routes.SETTINGS_TAB){
+        composable(Routes.SETTINGS_TAB) {
             SettingsTabScreen(navController = navController)
         }
+        composable(Routes.REGISTER) {
+            RegisterScreen(navController = navController, viewModel = AuthViewModel())
+        }
 
-        // Defines a composable function for the authentication screen and its navigation logic.
-        composable(Routes.AUTH) {
-            AuthScreen(
-                // Navigates to the Medical Intro screen and removes the Auth screen from the back stack.
-                onNavigateToFirstLogin = {
-                    navController.navigate(Routes.MEDICAL_INTRO) {
-                        popUpTo(Routes.AUTH) { inclusive = true }
-                    }
-                },
-                // Navigates to the Doctor First Login screen and removes the Auth screen from the back stack.
-                onNavigateToDoctorFirstLogin = {
-                    navController.navigate(Routes.DOCTOR_FIRST_LOGIN) {
-                        popUpTo(Routes.AUTH) { inclusive = true }
-                    }
-                },
-                // Navigates to the Home screen and removes the Auth screen from the back stack.
-                onNavigateToHome = {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.AUTH) { inclusive = true }
-                    }
-                },
-                // Navigates to the Global Admin Dashboard screen and removes the Auth screen from the back stack.
-                onNavigateToGlobalAdminDashboard = {
-                    navController.navigate(Routes.GLOBAL_ADMIN_DASHBOARD) {
-                        popUpTo(Routes.AUTH) { inclusive = true }
-                    }
-                },
-                // Navigates to the Institution Admin Dashboard screen and removes the Auth screen from the back stack.
-                onNavigateToInstitutionAdminDashboard = {
-                    navController.navigate(Routes.INSTITUTION_ADMIN_DASHBOARD) {
-                        popUpTo(Routes.AUTH) { inclusive = true }
-                    }
-                },
-                // Navigates to the Reset Password screen.
-                onNavigateToResetPassword = {
-                    navController.navigate(Routes.RESET_PASSWORD)
-                }
-            )
+        composable(Routes.LOGIN_SCREEN){
+            LoginScreen(navController = navController, viewModel = AuthViewModel())
         }
 
         // Defines a composable function for the Reset Password screen and its navigation logic.
         composable(Routes.RESET_PASSWORD) {
             ResetPasswordScreen(
-                // Navigates back to the previous screen in the navigation stack.
-                onBackToLogin = {
-                    navController.popBackStack()
-                }
+                navController = navController
             )
         }
 

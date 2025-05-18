@@ -6,6 +6,8 @@ object Routes {
     const val MEDICAL_INTRO = "medical_intro"
     const val FIRST_LOGIN = "first_login"
     const val DOCTOR_FIRST_LOGIN = "doctor_first_login"
+    const val REGISTER = "register"
+    const val LOGIN_SCREEN = "login"
 
     //post log in
     const val HOME = "home"

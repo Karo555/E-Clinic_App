@@ -9,12 +9,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.e_clinic_app.ui.navigation.Routes
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResetPasswordScreen(
-    onBackToLogin: () -> Unit,
+    navController: NavController,
     viewModel: AuthViewModel = viewModel()
 ) {
     val focusManager = LocalFocusManager.current
@@ -102,7 +104,7 @@ fun ResetPasswordScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        TextButton(onClick = onBackToLogin) {
+        TextButton(onClick = {navController.navigate(Routes.LOGIN_SCREEN)}) {
             Text("← Back to Login")
         }
     }
