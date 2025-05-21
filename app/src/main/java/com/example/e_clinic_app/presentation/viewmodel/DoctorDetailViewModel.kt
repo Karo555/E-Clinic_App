@@ -63,7 +63,7 @@ class DoctorDetailViewModel(
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             runCatching {
-                // Fetch profile sub-doc
+                // 1️⃣ Fetch profile sub-doc
                 val profileSnap = firestore.collection("users")
                     .document(doctorId)
                     .collection("profile")
@@ -73,7 +73,20 @@ class DoctorDetailViewModel(
                     .firstOrNull()
                     ?: error("Profile for doctor $doctorId not found")
 
-                // Map to Doctor model
+                // 2️⃣ Parse weeklySchedule map
+                @Suppress("UNCHECKED_CAST")
+                val rawSchedule: Map<String, List<String>> =
+                    (profileSnap.get("weeklySchedule") as? Map<*, *>)?.mapNotNull { (k, v) ->
+                        val day = k as? String
+                        val times: List<String>? = when (v) {
+                            is List<*>  -> v.filterIsInstance<String>()
+                            is Array<*> -> v.filterIsInstance<String>()
+                            else        -> null
+                        }
+                        if (day != null && times != null) day to times else null
+                    }?.toMap() ?: emptyMap()
+
+                // 3️⃣ Build Doctor model with schedule
                 val doctor = Doctor(
                     id               = doctorId,
                     firstName        = profileSnap.getString("firstName") ?: "",
@@ -81,23 +94,10 @@ class DoctorDetailViewModel(
                     specialisation   = profileSnap.getString("specialisation") ?: "",
                     institutionName  = profileSnap.getString("institutionName") ?: "",
                     experienceYears  = profileSnap.getLong("experienceYears")?.toInt() ?: 0,
-                    availability     = profileSnap.getBoolean("availability") == true,
-                    weeklySchedule = profileSnap.get("weeklySchedule") as? Map<String, Array<String>> ?: emptyMap())
-                // Parse weeklySchedule map
-                @Suppress("UNCHECKED_CAST")
-                val rawSchedule: Map<String, List<String>> =
-                         (profileSnap.get("weeklySchedule") as? Map<*, *>)?.mapNotNull { (k, v) ->
-                                 val day = k as? String
-                                 val times: List<String>? = when (v) {
-                                         is List<*>  -> v.filterIsInstance<String>()
-                                         is Array<*> -> v.filterIsInstance<String>()
-                                         else        -> null
-                                     }
-                                 if (day != null && times != null) day to times else null
-                             }?.toMap() ?: emptyMap()
+                    availability     = profileSnap.getBoolean("availability") == true
+                )
 
-
-                // Compute concrete slots for next 7 days
+                // 4️⃣ Expand into slots for next 7 days
                 val zone = ZoneId.of("Europe/Warsaw")
                 val now = LocalDateTime.now(zone)
                 val today = LocalDate.now(zone)
@@ -106,8 +106,7 @@ class DoctorDetailViewModel(
                     val date = today.plusDays(offset.toLong())
                     val dayKey = date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
                     val times = rawSchedule[dayKey].orEmpty()
-                    Log.d("DoctorDetailVM", "Day $dayKey → ${times.joinToString()}")
-                    for (timeStr in times) {
+                    times.forEach { timeStr ->
                         runCatching {
                             val lt = LocalTime.parse(timeStr)
                             val dt = LocalDateTime.of(date, lt)
@@ -119,16 +118,25 @@ class DoctorDetailViewModel(
                 }
                 slots.sort()
 
-                // DEBUG: log out all computed slots
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-                Log.d(
-                    "DoctorDetailVM",
-                    "Computed slots for doctor $doctorId: ${
-                        slots.joinToString { it.format(formatter) }
-                    }"
-                )
+                // 5️⃣ Fetch confirmed future appointments and subtract
+                val nowTs = Timestamp.now()
+                val apptsSnap = firestore.collection("appointments")
+                    .whereEqualTo("doctorId", doctorId)
+                    .whereEqualTo("status", "CONFIRMED")
+                    .whereGreaterThanOrEqualTo("date", nowTs)
+                    .get().await()
 
-                doctor to slots
+                val bookedDates = apptsSnap.documents.mapNotNull { doc ->
+                    doc.getTimestamp("date")
+                        ?.toDate()
+                        ?.toInstant()
+                        ?.atZone(zone)
+                        ?.toLocalDateTime()
+                }.toSet()
+
+                val availableSlots = slots.filterNot { it in bookedDates }.sorted()
+
+                doctor to availableSlots
             }.onSuccess { (doctor, slots) ->
                 _uiState.value = UiState.Success(doctor, slots)
             }.onFailure { error ->
@@ -138,10 +146,13 @@ class DoctorDetailViewModel(
         }
     }
 
+
     /**
      * Books an appointment at the given slot (instant booking).
      */
+
     fun bookAppointment(slot: LocalDateTime) {
+        Log.d("DoctorDetailVM", "bookAppointment() called with $slot")
         viewModelScope.launch {
             try {
                 val userId = Firebase.auth.currentUser?.uid
@@ -149,10 +160,10 @@ class DoctorDetailViewModel(
                 val instant = slot.atZone(ZoneId.of("Europe/Warsaw")).toInstant()
                 val timestamp = Timestamp(instant.epochSecond, instant.nano)
                 val appt = mapOf(
-                    "doctorId" to doctorId,
+                    "doctorId"  to doctorId,
                     "patientId" to userId,
-                    "date" to timestamp,
-                    "status" to "PENDING"
+                    "date"      to timestamp,
+                    "status"    to "CONFIRMED"    // changed from "PENDING"
                 )
                 firestore.collection("appointments")
                     .add(appt).await()
@@ -162,6 +173,7 @@ class DoctorDetailViewModel(
             }
         }
     }
+
 
     companion object {
         fun provideFactory(
