@@ -36,7 +36,7 @@ E-Clinic App is a Kotlin-based mobile application designed to streamline clinic 
 - Gradle 7.0 or higher
 
 ### Documentation
-- [Chat Decisions — Implementation](https://github.com/timGalk/E-Clinic_App.git/docs/architecture/chat-decisions.md)
+- [Chat Decisions — Implementation](https://github.com/Karo555/E-Clinic_App/blob/chat/docs/architecture/chat-decisions.md)
 
 ### Installation
 
