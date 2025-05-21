@@ -7,35 +7,42 @@ import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.awaitAll
+import android.util.Log
 
 object DoctorRepository {
     suspend fun fetchAvailableDoctors(): List<Doctor> = coroutineScope {
+        Log.d("DoctorRepo", "Starting fetchAvailableDoctors()")
         val db = Firebase.firestore
-        val doctorsSnap = db.collection("users")
-            .whereEqualTo("role", "doctor")
+        val doctorsSnap = try {db.collection("users")
+            .whereEqualTo("role", "Doctor")
             .get().await()
+            .also { Log.d("DoctorRepo", "Fetched ${it.size()} user docs") }}
+        catch (e: Exception) {
+            Log.e("DoctorRepo", "Error fetching user docs: ${e.message}")
+            return@coroutineScope emptyList<Doctor>()
+        }
 
         // Parallel-fetch each profile sub-doc (only 1 expected per doctor)
         doctorsSnap.documents.mapNotNull { userDoc ->
             async {
                 val profileSnap = userDoc.reference
-                    .collection("profile")
+                    .collection("users")
                     .limit(1)      // safeguard
                     .get().await()
                     .documents.firstOrNull()
 
-                profileSnap?.let { p ->
-                    if (p.getBoolean("availability") == true) {
-                        Doctor(
-                            id = userDoc.id,
-                            firstName       = p.getString("firstName") ?: "",
-                            lastName        = p.getString("lastName") ?: "",
-                            specialisation  = p.getString("specialisation") ?: "",
-                            institutionName = p.getString("institutionName") ?: "",
-                            experienceYears = p.getLong("experienceYears")?.toInt() ?: 0,
-                            availability    = true
-                        )
-                    } else null
+                profileSnap?.takeIf { it.getBoolean("availability") == true }?.let { p ->
+                    val doctor = Doctor(
+                        id = userDoc.id,
+                        firstName       = p.getString("firstName") ?: "",
+                        lastName        = p.getString("lastName") ?: "",
+                        specialisation  = p.getString("specialisation") ?: "",
+                        institutionName = p.getString("institutionName") ?: "",
+                        experienceYears = p.getLong("experienceYears")?.toInt() ?: 0,
+                        availability    = true
+                    )
+                    Log.d("DoctorRepo", "Created Doctor object: $doctor")
+                    doctor
                 }
             }
         }.awaitAll().filterNotNull()
