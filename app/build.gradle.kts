@@ -50,6 +50,8 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.generativeai)
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.messaging)
     debugImplementation(libs.ui.tooling)
     implementation(libs.androidx.material.icons.extended)
 

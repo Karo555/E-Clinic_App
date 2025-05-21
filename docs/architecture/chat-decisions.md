@@ -29,3 +29,16 @@ Story 1 requires a Firestore‐backed chat between patients and doctors. Before 
 * Commit this file to `/docs/architecture/chat-decisions.md`.
 * Reference in PR templates and README.
 * Review periodically as new chat features are proposed.
+
+## Database schema
+MESSAGES {
+string id PK
+string text
+string senderId
+string senderRole
+datetime timestamp
+string visitId
+string status
+string[] attachments
+boolean isSystem
+}
