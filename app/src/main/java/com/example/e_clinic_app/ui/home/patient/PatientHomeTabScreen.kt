@@ -224,7 +224,7 @@ fun PatientHomeTabScreen(
                                     modifier = Modifier
                                         .width(160.dp)
                                         .clickable {
-                                            navController.navigate("doctorDetail/${doctor.id}")
+                                            navController.navigate("doctor_detail/${doctor.id}")
                                         },
                                     shape = RoundedCornerShape(16.dp)
                                 ) {
