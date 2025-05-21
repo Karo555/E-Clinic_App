@@ -1,31 +1,34 @@
 package com.example.e_clinic_app.ui.home.patient
 
-import java.time.format.DateTimeFormatter
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Text
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.compose.foundation.lazy.items
-import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
+import java.time.format.DateTimeFormatter
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +37,8 @@ fun DoctorDetailScreen(
     viewModel: DoctorDetailViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -48,7 +53,8 @@ fun DoctorDetailScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -69,10 +75,7 @@ fun DoctorDetailScreen(
                     )
                 }
                 is DoctorDetailViewModel.UiState.Success -> {
-                    val successState = uiState as DoctorDetailViewModel.UiState.Success
-                    val doctor = successState.doctor
-                    val slots = successState.slots
-
+                    val (doctor, slots) = uiState as DoctorDetailViewModel.UiState.Success
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -101,7 +104,10 @@ fun DoctorDetailScreen(
                         Spacer(Modifier.height(8.dp))
 
                         if (slots.isEmpty()) {
-                            Text("No slots available", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "No slots available",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         } else {
                             val grouped = slots.groupBy { it.toLocalDate() }
                             LazyColumn(
@@ -109,7 +115,6 @@ fun DoctorDetailScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 grouped.forEach { (date, dateSlots) ->
-                                    // Day header
                                     item {
                                         Text(
                                             text = date.format(DateTimeFormatter.ofPattern("EEE, MMM d")),
@@ -118,18 +123,25 @@ fun DoctorDetailScreen(
                                             modifier = Modifier.padding(vertical = 4.dp)
                                         )
                                     }
-                                    // Each slot
                                     items(dateSlots) { slot ->
                                         ElevatedCard(
-                                            onClick = { viewModel.bookAppointment(slot) },
                                             modifier = Modifier
-                                                .fillMaxWidth(),
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    viewModel.bookAppointment(slot)
+                                                    coroutineScope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            "Appointment booked for ${slot.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))}"
+                                                        )
+                                                        navController.popBackStack()
+                                                    }
+                                                },
                                             shape = RoundedCornerShape(8.dp)
                                         ) {
                                             Text(
                                                 text = slot.format(DateTimeFormatter.ofPattern("HH:mm")),
                                                 modifier = Modifier.padding(12.dp),
-                                                style = MaterialTheme.typography.bodyMedium,
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
                                     }

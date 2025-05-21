@@ -1,6 +1,8 @@
 package com.example.e_clinic_app.presentation.viewmodel
 
 import android.util.Log
+import androidx.compose.material.SnackbarHostState
+import androidx.compose.runtime.remember
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -46,6 +48,7 @@ class DoctorDetailViewModel(
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+    val snackbarHostState = SnackbarHostState()
 
     private val doctorId: String = checkNotNull(
         savedStateHandle.get<String>("doctorId")
