@@ -45,7 +45,8 @@ object DoctorRepository {
                         "DoctorRepo",
                         "Created Doctor object: id=${doctor.id}, name=${doctor.firstName} ${doctor.lastName}, " +
                                 "specialisation=${doctor.specialisation}, institution=${doctor.institutionName}, " +
-                                "experienceYears=${doctor.experienceYears}"
+                                "experienceYears=${doctor.experienceYears}" + ", weeklySchedule=${doctor.weeklySchedule}"
+
                     )
                     doctor
                 } ?: run {

@@ -1,8 +1,6 @@
 package com.example.e_clinic_app.ui.firstlogin
 
 import androidx.compose.foundation.text.KeyboardOptions
-
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
@@ -19,15 +17,13 @@ import com.example.e_clinic_app.data.institutionsByCity
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorFirstLoginScreen(
     onSubmitSuccess: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val daysOfWeek =
-        listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
     val specializationOptions = listOf(
         "Cardiology", "Dermatology", "Endocrinology", "Gastroenterology", "General Practice",
@@ -36,7 +32,6 @@ fun DoctorFirstLoginScreen(
         "Surgery", "Urology"
     )
 
-    // doctor profile fields
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var specialization by remember { mutableStateOf("") }
@@ -45,26 +40,21 @@ fun DoctorFirstLoginScreen(
     var bio by remember { mutableStateOf("") }
     var availableDays by remember { mutableStateOf(setOf<String>()) }
 
-    // error message
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSubmitting by remember { mutableStateOf(false) }
 
-    //city dropdown
     var selectedCity by remember { mutableStateOf("") }
     var isCityDropdownExpanded by remember { mutableStateOf(false) }
     val cityList = institutionsByCity.keys.toList()
 
-    //institutions
     var selectedInstitutionName by remember { mutableStateOf("") }
     var selectedInstitutionId by remember { mutableStateOf<String?>(null) }
     var isInstitutionDropdownExpanded by remember { mutableStateOf(false) }
     val institutionsInSelectedCity = institutionsByCity[selectedCity] ?: emptyList()
 
-    // dropdown state
     var specializationExpanded by remember { mutableStateOf(false) }
     val filteredSpecializations = specializationOptions.filter {
         it.contains(specialization, ignoreCase = true)
-
     }
 
     fun isValid(): Boolean {
@@ -79,10 +69,9 @@ fun DoctorFirstLoginScreen(
     }
 
     val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Doctor Profile Setup") })
-        }
+        topBar = { TopAppBar(title = { Text("Doctor Profile Setup") }) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -91,7 +80,6 @@ fun DoctorFirstLoginScreen(
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Placeholder for ID upload
             Button(
                 onClick = { /* future implementation */ },
                 modifier = Modifier.fillMaxWidth()
@@ -127,7 +115,7 @@ fun DoctorFirstLoginScreen(
                         specialization = it
                         specializationExpanded = true
                     },
-                    label = { Text("Specialization *") },
+                    label = { Text("Specialisation *") },
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth(),
@@ -173,7 +161,6 @@ fun DoctorFirstLoginScreen(
                 isError = licenseNumber.isBlank()
             )
 
-            //city dropdown
             ExposedDropdownMenuBox(
                 expanded = isCityDropdownExpanded,
                 onExpandedChange = { isCityDropdownExpanded = !isCityDropdownExpanded }
@@ -211,13 +198,10 @@ fun DoctorFirstLoginScreen(
                 }
             }
 
-            //institution dropdown
             if (selectedCity.isNotBlank()) {
                 ExposedDropdownMenuBox(
                     expanded = isInstitutionDropdownExpanded,
-                    onExpandedChange = {
-                        isInstitutionDropdownExpanded = !isInstitutionDropdownExpanded
-                    }
+                    onExpandedChange = { isInstitutionDropdownExpanded = !isInstitutionDropdownExpanded }
                 ) {
                     OutlinedTextField(
                         value = selectedInstitutionName,
@@ -251,7 +235,6 @@ fun DoctorFirstLoginScreen(
                 }
             }
 
-
             OutlinedTextField(
                 value = bio,
                 onValueChange = { bio = it },
@@ -284,53 +267,47 @@ fun DoctorFirstLoginScreen(
             errorMessage?.let {
                 Text(it, color = MaterialTheme.colorScheme.error)
             }
-
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = {
                     errorMessage = null
-
                     if (!isValid()) {
                         errorMessage = "Please correct all required fields."
                         return@Button
                     }
-
                     isSubmitting = true
                     val currentUser = FirebaseAuth.getInstance().currentUser
                     val db = FirebaseFirestore.getInstance()
-
                     if (currentUser == null) {
                         isSubmitting = false
                         errorMessage = "User session expired."
                         return@Button
                     }
-
                     coroutineScope.launch {
                         try {
                             val doctorInfo = mapOf(
-                                "firstName" to firstName.trim(),
-                                "lastName" to lastName.trim(),
-                                "specialization" to specialization.trim(),
+                                "firstName"       to firstName.trim(),
+                                "lastName"        to lastName.trim(),
+                                "specialisation"  to specialization.trim(),
                                 "experienceYears" to experienceYears.toInt(),
-                                "licenseNumber" to licenseNumber.trim(),
+                                "licenseNumber"   to licenseNumber.trim(),
                                 "institutionName" to selectedInstitutionName,
-                                "bio" to bio.trim(),
-                                "availability" to availableDays.isNotEmpty(),
-                                "submittedAt" to System.currentTimeMillis()
+                                "bio"             to bio.trim(),
+                                "availability"    to availableDays.isNotEmpty(),
+                                "weeklySchedule"  to availableDays.associateWith { emptyList<String>() },
+                                "submittedAt"     to System.currentTimeMillis()
                             )
 
                             val rootData = mapOf(
                                 "institutionId" to selectedInstitutionId,
-                                "updatedAt" to System.currentTimeMillis()
+                                "updatedAt"     to System.currentTimeMillis()
                             )
 
-                            // Update root document
                             db.collection("users").document(currentUser.uid)
                                 .update(rootData)
                                 .await()
 
-                            // Save doctor profile
                             db.collection("users")
                                 .document(currentUser.uid)
                                 .collection("profile")
@@ -352,7 +329,6 @@ fun DoctorFirstLoginScreen(
                 Text("Save & Continue")
             }
 
-            // Preview card
             Divider(modifier = Modifier.padding(vertical = 16.dp))
 
             Text("🔍 Preview", style = MaterialTheme.typography.titleMedium)
@@ -363,7 +339,7 @@ fun DoctorFirstLoginScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Dr. $firstName $lastName", style = MaterialTheme.typography.titleLarge)
-                    Text("Specialization: $specialization")
+                    Text("Specialisation: $specialization")
                     Text("Institution: $selectedInstitutionName")
                     Text("Experience: ${experienceYears.toIntOrNull() ?: "-"} years")
                     Text("Available Days: ${availableDays.joinToString()}")
