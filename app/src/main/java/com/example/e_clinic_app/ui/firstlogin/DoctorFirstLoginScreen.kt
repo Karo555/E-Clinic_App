@@ -316,7 +316,7 @@ fun DoctorFirstLoginScreen(
                                 "licenseNumber" to licenseNumber.trim(),
                                 "institutionName" to selectedInstitutionName,
                                 "bio" to bio.trim(),
-                                "availability" to mapOf("days" to availableDays.toList()),
+                                "availability" to availableDays.isNotEmpty(),
                                 "submittedAt" to System.currentTimeMillis()
                             )
 

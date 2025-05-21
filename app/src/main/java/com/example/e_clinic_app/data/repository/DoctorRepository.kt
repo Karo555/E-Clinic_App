@@ -26,14 +26,14 @@ object DoctorRepository {
         doctorsSnap.documents.mapNotNull { userDoc ->
             async {
                 val profileSnap = userDoc.reference
-                    .collection("users")
-                    .limit(1)      // safeguard
+                    .collection("profile")
+                    .limit(1)
                     .get().await()
-                    .documents.firstOrNull()
-
-                profileSnap?.takeIf { it.getBoolean("availability") == true }?.let { p ->
+                    .documents
+                    .firstOrNull()
+                val doctorOrNull = profileSnap?.takeIf { it.getBoolean("availability") == true }?.let { p ->
                     val doctor = Doctor(
-                        id = userDoc.id,
+                        id              = userDoc.id,
                         firstName       = p.getString("firstName") ?: "",
                         lastName        = p.getString("lastName") ?: "",
                         specialisation  = p.getString("specialisation") ?: "",
@@ -41,9 +41,18 @@ object DoctorRepository {
                         experienceYears = p.getLong("experienceYears")?.toInt() ?: 0,
                         availability    = true
                     )
-                    Log.d("DoctorRepo", "Created Doctor object: $doctor")
+                    Log.d(
+                        "DoctorRepo",
+                        "Created Doctor object: id=${doctor.id}, name=${doctor.firstName} ${doctor.lastName}, " +
+                                "specialisation=${doctor.specialisation}, institution=${doctor.institutionName}, " +
+                                "experienceYears=${doctor.experienceYears}"
+                    )
                     doctor
+                } ?: run {
+                    Log.d("DoctorRepo", "Skipped doctor ${userDoc.id}: no profile or not available")
+                    null
                 }
+                doctorOrNull
             }
         }.awaitAll().filterNotNull()
     }
