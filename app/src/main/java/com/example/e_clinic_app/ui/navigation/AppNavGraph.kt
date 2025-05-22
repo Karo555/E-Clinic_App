@@ -26,6 +26,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
+import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
+import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
 
 /**
  * Configures and initializes the navigation graph for the application.
@@ -188,6 +190,17 @@ fun AppNavGraph(navController: NavHostController,
             DoctorDetailScreen(
                 navController = navController,
                 viewModel = viewModel
+            )
+        }
+
+        //availability setup screen
+        // Set Availability screen
+        composable(Routes.SET_AVAILABILITY) {
+            // Provide the ViewModel for availability editing
+            val availabilityVM: DoctorAvailabilityViewModel = viewModel()
+            SetAvailabilityScreen(
+                navController = navController,
+                viewModel = availabilityVM
             )
         }
 

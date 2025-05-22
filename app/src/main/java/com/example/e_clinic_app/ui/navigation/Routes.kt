@@ -31,4 +31,7 @@ object Routes {
     const val CHAT_TAB = "chat_tab"
     const val VISITS_TAB = "visits_tab"
     const val SETTINGS_TAB = "settings_tab"
+
+    //setting availability
+    const val SET_AVAILABILITY = "set_availability"
 }
