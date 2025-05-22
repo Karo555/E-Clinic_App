@@ -18,9 +18,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.example.e_clinic_app.data.model.Patient
 
-/**
- * ViewModel to load upcoming appointments for patient or doctor.
- */
 class AppointmentsViewModel(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
     private val filterField: String
@@ -42,9 +39,6 @@ class AppointmentsViewModel(
         loadAppointments()
     }
 
-    /**
-     * Fetches all confirmed, future appointments for current user.
-     */
     fun loadAppointments() {
         val uid = currentUserId ?: return
         viewModelScope.launch {
@@ -57,51 +51,44 @@ class AppointmentsViewModel(
                     .whereEqualTo("status", "CONFIRMED")
                     .whereGreaterThanOrEqualTo("date", now)
                     .orderBy("date")
-                    .get().await()
+                    .get()
+                    .await()
 
-                val list = snaps.documents.map { doc ->
-                    // Appointment ID
+                    val list = snaps.documents.map { doc ->
+                    // Appointment ID (Firestore auto-ID as String)
                     val apptId = doc.id
-                    Log.d("ApptVM", "Appointment doc.id = ${doc.id}")
-                    Log.d("ApptVM", "patientId field    = ${doc.getString("patientId")}")
 
-
-
-                    // Doctor object (fetch profile)
-                    val docUid = doc.getString("doctorId")!!
-                    val docProfileSnap = firestore.collection("users")
-                        .document(docUid)
-                        .collection("profile")
-                        .limit(1)
-                        .get().await()
-                        .documents.firstOrNull()
-                        ?: error("Doctor profile not found for $docUid")
+                    // Read embedded doctor name fields
+                    val docUid   = doc.getString("doctorId")!!
+                    val docFirst = doc.getString("doctorFirstName") ?: ""
+                    val docLast  = doc.getString("doctorLastName")  ?: ""
                     val doctor = Doctor(
-                        id = docUid,
-                        firstName = docProfileSnap.getString("firstName") ?: "",
-                        lastName = docProfileSnap.getString("lastName") ?: "",
-                        specialisation = docProfileSnap.getString("specialisation") ?: "",
-                        institutionName = docProfileSnap.getString("institutionName") ?: "",
-                        experienceYears = docProfileSnap.getLong("experienceYears")?.toInt() ?: 0,
-                        availability = docProfileSnap.getBoolean("availability") == true,
-                        weeklySchedule = emptyMap()
+                        id              = docUid,
+                        firstName       = docFirst,
+                        lastName        = docLast,
+                        specialisation  = "",
+                        institutionName = "",
+                        experienceYears = 0,
+                        availability    = false,
+                        weeklySchedule  = emptyMap()
                     )
 
-                    // Patient object (minimal)
+                    // Patient holds only the ID for now
                     val patUid = doc.getString("patientId")!!
                     val patient = Patient(id = patUid)
 
                     // Date and status
-                    val date = doc.getTimestamp("date")!!
+                    val date   = doc.getTimestamp("date")!!
                     val status = AppointmentStatus.valueOf(doc.getString("status")!!)
 
                     Appointment(
-                        id = apptId,
-                        doctorId = doctor.id,
+                        id        = apptId,
+                        doctorId  = doctor.id,
                         patientId = patient.id,
-                        date = date,
-                        status = status,
-                        extraData = emptyMap()
+                        date      = date,
+                        status    = status,
+                        doctorFirstName = doctor.firstName,
+                        doctorLastName = doctor.lastName
                     )
                 }
 
@@ -116,19 +103,14 @@ class AppointmentsViewModel(
     }
 
     companion object {
-        /**
-         * Factory for patient view (filter by patientId)
-         */
+        /** Factory that sets filterField = "patientId" **/
         fun factoryForPatient() = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return AppointmentsViewModel(filterField = "patientId") as T
             }
         }
-
-        /**
-         * Factory for doctor view (filter by doctorId)
-         */
+        /** Factory that sets filterField = "doctorId" **/
         fun factoryForDoctor() = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {

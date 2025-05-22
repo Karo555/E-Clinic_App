@@ -8,5 +8,6 @@ data class Appointment(
     val patientId: String,
     val date:Timestamp,
     val status:AppointmentStatus,
-    val extraData: Map<String, Any>
+    val doctorFirstName: String,
+    val doctorLastName: String
 )

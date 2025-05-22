@@ -8,6 +8,6 @@ data class Doctor(
     val institutionName: String = "",
     val experienceYears: Int = 0,
     val availability: Boolean = false,
-    val weeklySchedule: Map<String, Array<String>> = emptyMap()
+    val weeklySchedule: Map<String, List<String>>
 )
 

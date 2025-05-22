@@ -33,13 +33,14 @@ object DoctorRepository {
                     .firstOrNull()
                 val doctorOrNull = profileSnap?.takeIf { it.getBoolean("availability") == true }?.let { p ->
                     val doctor = Doctor(
-                        id              = userDoc.id,
-                        firstName       = p.getString("firstName") ?: "",
-                        lastName        = p.getString("lastName") ?: "",
-                        specialisation  = p.getString("specialisation") ?: "",
+                        id = userDoc.id,
+                        firstName = p.getString("firstName") ?: "",
+                        lastName = p.getString("lastName") ?: "",
+                        specialisation = p.getString("specialisation") ?: "",
                         institutionName = p.getString("institutionName") ?: "",
                         experienceYears = p.getLong("experienceYears")?.toInt() ?: 0,
-                        availability    = true
+                        availability = true,
+                        weeklySchedule = p.get("weeklySchedule") as? Map<String, List<String>> ?: emptyMap()
                     )
                     Log.d(
                         "DoctorRepo",
