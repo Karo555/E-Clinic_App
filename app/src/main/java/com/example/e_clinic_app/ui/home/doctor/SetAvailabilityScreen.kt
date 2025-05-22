@@ -1,6 +1,7 @@
 package com.example.e_clinic_app.ui.home.doctor
 
 import android.app.TimePickerDialog
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -29,24 +30,20 @@ fun SetAvailabilityScreen(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Local editable ranges: day -> Pair<start,end>
     val daysOfWeek = listOf(
-        "Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
     )
     val formatter = DateTimeFormatter.ofPattern("HH:mm")
-    val ranges = remember { mutableStateMapOf<String, Pair<LocalTime?,LocalTime?>>() }
+    val ranges = remember { mutableStateMapOf<String, Pair<LocalTime?, LocalTime?>>() }
 
-    // Initialize from loaded schedule
     LaunchedEffect(schedule) {
         daysOfWeek.forEach { day ->
             val times = schedule[day].orEmpty()
-            if (times.isNotEmpty()) {
+            ranges[day] = if (times.isNotEmpty()) {
                 val start = LocalTime.parse(times.first(), formatter)
                 val end = LocalTime.parse(times.last(), formatter)
-                ranges[day] = Pair(start,end)
-            } else {
-                ranges[day] = Pair(null, null)
-            }
+                Pair(start, end)
+            } else Pair(null, null)
         }
     }
 
@@ -72,65 +69,76 @@ fun SetAvailabilityScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(day, modifier = Modifier.width(80.dp))
-                            val (currentStart, currentEnd) = ranges[day] ?: Pair(null,null)
+                            val (currentStart, currentEnd) = ranges[day] ?: Pair(null, null)
 
-                            // Start time picker
-                            OutlinedTextField(
-                                value = currentStart?.format(formatter) ?: "",
-                                onValueChange = {},
-                                label = { Text("Start") },
+                            // Start Time Picker
+                            Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable {
+                                        Log.d("SetAvailabilityScreen", "Tapped Start for $day")
                                         val now = LocalTime.now()
                                         TimePickerDialog(
                                             context,
                                             { _, h, m ->
-                                                ranges[day] = Pair(LocalTime.of(h,m), ranges[day]?.second)
+                                                ranges[day] = Pair(LocalTime.of(h, m), currentEnd)
                                             },
                                             currentStart?.hour ?: now.hour,
                                             currentStart?.minute ?: now.minute,
                                             true
                                         ).show()
-                                    },
-                                readOnly = true
-                            )
+                                    }
+                            ) {
+                                OutlinedTextField(
+                                    value = currentStart?.format(formatter) ?: "",
+                                    onValueChange = {},
+                                    label = { Text("Start") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    readOnly = true,
+                                    enabled = false
+                                )
+                            }
 
-                            // End time picker
-                            OutlinedTextField(
-                                value = currentEnd?.format(formatter) ?: "",
-                                onValueChange = {},
-                                label = { Text("End") },
+                            // End Time Picker
+                            Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable {
+                                        Log.d("SetAvailabilityScreen", "Tapped End for $day")
                                         val now = LocalTime.now()
                                         TimePickerDialog(
                                             context,
                                             { _, h, m ->
-                                                ranges[day] = Pair(ranges[day]?.first, LocalTime.of(h,m))
+                                                ranges[day] =
+                                                    Pair(ranges[day]?.first, LocalTime.of(h, m))
                                             },
                                             currentEnd?.hour ?: now.hour,
                                             currentEnd?.minute ?: now.minute,
                                             true
                                         ).show()
-                                    },
-                                readOnly = true
-                            )
+                                    }
+                            ) {
+                                OutlinedTextField(
+                                    value = currentEnd?.format(formatter) ?: "",
+                                    onValueChange = {},
+                                    label = { Text("End") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    readOnly = true,
+                                    enabled = false
+                                )
+                            }
                         }
                     }
 
                     Spacer(Modifier.height(24.dp))
                     Button(
                         onClick = {
-                            // Build weeklySchedule map
                             val updated = daysOfWeek.mapNotNull { day ->
-                                val (s,e) = ranges[day] ?: Pair(null,null)
+                                val (s, e) = ranges[day] ?: Pair(null, null)
                                 if (s != null && e != null && s < e) {
-                                    // generate half-hour slots
                                     val slots = mutableListOf<String>()
                                     var cur = s
-                                    while (cur != null && cur < e) {
+                                    while (cur != null && e != null && cur < e) {
                                         slots += cur.format(formatter)
                                         cur = cur.plusMinutes(30)
                                     }
@@ -139,8 +147,6 @@ fun SetAvailabilityScreen(
                             }.toMap()
                             viewModel.saveSchedule(updated)
                             coroutineScope.launch {
-                                // show confirmation, then back
-                                // no Snackbar here for brevity
                                 navController.popBackStack()
                             }
                         },
@@ -150,7 +156,10 @@ fun SetAvailabilityScreen(
                     }
 
                     if (ranges.values.all { it.first == null && it.second == null }) {
-                        Text("No available slots", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "No available slots",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
