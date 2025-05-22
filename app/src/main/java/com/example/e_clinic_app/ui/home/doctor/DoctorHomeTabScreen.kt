@@ -148,7 +148,7 @@ fun DoctorHomeTabScreen(
                         )
                         Spacer(Modifier.width(12.dp))
                         Column {
-                            Text(appointment.patient.firstName, style = typography.bodyLarge)
+                            Text(appointment.patientId, style = typography.bodyLarge)
                             Text(
                                 appointment.date.toDate().toString(), // show actual date
                                 style = typography.labelSmall,

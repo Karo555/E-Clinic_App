@@ -23,11 +23,13 @@ import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.e_clinic_app.presentation.viewmodel.AppointmentsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
 import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
+import com.example.e_clinic_app.ui.home.patient.VisitsScreen
 
 /**
  * Configures and initializes the navigation graph for the application.
@@ -202,6 +204,13 @@ fun AppNavGraph(navController: NavHostController,
                 navController = navController,
                 viewModel = availabilityVM
             )
+        }
+
+        composable(Routes.VISITS) {
+            val vm: AppointmentsViewModel = viewModel(
+                factory = AppointmentsViewModel.factoryForPatient()
+            )
+            VisitsScreen(navController = navController, viewModel = vm)
         }
 
     }

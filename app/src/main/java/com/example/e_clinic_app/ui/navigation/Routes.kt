@@ -34,4 +34,7 @@ object Routes {
 
     //setting availability
     const val SET_AVAILABILITY = "set_availability"
+
+    // Patient & doctor visits screen
+    const val VISITS = "visits"
 }
