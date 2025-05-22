@@ -7,7 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 abstract class StandardDashboard : ViewModel() {
 
-    val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    open val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
     val user = FirebaseAuth.getInstance().currentUser
     val userId = user?.uid
 

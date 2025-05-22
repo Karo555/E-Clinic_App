@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.e_clinic_app.data.model.DrugSeeder
 import com.example.e_clinic_app.data.repository.DrugRepository
-import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.ui.navigation.AppNavGraph
 import com.example.e_clinic_app.ui.navigation.Routes
 import com.example.e_clinic_app.ui.theme.EClinic_AppTheme

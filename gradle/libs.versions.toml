@@ -19,6 +19,8 @@ navigationCompose = "2.7.7"
 playServicesAuth = "20.7.0"
 playServicesLocation = "21.1.0"
 generativeai = "0.9.0"
+firebaseDatabase = "21.0.0"
+firebaseMessaging = "24.1.1"
 
 [libraries]
 androidx-activity-compose-v170 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
@@ -53,6 +55,8 @@ ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
+firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

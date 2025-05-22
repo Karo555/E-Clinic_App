@@ -20,12 +20,18 @@ object Routes {
 
     //patient dashboard
     const val PATIENT_DASHBOARD = "patient_dashboard"
+
     //doctor dashboard
     const val DOCTOR_DASHBOARD = "doctor_dashboard"
 
+    // doctor detail screen
+    const val DOCTOR_DETAIL = "doctor_detail/{doctorId}"
 
     //tabs for nested navigation
     const val CHAT_TAB = "chat_tab"
     const val VISITS_TAB = "visits_tab"
     const val SETTINGS_TAB = "settings_tab"
+
+    //setting availability
+    const val SET_AVAILABILITY = "set_availability"
 }

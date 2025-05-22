@@ -1,6 +1,5 @@
 package com.example.e_clinic_app.ui.home.doctor
 
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,10 +41,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
+import com.example.e_clinic_app.ui.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DoctorHomeTabScreen(navController: NavController, viewModel: DoctorHomeViewModel) {
+fun DoctorHomeTabScreen(
+    navController: NavController,
+    viewModel: DoctorHomeViewModel
+) {
     LaunchedEffect(Unit) {
         viewModel.fetchAppointments(viewModel.firestore)
     }
@@ -147,7 +150,7 @@ fun DoctorHomeTabScreen(navController: NavController, viewModel: DoctorHomeViewM
                         Column {
                             Text(appointment.patient.firstName, style = typography.bodyLarge)
                             Text(
-                                "Today • 14:00",
+                                appointment.date.toDate().toString(), // show actual date
                                 style = typography.labelSmall,
                                 color = colorScheme.onSurfaceVariant
                             )
@@ -160,7 +163,7 @@ fun DoctorHomeTabScreen(navController: NavController, viewModel: DoctorHomeViewM
 
             item {
                 Button(
-                    onClick = { navController.navigate("setAvailability") },
+                    onClick = { navController.navigate(Routes.SET_AVAILABILITY) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),

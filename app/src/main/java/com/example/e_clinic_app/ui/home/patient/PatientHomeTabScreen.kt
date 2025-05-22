@@ -1,5 +1,5 @@
 package com.example.e_clinic_app.ui.home.patient
-
+import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,6 +34,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,21 +43,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
-import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PatientHomeTabScreen(navController: NavController, viewModel: PatientDashboardViewModel) {
+fun PatientHomeTabScreen(
+    navController: NavController,
+    viewModel: PatientDashboardViewModel
+) {
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
+
+    // Collect the doctors list state from ViewModel
+    val doctorsState by viewModel.doctorsState.collectAsState()
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Column {
-                        Text("Hello, User!", style = typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text("Find care that fits you", style = typography.bodySmall, color = colorScheme.onSurfaceVariant)
+                        Text(
+                            "Hello!",
+                            style = typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Find care that fits you",
+                            style = typography.bodySmall,
+                            color = colorScheme.onSurfaceVariant
+                        )
                     }
                 },
                 actions = {
@@ -80,10 +96,10 @@ fun PatientHomeTabScreen(navController: NavController, viewModel: PatientDashboa
 
             Spacer(Modifier.height(16.dp))
 
-            // Search Bar
+            // Search Bar (logic to be implemented later)
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = viewModel.searchQuery,
+                onValueChange = { viewModel.onSearchQueryChanged(it) },
                 placeholder = { Text("Search doctors, specialties...") },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = "Search")
@@ -140,7 +156,7 @@ fun PatientHomeTabScreen(navController: NavController, viewModel: PatientDashboa
 
             Spacer(Modifier.height(24.dp))
 
-            // Specialties
+            // Specialties Section
             Text(
                 "Specialties",
                 style = typography.titleMedium,
@@ -167,59 +183,87 @@ fun PatientHomeTabScreen(navController: NavController, viewModel: PatientDashboa
 
             Spacer(Modifier.height(24.dp))
 
-            // Recommended Doctors
+            // Available Doctors Section
             Text(
-                "Recommended Doctors",
+                "Available Doctors",
                 style = typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(8.dp))
-            val doctors = listOf(
-                Doctor("Dr. Crick", 3.7, "$25.00/hour"),
-                Doctor("Dr. Strain", 3.0, "$22.00/hour"),
-                Doctor("Dr. Lachinet", 2.9, "$29.00/hour")
-            )
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(doctors) { doctor ->
-                    ElevatedCard(
+
+            when (doctorsState) {
+                is PatientDashboardViewModel.UiState.Loading -> {
+                    Box(
                         modifier = Modifier
-                            .width(160.dp)
-                            .clickable { navController.navigate("doctorDetail/${doctor.name}") },
-                        shape = RoundedCornerShape(16.dp)
+                            .fillMaxWidth()
+                            .height(80.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(colorScheme.surfaceVariant, shape = CircleShape)
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                doctor.name,
-                                style = typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                "⭐ ${doctor.rating}",
-                                style = typography.labelSmall,
-                                color = Color(0xFFF59E0B)
-                            )
-                            Text(
-                                doctor.price,
-                                style = typography.labelSmall,
-                                color = colorScheme.onSurfaceVariant
-                            )
+                        CircularProgressIndicator()
+                    }
+                }
+                is PatientDashboardViewModel.UiState.Error -> {
+                    Text(
+                        text = "Failed to load doctors",
+                        color = Color.Red,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                is PatientDashboardViewModel.UiState.Success -> {
+                    val doctors = (doctorsState as PatientDashboardViewModel.UiState.Success).doctors
+                    if (doctors.isEmpty()) {
+                        Text(
+                            text = "No doctors available right now.",
+                            color = colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    } else {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            items(doctors) { doctor ->
+                                ElevatedCard(
+                                    modifier = Modifier
+                                        .width(160.dp)
+                                        .clickable {
+                                            navController.navigate("doctor_detail/${doctor.id}")
+                                        },
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(12.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .background(
+                                                    colorScheme.surfaceVariant,
+                                                    shape = CircleShape
+                                                )
+                                        )
+                                        Spacer(Modifier.height(8.dp))
+                                        Text(
+                                            "${doctor.firstName} ${doctor.lastName}",
+                                            style = typography.bodyLarge,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Text(
+                                            doctor.specialisation,
+                                            style = typography.labelSmall,
+                                            color = colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                        Text(
+                                            "${doctor.experienceYears} yrs exp.",
+                                            style = typography.labelSmall,
+                                            color = colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
-
-// Sample Data Class
-data class Doctor(val name: String, val rating: Double, val price: String)
