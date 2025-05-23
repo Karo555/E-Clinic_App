@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
+import com.example.e_clinic_app.ui.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -224,7 +225,7 @@ fun PatientHomeTabScreen(
                                     modifier = Modifier
                                         .width(160.dp)
                                         .clickable {
-                                            navController.navigate("doctor_detail/${doctor.id}")
+                                            navController.navigate("${Routes.DOCTOR_DETAIL}/${doctor.id}")
                                         },
                                     shape = RoundedCornerShape(16.dp)
                                 ) {

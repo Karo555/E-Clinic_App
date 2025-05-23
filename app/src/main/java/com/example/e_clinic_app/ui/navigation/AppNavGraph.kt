@@ -175,7 +175,7 @@ fun AppNavGraph(
 
         // Chat detail
         composable(
-            route = "chat_detail/{pairId}",
+            route = "${Routes.CHAT_DETAIL}/{pairId}",
             arguments = listOf(navArgument("pairId") { type = NavType.StringType })
         ) { backStackEntry ->
             val vm: ChatDetailViewModel = viewModel(

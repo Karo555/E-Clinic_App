@@ -25,7 +25,7 @@ object Routes {
     const val DOCTOR_DASHBOARD = "doctor_dashboard"
 
     // doctor detail screen
-    const val DOCTOR_DETAIL = "doctor_detail/{doctorId}"
+    const val DOCTOR_DETAIL = "doctor_detail"
 
     //tabs for nested navigation
     const val CHAT_TAB = "chat_tab"
@@ -40,6 +40,6 @@ object Routes {
 
     // chat
     const val CHAT_LIST   = "chat_list"
-    const val CHAT_DETAIL = "chat_detail/{pairId}"
+    const val CHAT_DETAIL = "chat_detail"
 
 }

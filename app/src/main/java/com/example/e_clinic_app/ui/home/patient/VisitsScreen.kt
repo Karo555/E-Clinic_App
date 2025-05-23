@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.data.appointment.Appointment
 import com.example.e_clinic_app.presentation.viewmodel.AppointmentsViewModel
+import com.example.e_clinic_app.ui.navigation.Routes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -107,7 +108,7 @@ fun VisitsScreen(
                                     }
                                     IconButton(onClick = {
                                         val pairId = buildPairId(appt.patientId, appt.doctorId)
-                                        navController.navigate("chat_detail/$pairId")
+                                        navController.navigate("${Routes.CHAT_DETAIL}/$pairId")
                                     }) {
                                         Icon(
                                             imageVector = Icons.Outlined.ChatBubble,
