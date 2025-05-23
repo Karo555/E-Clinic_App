@@ -1,5 +1,6 @@
 package com.example.e_clinic_app.ui.navigation
 
+import com.example.e_clinic_app.ui.home.doctor.PatientDetailScreen
 import AdminHomeTabScreen
 import SettingsTabScreen
 import android.util.Log
@@ -32,6 +33,8 @@ import com.example.e_clinic_app.ui.home.patient.VisitsScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
+
 
 @Composable
 fun AppNavGraph(
@@ -173,6 +176,15 @@ fun AppNavGraph(
             VisitsScreen(navController, vm)
         }
 
+        // Doctor's own appointments
+        composable(Routes.DOCTOR_APPOINTMENTS) {
+            val vm: AppointmentsViewModel = viewModel(
+                factory = AppointmentsViewModel.factoryForDoctor()
+            )
+            VisitsScreen(navController = navController, viewModel = vm)
+        }
+
+
         // Chat detail
         composable(
             route = "${Routes.CHAT_DETAIL}/{pairId}",
@@ -187,5 +199,21 @@ fun AppNavGraph(
             )
             ChatDetailScreen(navController, vm)
         }
+
+        // patient details for doctor POV
+        composable(
+            route = "${Routes.PATIENT_DETAIL}/{patientId}",
+            arguments = listOf(navArgument("patientId"){ type = NavType.StringType })
+        ) { backStackEntry ->
+            val patientId = backStackEntry.arguments!!.getString("patientId")!!
+            val vm: PatientDetailViewModel = viewModel(
+                factory = PatientDetailViewModel.provideFactory(
+                    firestore = FirebaseFirestore.getInstance(),
+                    patientId = patientId
+                )
+            )
+            PatientDetailScreen(navController, patientId)
+        }
+
     }
 }

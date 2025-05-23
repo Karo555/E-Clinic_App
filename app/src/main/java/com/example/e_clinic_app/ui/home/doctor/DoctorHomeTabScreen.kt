@@ -92,8 +92,8 @@ fun DoctorHomeTabScreen(
 
                 val quickActions = listOf(
                     NavItem("Patients", Icons.Outlined.Group, "patients"),
-                    NavItem("Appointments", Icons.Outlined.Event, "appointments"),
-                    NavItem("Prescriptions", Icons.Outlined.MedicalServices, "prescriptions")
+                    NavItem("Prescriptions", Icons.Outlined.MedicalServices, "prescriptions"),
+                    NavItem("Appointments", Icons.Outlined.Event, Routes.DOCTOR_APPOINTMENTS)
                 )
 
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -156,7 +156,11 @@ fun DoctorHomeTabScreen(
                             )
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null)
+                        IconButton(onClick = {
+                            navController.navigate("${Routes.PATIENT_DETAIL}/${appointment.patientId}")
+                        }) {
+                            Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = "View Patient Details")
+                        }
                     }
                 }
             }

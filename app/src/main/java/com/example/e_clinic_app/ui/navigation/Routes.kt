@@ -35,11 +35,16 @@ object Routes {
     //setting availability
     const val SET_AVAILABILITY = "set_availability"
 
-    // Patient & doctor visits screen
+    // Patient visits
     const val VISITS = "visits"
+
+    // doctor visits (doctor’s own agenda)
+    const val DOCTOR_APPOINTMENTS = "doctor_appointments"
 
     // chat
     const val CHAT_LIST   = "chat_list"
     const val CHAT_DETAIL = "chat_detail"
 
+    // patient detail
+    const val PATIENT_DETAIL = "patient_detail"
 }
