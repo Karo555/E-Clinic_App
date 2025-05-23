@@ -37,4 +37,9 @@ object Routes {
 
     // Patient & doctor visits screen
     const val VISITS = "visits"
+
+    // chat
+    const val CHAT_LIST   = "chat_list"
+    const val CHAT_DETAIL = "chat_detail/{pairId}"
+
 }

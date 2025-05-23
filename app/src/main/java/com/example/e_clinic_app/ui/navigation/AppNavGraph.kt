@@ -1,217 +1,191 @@
 package com.example.e_clinic_app.ui.navigation
 
 import AdminHomeTabScreen
-import ChatTabScreen
 import SettingsTabScreen
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
+import com.example.e_clinic_app.presentation.viewmodel.AppointmentsViewModel
+import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
+import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
+import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
+import com.example.e_clinic_app.ui.chat.ChatDetailScreen
+import com.example.e_clinic_app.ui.chat.ChatTabScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
 import com.example.e_clinic_app.ui.home.HomeTabScreen
 import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
+import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
+import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
 import com.example.e_clinic_app.ui.home.patient.PatientHomeTabScreen
+import com.example.e_clinic_app.ui.home.patient.VisitsScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
-import androidx.navigation.navArgument
-import androidx.navigation.NavType
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.e_clinic_app.presentation.viewmodel.AppointmentsViewModel
-import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
-import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
-import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
-import com.example.e_clinic_app.ui.home.patient.VisitsScreen
 
-/**
- * Configures and initializes the navigation graph for the application.
- *
- * @param navController The NavHostController used to control and manage navigation between composable screens.
- * @param startDestination A string representing the starting destination for the navigation graph.
- * @param patientDashboardViewModel An instance of PatientDashboardViewModel used for managing state related to the patient dashboard.
- * @param doctorHomeViewModel An instance of DoctorHomeViewModel used for managing state related to the doctor dashboard.
- */
 @Composable
-fun AppNavGraph(navController: NavHostController,
-                startDestination: String,
-                patientDashboardViewModel: PatientDashboardViewModel = PatientDashboardViewModel() ,
-                doctorHomeViewModel: DoctorHomeViewModel = DoctorHomeViewModel()) {
-
+fun AppNavGraph(
+    navController: NavHostController,
+    startDestination: String,
+    patientDashboardViewModel: PatientDashboardViewModel = PatientDashboardViewModel(),
+    doctorHomeViewModel: DoctorHomeViewModel = DoctorHomeViewModel()
+) {
     Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination")
 
     NavHost(navController = navController, startDestination = startDestination) {
 
-        //Home screen
+        // Home
         composable(Routes.HOME) {
-            HomeTabScreen(navController = navController)
-        }
-        // Chat screen
-        composable(Routes.CHAT_TAB){
-            ChatTabScreen(navController = navController)
-        }
-        // Settings screen
-        composable(Routes.SETTINGS_TAB){
-            SettingsTabScreen(navController = navController)
+            HomeTabScreen(navController)
         }
 
-        // Defines a composable function for the authentication screen and its navigation logic.
+        // Chat list (Chat tab)
+        composable(Routes.CHAT_TAB) {
+            ChatTabScreen(navController)
+        }
+
+        // Settings
+        composable(Routes.SETTINGS_TAB) {
+            SettingsTabScreen(navController)
+        }
+
+        // Auth flow
         composable(Routes.AUTH) {
             AuthScreen(
-                // Navigates to the Medical Intro screen and removes the Auth screen from the back stack.
                 onNavigateToFirstLogin = {
                     navController.navigate(Routes.MEDICAL_INTRO) {
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 },
-                // Navigates to the Doctor First Login screen and removes the Auth screen from the back stack.
                 onNavigateToDoctorFirstLogin = {
                     navController.navigate(Routes.DOCTOR_FIRST_LOGIN) {
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 },
-                // Navigates to the Home screen and removes the Auth screen from the back stack.
                 onNavigateToHome = {
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 },
-                // Navigates to the Global Admin Dashboard screen and removes the Auth screen from the back stack.
                 onNavigateToGlobalAdminDashboard = {
                     navController.navigate(Routes.GLOBAL_ADMIN_DASHBOARD) {
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 },
-                // Navigates to the Institution Admin Dashboard screen and removes the Auth screen from the back stack.
                 onNavigateToInstitutionAdminDashboard = {
                     navController.navigate(Routes.INSTITUTION_ADMIN_DASHBOARD) {
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 },
-                // Navigates to the Reset Password screen.
                 onNavigateToResetPassword = {
                     navController.navigate(Routes.RESET_PASSWORD)
                 }
             )
         }
 
-        // Defines a composable function for the Reset Password screen and its navigation logic.
+        // Reset Password
         composable(Routes.RESET_PASSWORD) {
-            ResetPasswordScreen(
-                // Navigates back to the previous screen in the navigation stack.
-                onBackToLogin = {
-                    navController.popBackStack()
-                }
-            )
+            ResetPasswordScreen(onBackToLogin = { navController.popBackStack() })
         }
 
-        // Defines a composable function for the Medical Intro screen.
+        // Onboarding
         composable(Routes.MEDICAL_INTRO) {
-            MedicalIntroScreen(navController = navController)
+            MedicalIntroScreen(navController)
         }
-
-        // Defines a composable function for the First Login screen and its navigation logic.
         composable(Routes.FIRST_LOGIN) {
-            MedicalFormStepperScreen(
-                // Navigates to the Home screen and removes the First Login screen from the back stack.
-                onFormCompleted = {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.FIRST_LOGIN) { inclusive = true }
-                    }
+            MedicalFormStepperScreen(onFormCompleted = {
+                navController.navigate(Routes.HOME) {
+                    popUpTo(Routes.FIRST_LOGIN) { inclusive = true }
                 }
-            )
+            })
         }
-
-        // Defines a composable function for the Doctor First Login screen and its navigation logic.
         composable(Routes.DOCTOR_FIRST_LOGIN) {
-            DoctorFirstLoginScreen(
-                // Navigates to the Home screen and removes the Doctor First Login screen from the back stack.
-                onSubmitSuccess = {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.DOCTOR_FIRST_LOGIN) { inclusive = true }
-                    }
+            DoctorFirstLoginScreen(onSubmitSuccess = {
+                navController.navigate(Routes.HOME) {
+                    popUpTo(Routes.DOCTOR_FIRST_LOGIN) { inclusive = true }
                 }
-            )
+            })
         }
-
-        // Defines a composable function for the Edit Medical Info screen and its navigation logic.
         composable(Routes.EDIT_MEDICAL_INFO) {
             EditMedicalInfoScreen(
                 isEditing = true,
-                // Navigates to the Home screen and removes the Edit Medical Info screen from the back stack.
                 onSubmitSuccess = {
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.EDIT_MEDICAL_INFO) { inclusive = true }
                     }
                 },
-                // Navigates back to the previous screen in the navigation stack.
-                onCancel = {
-                    navController.popBackStack()
-                }
+                onCancel = { navController.popBackStack() }
             )
         }
 
-        // TODO  Defines a composable function for the Global Admin Dashboard screen.
+        // Admin dashboards
         composable(Routes.GLOBAL_ADMIN_DASHBOARD) {
-            GlobalAdminDashboardScreen(navController = navController)
+            GlobalAdminDashboardScreen(navController)
         }
-
-        // Defines a composable function for the Institution Admin Dashboard screen.
         composable(Routes.INSTITUTION_ADMIN_DASHBOARD) {
-            AdminHomeTabScreen(navController = navController)
+            AdminHomeTabScreen(navController)
         }
 
-        // Defines a composable function for the Patient Dashboard screen.
+        // Patient & Doctor dashboards
         composable(Routes.PATIENT_DASHBOARD) {
             PatientHomeTabScreen(navController, patientDashboardViewModel)
         }
-
-        // Defines a composable function for the Doctor Dashboard screen.
         composable(Routes.DOCTOR_DASHBOARD) {
             DoctorHomeTabScreen(navController, doctorHomeViewModel)
         }
 
-        // Doctor detail screen
+        // Doctor detail
         composable(
-            route = Routes.DOCTOR_DETAIL,
+            route = "${Routes.DOCTOR_DETAIL}/{doctorId}",
             arguments = listOf(navArgument("doctorId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val viewModel: DoctorDetailViewModel = viewModel(
+            val vm: DoctorDetailViewModel = viewModel(
+                viewModelStoreOwner = backStackEntry,
                 factory = DoctorDetailViewModel.provideFactory(
                     firestore = FirebaseFirestore.getInstance(),
                     savedStateHandle = backStackEntry.savedStateHandle
                 )
             )
-            DoctorDetailScreen(
-                navController = navController,
-                viewModel = viewModel
-            )
+            DoctorDetailScreen(navController, vm)
         }
 
-        //availability setup screen
-        // Set Availability screen
+        // Availability setup
         composable(Routes.SET_AVAILABILITY) {
-            // Provide the ViewModel for availability editing
             val availabilityVM: DoctorAvailabilityViewModel = viewModel()
-            SetAvailabilityScreen(
-                navController = navController,
-                viewModel = availabilityVM
-            )
+            SetAvailabilityScreen(navController, availabilityVM)
         }
 
+        // Visits list
         composable(Routes.VISITS) {
             val vm: AppointmentsViewModel = viewModel(
                 factory = AppointmentsViewModel.factoryForPatient()
             )
-            VisitsScreen(navController = navController, viewModel = vm)
+            VisitsScreen(navController, vm)
         }
 
+        // Chat detail
+        composable(
+            route = "chat_detail/{pairId}",
+            arguments = listOf(navArgument("pairId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val vm: ChatDetailViewModel = viewModel(
+                viewModelStoreOwner = backStackEntry,
+                factory = ChatDetailViewModel.provideFactory(
+                    firestore = FirebaseFirestore.getInstance(),
+                    savedStateHandle = backStackEntry.savedStateHandle
+                )
+            )
+            ChatDetailScreen(navController, vm)
+        }
     }
 }

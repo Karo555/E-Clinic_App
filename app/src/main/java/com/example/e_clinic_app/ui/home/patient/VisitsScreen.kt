@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.data.appointment.Appointment
 import com.example.e_clinic_app.presentation.viewmodel.AppointmentsViewModel
-import com.example.e_clinic_app.ui.navigation.Routes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -30,6 +29,10 @@ fun VisitsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val fmt = DateTimeFormatter.ofPattern("EEE, MMM d  HH:mm")
+
+    // Helper to build the pairId (alphabetical order)
+    fun buildPairId(patientUid: String, doctorUid: String): String =
+        listOf(patientUid, doctorUid).sorted().joinToString("_")
 
     Scaffold(
         topBar = {
@@ -103,7 +106,8 @@ fun VisitsScreen(
                                         )
                                     }
                                     IconButton(onClick = {
-                                        navController.navigate(Routes.CHAT_TAB)
+                                        val pairId = buildPairId(appt.patientId, appt.doctorId)
+                                        navController.navigate("chat_detail/$pairId")
                                     }) {
                                         Icon(
                                             imageVector = Icons.Outlined.ChatBubble,
