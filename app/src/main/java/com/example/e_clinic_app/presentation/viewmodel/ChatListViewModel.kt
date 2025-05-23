@@ -77,6 +77,7 @@ class ChatListViewModel(
                     }
                     _threads.value = list
                 }
+                Log.d("ChatListVM", "Got snapshot with ${snapshots?.size()} docs")
             }
     }
 

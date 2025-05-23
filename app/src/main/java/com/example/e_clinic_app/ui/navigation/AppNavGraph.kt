@@ -182,7 +182,7 @@ fun AppNavGraph(
                 viewModelStoreOwner = backStackEntry,
                 factory = ChatDetailViewModel.provideFactory(
                     firestore = FirebaseFirestore.getInstance(),
-                    savedStateHandle = backStackEntry.savedStateHandle
+                    pairId = backStackEntry.arguments?.getString("pairId") ?: ""
                 )
             )
             ChatDetailScreen(navController, vm)
