@@ -51,5 +51,6 @@ object Routes {
     //doctor profile update
     const val EDIT_PUBLIC_PROFILE = "edit_public_profile"
 
-
+    // doctor's patients list
+    const val DOCTOR_PATIENTS = "doctor_patients"
 }

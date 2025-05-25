@@ -34,6 +34,8 @@ import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
+import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun AppNavGraph(
@@ -222,6 +224,12 @@ fun AppNavGraph(
             EditPublicProfileScreen(
                 onSubmitSuccess = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.DOCTOR_PATIENTS) {
+            PatientsScreen(
+                navController = navController,
+                doctorId = FirebaseAuth.getInstance().currentUser!!.uid
             )
         }
     }

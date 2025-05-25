@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +36,6 @@ import com.example.e_clinic_app.ui.navigation.Routes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import androidx.compose.material.icons.outlined.ArrowForward
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -98,7 +98,7 @@ fun DoctorHomeTabScreen(
                 Text("Quick Access", style = typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 val quickActions = listOf(
-                    NavItem("Patients", Icons.Outlined.Group, "patients"),
+                    NavItem("Patients", Icons.Outlined.Group, Routes.DOCTOR_PATIENTS),
                     NavItem("Prescriptions", Icons.Outlined.MedicalServices, "prescriptions"),
                     NavItem("Appointments", Icons.Outlined.Event, Routes.DOCTOR_APPOINTMENTS)
                 )
