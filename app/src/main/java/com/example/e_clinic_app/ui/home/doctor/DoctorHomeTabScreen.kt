@@ -1,6 +1,5 @@
 package com.example.e_clinic_app.ui.home.doctor
 
-
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.EventAvailable
@@ -20,6 +18,8 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +35,7 @@ import com.example.e_clinic_app.ui.navigation.Routes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.material.icons.outlined.ArrowForward
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -42,14 +43,17 @@ fun DoctorHomeTabScreen(
     navController: NavController,
     viewModel: DoctorHomeViewModel
 ) {
+    // Collect the doctor's first name for personalized greeting
+    val doctorName by viewModel.doctorFirstName.collectAsState()
+
     LaunchedEffect(Unit) {
         viewModel.fetchAppointments(viewModel.firestore)
     }
 
-    // get the live appointments list
+    // live appointments list
     val appointments = viewModel.appointmentsList
 
-    // Prepare grouping
+    // Prepare grouping by date
     val zone = ZoneId.of("Europe/Warsaw")
     val grouped = appointments
         .groupBy { appt ->
@@ -69,7 +73,7 @@ fun DoctorHomeTabScreen(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Welcome back,", style = typography.labelMedium)
-                        Text("Dr.", style = typography.titleLarge)
+                        Text("Dr. $doctorName", style = typography.titleLarge)
                     }
                 },
                 actions = {
@@ -89,7 +93,7 @@ fun DoctorHomeTabScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Quick Access as before
+            // Quick Access
             item {
                 Text("Quick Access", style = typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
@@ -189,7 +193,6 @@ fun DoctorHomeTabScreen(
                                         style = typography.bodyMedium
                                     )
                                     Text(" • ", style = typography.bodyMedium)
-                                    // colored dot
                                     val dotColor = when (appt.status) {
                                         AppointmentStatus.CONFIRMED -> Color(0xFF4CAF50)
                                         AppointmentStatus.PENDING   -> Color(0xFFFFC107)
@@ -209,7 +212,7 @@ fun DoctorHomeTabScreen(
                                 }
                             }
                             Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                                imageVector = Icons.Outlined.ArrowForward,
                                 contentDescription = "View Details",
                                 tint = colorScheme.onSurfaceVariant
                             )
