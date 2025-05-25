@@ -1,3 +1,5 @@
+package com.example.e_clinic_app.ui.settings
+
 import android.app.Activity
 import android.content.Intent
 import android.util.Log
@@ -33,8 +35,12 @@ import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsTabScreen(navController: NavController) {
+fun SettingsTabScreen(
+    navController: NavController,
+    currentUserRole: String?
+) {
     val context = LocalContext.current
+    val isDoctor = currentUserRole == "Doctor"
 
     Scaffold(
         topBar = {
@@ -80,12 +86,18 @@ fun SettingsTabScreen(navController: NavController) {
 
             FilledTonalButton(
                 onClick = {
-                    Log.d("Settings", "Navigating to Edit Medical Info")
-                    navController.navigate(Routes.EDIT_MEDICAL_INFO)
+                    Log.d("Settings", "Navigating to ${if (isDoctor) "Edit Public Profile" else "Edit Medical Info"}")
+                    navController.navigate(
+                        if (isDoctor) Routes.EDIT_PUBLIC_PROFILE
+                        else         Routes.EDIT_MEDICAL_INFO
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Edit Medical Information")
+                Text(
+                    if (isDoctor) "Edit Public Profile"
+                    else         "Edit Medical Information"
+                )
             }
 
             Button(

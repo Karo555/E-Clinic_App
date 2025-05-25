@@ -47,4 +47,9 @@ object Routes {
 
     // patient detail
     const val PATIENT_DETAIL = "patient_detail"
+
+    //doctor profile update
+    const val EDIT_PUBLIC_PROFILE = "edit_public_profile"
+
+
 }

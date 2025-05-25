@@ -7,7 +7,10 @@ data class Doctor(
     val specialisation: String = "",
     val institutionName: String = "",
     val experienceYears: Int = 0,
+    val licenseNumber: String = "",
+    val bio: String = "",
     val availability: Boolean = false,
-    val weeklySchedule: Map<String, List<String>>
+    val weeklySchedule: Map<String, List<String>> = emptyMap()
 )
+
 
