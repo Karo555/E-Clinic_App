@@ -9,5 +9,7 @@ data class Appointment(
     val date: Timestamp = Timestamp.now(),
     val status: AppointmentStatus = AppointmentStatus.PENDING,
     val doctorFirstName: String = "",
-    val doctorLastName: String = ""
+    val doctorLastName: String = "",
+    val patientFirstName: String = "",
+    val patientLastName: String = ""
 )

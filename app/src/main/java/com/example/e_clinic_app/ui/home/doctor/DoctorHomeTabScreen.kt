@@ -1,19 +1,14 @@
 package com.example.e_clinic_app.ui.home.doctor
 
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -22,28 +17,26 @@ import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
+import com.example.e_clinic_app.data.appointment.Appointment
+import com.example.e_clinic_app.data.appointment.AppointmentStatus
 import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
 import com.example.e_clinic_app.ui.navigation.Routes
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DoctorHomeTabScreen(
     navController: NavController,
@@ -53,7 +46,20 @@ fun DoctorHomeTabScreen(
         viewModel.fetchAppointments(viewModel.firestore)
     }
 
+    // get the live appointments list
     val appointments = viewModel.appointmentsList
+
+    // Prepare grouping
+    val zone = ZoneId.of("Europe/Warsaw")
+    val grouped = appointments
+        .groupBy { appt ->
+            appt.date.toDate().toInstant().atZone(zone).toLocalDate()
+        }
+        .toSortedMap()
+
+    val dateFmt = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
+    val timeFmt = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
+
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
 
@@ -63,7 +69,7 @@ fun DoctorHomeTabScreen(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Welcome back,", style = typography.labelMedium)
-                        Text("Dr. [Name]", style = typography.titleLarge)
+                        Text("Dr.", style = typography.titleLarge)
                     }
                 },
                 actions = {
@@ -73,9 +79,7 @@ fun DoctorHomeTabScreen(
                 }
             )
         },
-        bottomBar = {
-            BottomNavigationBar(navController)
-        },
+        bottomBar = { BottomNavigationBar(navController) },
         containerColor = colorScheme.background
     ) { padding ->
         LazyColumn(
@@ -85,25 +89,22 @@ fun DoctorHomeTabScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-
+            // Quick Access as before
             item {
                 Text("Quick Access", style = typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
-
                 val quickActions = listOf(
                     NavItem("Patients", Icons.Outlined.Group, "patients"),
                     NavItem("Prescriptions", Icons.Outlined.MedicalServices, "prescriptions"),
                     NavItem("Appointments", Icons.Outlined.Event, Routes.DOCTOR_APPOINTMENTS)
                 )
-
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(quickActions) { item ->
                         ElevatedCard(
                             onClick = { navController.navigate(item.route) },
                             shape = MaterialTheme.shapes.medium,
                             colors = CardDefaults.elevatedCardColors(),
-                            modifier = Modifier
-                                .size(width = 140.dp, height = 100.dp)
+                            modifier = Modifier.size(width = 140.dp, height = 100.dp)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -111,11 +112,7 @@ fun DoctorHomeTabScreen(
                                     .padding(12.dp),
                                 verticalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = item.label,
-                                    tint = colorScheme.primary
-                                )
+                                Icon(item.icon, contentDescription = item.label, tint = colorScheme.primary)
                                 Text(item.label, style = typography.bodyLarge)
                             }
                         }
@@ -123,48 +120,105 @@ fun DoctorHomeTabScreen(
                 }
             }
 
+            // Upcoming Appointments header
             item {
                 Text("Upcoming Appointments", style = typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
             }
 
-            items(appointments) { appointment ->
-                ElevatedCard(
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { navController.navigate("appointmentDetail/${appointment.id}") }
-                ) {
-                    Row(
+            // Grouped appointments with sticky headers
+            grouped.forEach { (date, appts) ->
+                stickyHeader {
+                    Surface(
+                        tonalElevation = 2.dp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(vertical = 4.dp)
                     ) {
-                        Icon(
-                            Icons.Outlined.EventAvailable,
-                            contentDescription = null,
-                            tint = colorScheme.primary
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Column {
-                            Text(appointment.patientId, style = typography.bodyLarge)
-                            Text(
-                                appointment.date.toDate().toString(), // show actual date
-                                style = typography.labelSmall,
-                                color = colorScheme.onSurfaceVariant
-                            )
+                        val label = when {
+                            date == java.time.LocalDate.now(zone) -> "Today"
+                            date == java.time.LocalDate.now(zone).plusDays(1) -> "Tomorrow"
+                            else -> date.format(dateFmt)
                         }
-                        Spacer(modifier = Modifier.weight(1f))
-                        IconButton(onClick = {
-                            navController.navigate("${Routes.PATIENT_DETAIL}/${appointment.patientId}")
-                        }) {
-                            Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = "View Patient Details")
+                        Text(
+                            text = label,
+                            style = typography.titleSmall,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+                items(appts) { appt: Appointment ->
+                    ElevatedCard(
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                navController.navigate("${Routes.PATIENT_DETAIL}/${appt.patientId}")
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Outlined.EventAvailable,
+                                contentDescription = null,
+                                tint = colorScheme.primary
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "${appt.patientFirstName} ${appt.patientLastName}",
+                                    style = typography.bodyLarge
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = date.format(dateFmt),
+                                        style = typography.bodyMedium
+                                    )
+                                    Text(" • ", style = typography.bodyMedium)
+                                    Text(
+                                        text = appt.date
+                                            .toDate()
+                                            .toInstant()
+                                            .atZone(zone)
+                                            .format(timeFmt),
+                                        style = typography.bodyMedium
+                                    )
+                                    Text(" • ", style = typography.bodyMedium)
+                                    // colored dot
+                                    val dotColor = when (appt.status) {
+                                        AppointmentStatus.CONFIRMED -> Color(0xFF4CAF50)
+                                        AppointmentStatus.PENDING   -> Color(0xFFFFC107)
+                                        else                        -> Color.Gray
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(dotColor)
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = appt.status.name.lowercase().replaceFirstChar { it.uppercase() },
+                                        style = typography.bodyMedium
+                                    )
+                                }
+                            }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                                contentDescription = "View Details",
+                                tint = colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
             }
 
+            // Set availability button
             item {
                 Button(
                     onClick = { navController.navigate(Routes.SET_AVAILABILITY) },

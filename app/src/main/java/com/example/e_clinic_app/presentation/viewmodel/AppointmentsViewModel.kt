@@ -88,7 +88,9 @@ class AppointmentsViewModel(
                         date      = date,
                         status    = status,
                         doctorFirstName = doctor.firstName,
-                        doctorLastName = doctor.lastName
+                        doctorLastName = doctor.lastName,
+                        patientFirstName = patient.firstName,
+                        patientLastName = patient.lastName
                     )
                 }
 

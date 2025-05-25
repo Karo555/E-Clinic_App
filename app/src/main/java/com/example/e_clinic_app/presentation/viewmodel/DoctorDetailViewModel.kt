@@ -130,7 +130,7 @@ class DoctorDetailViewModel(
     }
 
     /**
-     * Books an appointment at the given slot.
+     * Books an appointment at the given slot, embedding both doctor and patient info.
      */
     fun bookAppointment(slot: LocalDateTime) {
         viewModelScope.launch {
@@ -142,20 +142,43 @@ class DoctorDetailViewModel(
             }
             val doctor = state.doctor
             try {
+                // Get authenticated patient ID
                 val userId = Firebase.auth.currentUser?.uid
                     ?: error("Not authenticated")
-                val instant = slot.atZone(ZoneId.of("Europe/Warsaw")).toInstant()
+
+                // Fetch patient profile sub-doc
+                val profileSnap = firestore.collection("users")
+                    .document(userId)
+                    .collection("profile")
+                    .limit(1)
+                    .get().await()
+                    .documents
+                    .firstOrNull()
+
+                val patientFirst = profileSnap?.getString("firstName") ?: ""
+                val patientLast  = profileSnap?.getString("lastName")  ?: ""
+
+                // Build timestamp
+                val instant   = slot.atZone(ZoneId.of("Europe/Warsaw")).toInstant()
                 val timestamp = Timestamp(instant.epochSecond, instant.nano)
+
+                // Prepare appointment data
                 val appt = mapOf(
                     "doctorId"          to doctor.id,
                     "doctorFirstName"   to doctor.firstName,
                     "doctorLastName"    to doctor.lastName,
                     "patientId"         to userId,
+                    "patientFirstName"  to patientFirst,
+                    "patientLastName"   to patientLast,
                     "date"              to timestamp,
                     "status"            to "CONFIRMED"
                 )
+
+                // Write to Firestore
                 firestore.collection("appointments")
-                    .add(appt).await()
+                    .add(appt)
+                    .await()
+
                 Log.d("DoctorDetailVM", "Booked slot: $slot for user: $userId")
             } catch (e: Exception) {
                 Log.e("DoctorDetailVM", "Error booking appointment", e)
