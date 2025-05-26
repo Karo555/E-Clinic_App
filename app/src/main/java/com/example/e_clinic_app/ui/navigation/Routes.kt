@@ -25,7 +25,7 @@ object Routes {
     const val DOCTOR_DASHBOARD = "doctor_dashboard"
 
     // doctor detail screen
-    const val DOCTOR_DETAIL = "doctor_detail/{doctorId}"
+    const val DOCTOR_DETAIL = "doctor_detail"
 
     //tabs for nested navigation
     const val CHAT_TAB = "chat_tab"
@@ -34,4 +34,29 @@ object Routes {
 
     //setting availability
     const val SET_AVAILABILITY = "set_availability"
+
+    // Patient visits
+    const val VISITS = "visits"
+
+    // doctor visits (doctor’s own agenda)
+    const val DOCTOR_APPOINTMENTS = "doctor_appointments"
+
+    // chat
+    const val CHAT_LIST   = "chat_list"
+    const val CHAT_DETAIL = "chat_detail"
+
+    // patient detail
+    const val PATIENT_DETAIL = "patient_detail"
+
+    //doctor profile update
+    const val EDIT_PUBLIC_PROFILE = "edit_public_profile"
+
+    // doctor's patients list
+    const val DOCTOR_PATIENTS = "doctor_patients"
+
+    // patient browse doctors
+    const val BROWSE_DOCTORS = "browse_doctors"
+
+    //patient documents
+    const val MY_DOCUMENTS = "my_documents"
 }

@@ -1,4 +1,5 @@
 package com.example.e_clinic_app.ui.home.patient
+
 import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -43,6 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
+import com.example.e_clinic_app.ui.navigation.Routes
+import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,7 +95,6 @@ fun PatientHomeTabScreen(
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
         ) {
-
             Spacer(Modifier.height(16.dp))
 
             // Search Bar (logic to be implemented later)
@@ -119,10 +120,8 @@ fun PatientHomeTabScreen(
 
             // Navigation Grid
             val navigationItems = listOf(
-                "Browse Doctors" to "browseDoctors",
-                "Your Doctors" to "yourDoctors",
-                "Prescriptions" to "prescriptions",
-                "Visits" to "visits"
+                "Browse Doctors" to Routes.BROWSE_DOCTORS,
+                "Visits" to Routes.VISITS
             )
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -224,7 +223,7 @@ fun PatientHomeTabScreen(
                                     modifier = Modifier
                                         .width(160.dp)
                                         .clickable {
-                                            navController.navigate("doctor_detail/${doctor.id}")
+                                            navController.navigate("${Routes.DOCTOR_DETAIL}/${doctor.id}")
                                         },
                                     shape = RoundedCornerShape(16.dp)
                                 ) {

@@ -41,6 +41,12 @@ android {
 }
 
 dependencies {
+    // firebase storage
+    implementation(platform("com.google.firebase:firebase-bom:33.14.0"))
+    // Firebase Storage & Firestore (no versions needed)
+    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
     // compose
     implementation(platform(libs.androidx.compose.bom.v20230300))
     implementation(libs.ui)

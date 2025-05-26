@@ -1,4 +1,5 @@
 package com.example.e_clinic_app
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,11 +12,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.e_clinic_app.data.model.DrugSeeder
 import com.example.e_clinic_app.data.repository.DrugRepository
+import com.example.e_clinic_app.presentation.viewmodel.UserViewModel
 import com.example.e_clinic_app.ui.navigation.AppNavGraph
 import com.example.e_clinic_app.ui.navigation.Routes
 import com.example.e_clinic_app.ui.theme.EClinic_AppTheme
@@ -33,6 +37,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             EClinic_AppTheme {
                 val navController = rememberNavController()
+                // Cache user role in a ViewModel to avoid repeated Firestore reads
+                val userViewModel: UserViewModel = viewModel()
+                val currentRole by userViewModel.role.collectAsState()
+
                 var startDestination by remember { mutableStateOf<String?>(null) }
 
                 LaunchedEffect(true) {
@@ -79,23 +87,26 @@ class MainActivity : ComponentActivity() {
                                     startDestination = when (adminLevel) {
                                         "institution" -> Routes.INSTITUTION_ADMIN_DASHBOARD
                                         "global" -> Routes.GLOBAL_ADMIN_DASHBOARD
-                                        else -> Routes.HOME // fallback
+                                        else -> Routes.HOME
                                     }
                                 }
 
                                 else -> {
-                                    startDestination = Routes.HOME // fallback
+                                    startDestination = Routes.HOME
                                 }
                             }
                         } catch (e: Exception) {
-                            // In case of error, fallback to auth screen
                             startDestination = Routes.AUTH
                         }
                     }
                 }
 
                 if (startDestination != null) {
-                    AppNavGraph(navController = navController, startDestination = startDestination!!)
+                    AppNavGraph(
+                        navController = navController,
+                        startDestination = startDestination!!,
+                        currentUserRole = currentRole
+                    )
                 } else {
                     Box(
                         modifier = Modifier.fillMaxSize(),

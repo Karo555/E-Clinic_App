@@ -31,25 +31,23 @@ object DoctorRepository {
                     .get().await()
                     .documents
                     .firstOrNull()
-                val doctorOrNull = profileSnap?.takeIf { it.getBoolean("availability") == true }?.let { p ->
-                    val doctor = Doctor(
-                        id              = userDoc.id,
-                        firstName       = p.getString("firstName") ?: "",
-                        lastName        = p.getString("lastName") ?: "",
-                        specialisation  = p.getString("specialisation") ?: "",
-                        institutionName = p.getString("institutionName") ?: "",
-                        experienceYears = p.getLong("experienceYears")?.toInt() ?: 0,
-                        availability    = true
-                    )
-                    Log.d(
-                        "DoctorRepo",
-                        "Created Doctor object: id=${doctor.id}, name=${doctor.firstName} ${doctor.lastName}, " +
-                                "specialisation=${doctor.specialisation}, institution=${doctor.institutionName}, " +
-                                "experienceYears=${doctor.experienceYears}" + ", weeklySchedule=${doctor.weeklySchedule}"
-
-                    )
-                    doctor
-                } ?: run {
+                val doctorOrNull = profileSnap
+                    ?.takeIf { it.getBoolean("availability") == true }
+                    ?.let { p ->
+                        Doctor(
+                            id = userDoc.id,
+                            firstName       = p.getString("firstName") ?: "",
+                            lastName        = p.getString("lastName") ?: "",
+                            specialisation  = p.getString("specialisation") ?: "",
+                            institutionName = p.getString("institutionName") ?: "",
+                            experienceYears = p.getLong("experienceYears")?.toInt() ?: 0,
+                            licenseNumber   = p.getString("licenseNumber") ?: "",
+                            bio             = p.getString("bio") ?: "",
+                            availability    = true,
+                            weeklySchedule  = p.get("weeklySchedule") as? Map<String, List<String>> ?: emptyMap()
+                        )
+                    }
+                    ?: run {
                     Log.d("DoctorRepo", "Skipped doctor ${userDoc.id}: no profile or not available")
                     null
                 }
