@@ -37,6 +37,7 @@ import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
+import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
 import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
 
 
@@ -167,7 +168,10 @@ fun AppNavGraph(
                     savedStateHandle = backStackEntry.savedStateHandle
                 )
             )
-            PatientDetailScreen(navController, backStackEntry.arguments!!.getString("doctorId")!!)
+            DoctorDetailScreen(
+                navController = navController,
+                viewModel = vm
+            )
         }
 
         // Availability setup
