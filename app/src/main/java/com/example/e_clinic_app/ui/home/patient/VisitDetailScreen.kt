@@ -1,7 +1,9 @@
 package com.example.e_clinic_app.ui.home.patient
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -12,8 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
+import com.example.e_clinic_app.ui.navigation.Routes
+import com.google.firebase.auth.FirebaseAuth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,8 +28,9 @@ fun VisitDetailScreen(
 ) {
     val appointment by viewModel.appointment.collectAsState()
     val zone = ZoneId.of("Europe/Warsaw")
-    val dateFmt = DateTimeFormatter.ofPattern("MMM d, yyyy")
-    val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
+    val dateFmt = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
+    val timeFmt = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
     Scaffold(
         topBar = {
@@ -66,19 +72,36 @@ fun VisitDetailScreen(
                     text = "Preparation Instructions:",
                     style = MaterialTheme.typography.titleSmall
                 )
-                Text(
-                    text = if (appt.fastingRequired)
-                        "Fasting required: 24 hours prior to appointment."
-                    else
-                        "No fasting required.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "Additional preparation: ${appt.additionalPrep}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                if (appt.fastingRequired) {
+                    Text("Fasting required: 24 hours prior to appointment.", style = MaterialTheme.typography.bodyMedium)
+                } else {
+                    Text("No fasting required.", style = MaterialTheme.typography.bodyMedium)
+                }
+                if (appt.additionalPrep.isNotBlank()) {
+                    Text("Additional preparation: ${appt.additionalPrep}", style = MaterialTheme.typography.bodyMedium)
+                }
+                Spacer(Modifier.height(24.dp))
+                Button(
+                    onClick = {
+                        // build pairId from sorted UIDs
+                        currentUserId?.let { uid ->
+                            val pairId = listOf(uid, appt.doctorId).sorted().joinToString("_")
+                            navController.navigate("${Routes.CHAT_DETAIL}/$pairId")
+                        } ?: Log.e("VisitDetail", "No current user ID for chat navigation")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Filled.ChatBubble, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Chat with Doctor")
+                }
             }
-        } ?: Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        } ?: Box(
+            Modifier
+                .padding(padding)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             CircularProgressIndicator()
         }
     }
