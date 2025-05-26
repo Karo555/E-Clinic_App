@@ -56,4 +56,7 @@ object Routes {
 
     // patient browse doctors
     const val BROWSE_DOCTORS = "browse_doctors"
+
+    //patient documents
+    const val MY_DOCUMENTS = "my_documents"
 }

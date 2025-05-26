@@ -37,6 +37,8 @@ import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
+import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
+
 
 @Composable
 fun AppNavGraph(
@@ -237,6 +239,10 @@ fun AppNavGraph(
         // Browse Doctors (patient POV)
         composable(Routes.BROWSE_DOCTORS) {
             BrowseDoctorsScreen(navController)
+        }
+
+        composable(Routes.MY_DOCUMENTS) {
+            MyDocumentsScreen(navController)
         }
     }
 }
