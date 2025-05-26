@@ -1,6 +1,5 @@
 package com.example.e_clinic_app.presentation.viewmodel
 
-
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -38,7 +37,7 @@ class ChatDetailViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    // upload progress: null when idle, 0f..1f during upload
+    // null when idle, 0f..1f during upload
     private val _uploadProgress = MutableStateFlow<Float?>(null)
     val uploadProgress: StateFlow<Float?> = _uploadProgress.asStateFlow()
 
@@ -46,10 +45,6 @@ class ChatDetailViewModel(
         get() = Firebase.auth.currentUser?.uid
 
     init {
-        startListening()
-    }
-
-    private fun startListening() {
         registration = messagesColl
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snaps, ex ->
@@ -59,7 +54,7 @@ class ChatDetailViewModel(
                     return@addSnapshotListener
                 }
                 viewModelScope.launch {
-                    val list = snaps?.documents.orEmpty().map { doc ->
+                    _messages.value = snaps?.documents.orEmpty().map { doc ->
                         Message(
                             id = doc.id,
                             senderId = doc.getString("senderId") ?: "",
@@ -67,11 +62,9 @@ class ChatDetailViewModel(
                             timestamp = doc.getTimestamp("timestamp") ?: Timestamp.now(),
                             attachmentUrl = doc.getString("attachmentUrl"),
                             attachmentName = doc.getString("attachmentName"),
-                            attachmentType = doc.getString("attachmentType"),
-                            caption = doc.getString("caption")
+                            attachmentType = doc.getString("attachmentType")
                         )
                     }
-                    _messages.value = list
                 }
             }
     }
@@ -80,25 +73,22 @@ class ChatDetailViewModel(
         val uid = currentUserId ?: return
         viewModelScope.launch {
             try {
-                // ensure chat doc exists with participants
                 val parts = pairId.split("_")
                 val otherId = parts.first { it != uid }
                 firestore.collection("chats")
                     .document(pairId)
                     .set(
-                        mapOf(
-                            "patientId" to uid,
-                            "doctorId" to otherId
-                        ), SetOptions.merge()
+                        mapOf("patientId" to uid, "doctorId" to otherId),
+                        SetOptions.merge()
+                    ).await()
+
+                messagesColl.add(
+                    mapOf(
+                        "senderId" to uid,
+                        "text" to text,
+                        "timestamp" to Timestamp.now()
                     )
-                    .await()
-                // send text message
-                val msg = mapOf(
-                    "senderId" to uid,
-                    "text" to text,
-                    "timestamp" to Timestamp.now()
-                )
-                messagesColl.add(msg).await()
+                ).await()
             } catch (e: Exception) {
                 Log.e("ChatDetailVM", "Error sending message", e)
                 _error.value = e.message
@@ -106,43 +96,38 @@ class ChatDetailViewModel(
         }
     }
 
-    /**
-     * Upload file and send message with attachment
-     */
-    fun sendAttachment(uri: Uri, caption: String?) {
+    fun sendAttachment(uri: Uri) {
         val uid = currentUserId ?: return
         val msgRef = messagesColl.document()
         val ext = firestore.app.applicationContext.contentResolver
             .getType(uri)
-            ?.let { android.webkit.MimeTypeMap
-                .getSingleton()
-                .getExtensionFromMimeType(it) }
+            ?.let { android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(it) }
             ?: "bin"
         val path = "chats/$pairId/attachments/${msgRef.id}.$ext"
         val storageRef = Firebase.storage.reference.child(path)
 
         viewModelScope.launch {
             try {
-                // upload with progress listener
                 storageRef.putFile(uri)
                     .addOnProgressListener { snap ->
                         _uploadProgress.value = snap.bytesTransferred.toFloat() / snap.totalByteCount
                     }
                     .await()
+
                 val url = storageRef.downloadUrl.await().toString()
                 _uploadProgress.value = null
 
-                // send attachment message
-                val msg = mapOf(
-                    "senderId" to uid,
-                    "text" to "",
-                    "timestamp" to Timestamp.now(),
-                    "attachmentUrl" to url,
-                    "attachmentName" to uri.lastPathSegment,
-                    "attachmentType" to firestore.app.applicationContext.contentResolver.getType(uri),
-                    "caption" to caption
-                )
-                msgRef.set(msg).await()
+                msgRef.set(
+                    mapOf(
+                        "senderId" to uid,
+                        "text" to "",
+                        "timestamp" to Timestamp.now(),
+                        "attachmentUrl" to url,
+                        "attachmentName" to uri.lastPathSegment,
+                        "attachmentType" to firestore.app.applicationContext
+                            .contentResolver.getType(uri)
+                    )
+                ).await()
             } catch (e: Exception) {
                 Log.e("ChatDetailVM", "Error sending attachment", e)
                 _error.value = e.message
