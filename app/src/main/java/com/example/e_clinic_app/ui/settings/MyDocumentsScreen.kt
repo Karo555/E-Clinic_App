@@ -4,8 +4,10 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -17,11 +19,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.e_clinic_app.data.model.DocumentMeta
 import com.example.e_clinic_app.presentation.viewmodel.MyDocumentsViewModel
+import com.example.e_clinic_app.ui.navigation.Routes
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.launch
-import androidx.compose.foundation.lazy.items
 import com.google.firebase.storage.ktx.storage
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,30 +68,53 @@ fun MyDocumentsScreen(
             }
             Spacer(Modifier.height(16.dp))
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(docs) { doc ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
+                items(docs) { doc: DocumentMeta ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                // Open document by name click
+                                scope.launch {
+                                    val url = Firebase.storage
+                                        .reference
+                                        .child(doc.storagePath)
+                                        .downloadUrl
+                                        .await()
+                                        .toString()
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    )
+                                }
+                            }
+                    ) {
                         Row(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(doc.name, style = MaterialTheme.typography.bodyLarge)
-                            Row {
-                                IconButton(onClick = {
-                                    scope.launch {
-                                        val url = Firebase.storage.reference.child(doc.storagePath)
-                                            .downloadUrl.await().toString()
-                                        context.startActivity(
-                                            Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                        )
-                                    }
-                                }) {
-                                    Icon(Icons.Filled.Download, contentDescription = "Download")
+                            Text(
+                                text = doc.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = {
+                                scope.launch {
+                                    val url = Firebase.storage
+                                        .reference
+                                        .child(doc.storagePath)
+                                        .downloadUrl
+                                        .await()
+                                        .toString()
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    )
                                 }
-                                IconButton(onClick = { vm.deleteDocument(doc) }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Delete")
-                                }
+                            }) {
+                                Icon(Icons.Filled.Download, contentDescription = "Open")
+                            }
+                            IconButton(onClick = { vm.deleteDocument(doc) }) {
+                                Icon(Icons.Filled.Delete, contentDescription = "Delete")
                             }
                         }
                     }
