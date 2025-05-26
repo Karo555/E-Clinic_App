@@ -36,6 +36,7 @@ import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
 import com.google.firebase.auth.FirebaseAuth
+import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
 
 @Composable
 fun AppNavGraph(
@@ -231,6 +232,11 @@ fun AppNavGraph(
                 navController = navController,
                 doctorId = FirebaseAuth.getInstance().currentUser!!.uid
             )
+        }
+
+        // Browse Doctors (patient POV)
+        composable(Routes.BROWSE_DOCTORS) {
+            BrowseDoctorsScreen(navController)
         }
     }
 }

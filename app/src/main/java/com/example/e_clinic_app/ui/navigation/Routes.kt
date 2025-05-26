@@ -53,4 +53,7 @@ object Routes {
 
     // doctor's patients list
     const val DOCTOR_PATIENTS = "doctor_patients"
+
+    // patient browse doctors
+    const val BROWSE_DOCTORS = "browse_doctors"
 }
