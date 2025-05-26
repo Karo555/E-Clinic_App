@@ -59,4 +59,7 @@ object Routes {
 
     //patient documents
     const val MY_DOCUMENTS = "my_documents"
+
+    // visit detail for patient
+    const val VISIT_DETAIL = "visit_detail"
 }

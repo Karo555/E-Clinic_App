@@ -34,11 +34,13 @@ import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
+import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
 import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
 import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
+import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
 
 
 @Composable
@@ -248,5 +250,20 @@ fun AppNavGraph(
         composable(Routes.MY_DOCUMENTS) {
             MyDocumentsScreen(navController)
         }
+
+        // Patient visit details
+        composable(
+            route = "${Routes.VISIT_DETAIL}/{appointmentId}",
+            arguments = listOf(navArgument("appointmentId") { type = NavType.StringType })
+        ) { backStackEntry ->
+                        val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
+                        val vm: VisitDetailViewModel = viewModel(
+                                factory = VisitDetailViewModel.provideFactory(
+                                        firestore = FirebaseFirestore.getInstance(),
+                                        appointmentId = appointmentId
+                                            )
+                                    )
+                        VisitDetailScreen(navController, vm)
+                    }
     }
 }

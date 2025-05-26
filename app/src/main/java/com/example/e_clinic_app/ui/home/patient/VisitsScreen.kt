@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,7 +22,6 @@ import com.example.e_clinic_app.ui.navigation.Routes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -32,11 +32,10 @@ fun VisitsScreen(
     val appointments by viewModel.appointments.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
-    val zone = ZoneId.systemDefault()
+    val zone = ZoneId.of("Europe/Warsaw")
     val dateFmt = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
     val timeFmt = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
 
-    // Doctor filter state
     var selectedDoctorId by remember { mutableStateOf<String?>(null) }
     val doctorOptions = appointments
         .map { it.doctorId to "Dr. ${it.doctorFirstName} ${it.doctorLastName}" }
@@ -54,128 +53,136 @@ fun VisitsScreen(
             )
         }
     ) { padding ->
-        Box(
-            Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) {
-            when {
-                isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        when {
+            isLoading -> {
+                Box(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
-                error != null -> {
-                    Text(
-                        text = error ?: "Unknown error",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+            }
+            error != null -> {
+                Box(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(error ?: "Unknown error", color = MaterialTheme.colorScheme.error)
                 }
-                appointments.isEmpty() -> {
-                    Text(
-                        text = "No visits found",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+            }
+            appointments.isEmpty() -> {
+                Box(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No visits found")
                 }
-                else -> {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth()
-                    ) {
-                        // Doctor filter dropdown
-                        item {
-                            var expanded by remember { mutableStateOf(false) }
-                            ExposedDropdownMenuBox(
+            }
+            else -> {
+                LazyColumn(
+                    Modifier
+                        .padding(padding)
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item {
+                        var expanded by remember { mutableStateOf(false) }
+                        ExposedDropdownMenuBox(
+                            expanded = expanded,
+                            onExpandedChange = { expanded = !expanded }
+                        ) {
+                            OutlinedTextField(
+                                value = doctorOptions.firstOrNull { it.first == selectedDoctorId }?.second
+                                    ?: "All Doctors",
+                                onValueChange = {},
+                                label = { Text("Filter by Doctor") },
+                                readOnly = true,
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(
                                 expanded = expanded,
-                                onExpandedChange = { expanded = !expanded }
+                                onDismissRequest = { expanded = false }
                             ) {
-                                OutlinedTextField(
-                                    value = doctorOptions.firstOrNull { it.first == selectedDoctorId }?.second
-                                        ?: "All Doctors",
-                                    onValueChange = {},
-                                    label = { Text("Filter by Doctor") },
-                                    readOnly = true,
-                                    trailingIcon = {
-                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                                    },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                                ExposedDropdownMenu(
-                                    expanded = expanded,
-                                    onDismissRequest = { expanded = false }
-                                ) {
-                                    DropdownMenuItem(text = { Text("All Doctors") }, onClick = {
+                                DropdownMenuItem(
+                                    text = { Text("All Doctors") },
+                                    onClick = {
                                         selectedDoctorId = null
                                         expanded = false
-                                    })
-                                    doctorOptions.forEach { (id, name) ->
-                                        DropdownMenuItem(text = { Text(name) }, onClick = {
+                                    }
+                                )
+                                doctorOptions.forEach { (id, name) ->
+                                    DropdownMenuItem(
+                                        text = { Text(name) },
+                                        onClick = {
                                             selectedDoctorId = id
                                             expanded = false
-                                        })
-                                    }
+                                        }
+                                    )
                                 }
                             }
                         }
+                    }
 
-                        // Filtered list
-                        val filtered = appointments.filter {
-                            selectedDoctorId == null || it.doctorId == selectedDoctorId
+                    val filtered = appointments.filter {
+                        selectedDoctorId == null || it.doctorId == selectedDoctorId
+                    }
+                    val upcoming = filtered.filter { it.status == AppointmentStatus.PENDING || it.status == AppointmentStatus.CONFIRMED }
+                    val completed = filtered.filter { it.status == AppointmentStatus.COMPLETED }
+                    val cancelled = filtered.filter { it.status == AppointmentStatus.CANCELLED }
+
+                    if (upcoming.isNotEmpty()) {
+                        stickyHeader {
+                            Text(
+                                "Upcoming",
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(vertical = 4.dp)
+                            )
                         }
-                        val upcoming = filtered.filter { it.status == AppointmentStatus.PENDING || it.status == AppointmentStatus.CONFIRMED }
-                        val completed = filtered.filter { it.status == AppointmentStatus.COMPLETED }
-                        val cancelled = filtered.filter { it.status == AppointmentStatus.CANCELLED }
-
-                        // Upcoming Section
-                        if (upcoming.isNotEmpty()) {
-                            stickyHeader {
-                                Text(
-                                    "Upcoming",
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(MaterialTheme.colorScheme.background)
-                                        .padding(vertical = 4.dp)
-                                )
-                            }
-                            items(upcoming) { appt ->
-                                VisitRow(appt, navController, dateFmt, timeFmt, zone)
-                            }
+                        items(upcoming) { appt ->
+                            VisitRow(appt, navController, dateFmt, timeFmt, zone)
                         }
-
-                        // History Section
-                        if (completed.isNotEmpty()) {
-                            stickyHeader {
-                                Text(
-                                    "History",
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(MaterialTheme.colorScheme.background)
-                                        .padding(vertical = 4.dp)
-                                )
-                            }
-                            items(completed) { appt ->
-                                VisitRow(appt, navController, dateFmt, timeFmt, zone)
-                            }
+                    }
+                    if (completed.isNotEmpty()) {
+                        stickyHeader {
+                            Text(
+                                "History",
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(vertical = 4.dp)
+                            )
                         }
-
-                        // Cancelled Section
-                        if (cancelled.isNotEmpty()) {
-                            stickyHeader {
-                                Text(
-                                    "Cancelled",
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(MaterialTheme.colorScheme.background)
-                                        .padding(vertical = 4.dp)
-                                )
-                            }
-                            items(cancelled) { appt ->
-                                VisitRow(appt, navController, dateFmt, timeFmt, zone)
-                            }
+                        items(completed) { appt ->
+                            VisitRow(appt, navController, dateFmt, timeFmt, zone)
+                        }
+                    }
+                    if (cancelled.isNotEmpty()) {
+                        stickyHeader {
+                            Text(
+                                "Cancelled",
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(vertical = 4.dp)
+                            )
+                        }
+                        items(cancelled) { appt ->
+                            VisitRow(appt, navController, dateFmt, timeFmt, zone)
                         }
                     }
                 }
@@ -196,7 +203,7 @@ private fun VisitRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                navController.navigate("${Routes.DOCTOR_DETAIL}/${appt.doctorId}")
+                navController.navigate("${Routes.VISIT_DETAIL}/${appt.id}")
             }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -209,15 +216,15 @@ private fun VisitRow(
                 text = "Dr. ${appt.doctorFirstName} ${appt.doctorLastName}",
                 style = MaterialTheme.typography.bodyLarge
             )
-            Text(
-                text = "Specialisation: N/A",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Notes: No notes provided",
-                style = MaterialTheme.typography.bodySmall
-            )
+            Spacer(Modifier.height(4.dp))
+            if (appt.fastingRequired) {
+                Text("Fasting required: 24h prior", style = MaterialTheme.typography.bodySmall)
+            } else {
+                Text("No fasting required", style = MaterialTheme.typography.bodySmall)
+            }
+            if (appt.additionalPrep.isNotBlank()) {
+                Text("Additional prep: ${appt.additionalPrep}", style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }

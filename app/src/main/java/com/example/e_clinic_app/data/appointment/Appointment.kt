@@ -11,5 +11,7 @@ data class Appointment(
     val doctorFirstName: String = "",
     val doctorLastName: String = "",
     val patientFirstName: String = "",
-    val patientLastName: String = ""
+    val patientLastName: String = "",
+    val fastingRequired: Boolean = false,
+    val additionalPrep: String = ""
 )
