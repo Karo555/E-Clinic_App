@@ -9,7 +9,22 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.awaitAll
 import android.util.Log
 
+/**
+ * Repository for managing doctor-related data in the e-clinic application.
+ *
+ * This object provides methods to interact with the Firestore database to fetch
+ * and manage doctor information, including their availability and profiles.
+ */
 object DoctorRepository {
+    /**
+     * Fetches a list of available doctors from the Firestore database.
+     *
+     * This method retrieves all users with the role of "Doctor" and checks their
+     * availability by fetching their profile sub-document. Only doctors with
+     * availability set to `true` are included in the result.
+     *
+     * @return A list of `Doctor` objects representing available doctors.
+     */
     suspend fun fetchAvailableDoctors(): List<Doctor> = coroutineScope {
         Log.d("DoctorRepo", "Starting fetchAvailableDoctors()")
         val db = Firebase.firestore
@@ -22,7 +37,7 @@ object DoctorRepository {
             return@coroutineScope emptyList<Doctor>()
         }
 
-        // Parallel-fetch each profile sub-doc (only 1 expected per doctor)
+        // Parallel-fetch each profile sub-document (only 1 expected per doctor)
         doctorsSnap.documents.mapNotNull { userDoc ->
             async {
                 val profileSnap = userDoc.reference
