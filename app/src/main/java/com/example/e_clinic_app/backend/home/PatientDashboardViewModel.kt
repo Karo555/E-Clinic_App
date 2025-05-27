@@ -15,42 +15,66 @@ import com.example.e_clinic_app.data.repository.DoctorRepository
 import com.example.e_clinic_app.data.model.Doctor
 
 /**
- * ViewModel for the patient dashboard.
- * Handles fetching upcoming appointments and available doctors.
+ * ViewModel for managing the patient dashboard.
+ *
+ * This ViewModel handles fetching upcoming appointments and available doctors
+ * for the patient. It also manages the search query state for filtering doctors.
+ *
+ * @property firestore The Firestore instance used for database operations. Defaults to [FirebaseFirestore.getInstance].
  */
 class PatientDashboardViewModel(
     override val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) : StandardDashboard() {
 
-    // UI state for the list of available doctors
+    /**
+     * Represents the UI state for the list of available doctors.
+     */
     sealed interface UiState {
+        /** Indicates that the data is currently being loaded. */
         object Loading : UiState
+        /**
+         * Indicates that the data was successfully loaded.
+         *
+         * @property doctors The list of available doctors.
+         */
         data class Success(val doctors: List<Doctor>) : UiState
+        /**
+         * Indicates that an error occurred while loading the data.
+         *
+         * @property throwable The exception that caused the error.
+         */
         data class Error(val throwable: Throwable) : UiState
     }
-
+    // Backing property for the state of available doctors
     private val _doctorsState = MutableStateFlow<UiState>(UiState.Loading)
+    /** Exposes the state of available doctors as a read-only [StateFlow]. */
     val doctorsState: StateFlow<UiState> = _doctorsState.asStateFlow()
 
-    // Search query state for filtering doctors (stubbed for future use)
+    // Holds the current search query for filtering doctors
     var searchQuery by mutableStateOf("")
         private set
 
     /**
-     * Call to update the search query.
-     * Currently only stored; filtering logic to be added later.
+     * Updates the search query.
+     *
+     * This method currently only updates the state. Filtering logic will be added in the future.
+     *
+     * @param query The new search query.
      */
     fun onSearchQueryChanged(query: String) {
         searchQuery = query
     }
 
     init {
-        // Load doctors on initialization
+        // Load the list of available doctors when the ViewModel is initialized
         loadDoctors()
     }
 
     /**
-     * Fetches all currently available doctors from Firestore.
+     * Fetches the list of currently available doctors from Firestore.
+     *
+     * This method uses the [DoctorRepository] to retrieve the list of doctors
+     * and updates the [doctorsState] accordingly.
      */
     private fun loadDoctors() {
         viewModelScope.launch {
@@ -67,7 +91,13 @@ class PatientDashboardViewModel(
     }
 
     /**
-     * Existing method for fetching patient appointments.
+     * Fetches the patient's upcoming appointments from Firestore.
+     *
+     * This method retrieves appointments where the `patientId` matches the current user's ID
+     * and the `status` is either "CONFIRMED" or "PENDING". The appointments are stored in
+     * the [appointmentsList] property of the parent [StandardDashboard] class.
+     *
+     * @param firestore The Firestore instance used for database operations.
      */
     override fun fetchAppointments(firestore: FirebaseFirestore) {
         firestore.collection("appointments")
