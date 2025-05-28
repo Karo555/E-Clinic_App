@@ -13,7 +13,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import com.example.e_clinic_app.ui.admin.components.DoctorListCard
-
+/**
+ * A composable function that represents the Institution Admin Dashboard screen in the e-clinic application.
+ *
+ * This screen displays the institution's name and a list of doctors associated with the institution.
+ * It fetches data from Firestore, including the institution's details and the doctors' profiles,
+ * and provides a logout button for the admin.
+ *
+ * @param navController The `NavController` used for navigation between screens.
+ */
 @Composable
 fun InstitutionAdminDashboardScreen(navController: NavController) {
     var loading by remember { mutableStateOf(true) }

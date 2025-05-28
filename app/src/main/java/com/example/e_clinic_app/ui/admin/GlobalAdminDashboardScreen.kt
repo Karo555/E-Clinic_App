@@ -31,7 +31,14 @@ import androidx.navigation.NavController
 import com.example.e_clinic_app.MainActivity
 import com.google.firebase.auth.FirebaseAuth
 
-
+/**
+ * A composable function that represents the Global Admin Dashboard screen in the e-clinic application.
+ *
+ * This screen provides a scaffold with a top app bar, a welcome message, and quick access sections
+ * for managing doctors, clinics, admins, and app settings.
+ *
+ * @param navController The `NavController` used for navigation between screens.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GlobalAdminDashboardScreen(navController: NavController) {
@@ -88,7 +95,14 @@ fun GlobalAdminDashboardScreen(navController: NavController) {
         }
     }
 }
-
+/**
+ * A composable function that represents a clickable card for a specific admin section item.
+ *
+ * This card is used to navigate to different sections of the Global Admin Dashboard.
+ *
+ * @param label The label to display on the card.
+ * @param onClick A lambda function to execute when the card is clicked.
+ */
 @Composable
 fun AdminSectionItem(label: String, onClick: () -> Unit) {
     Card(
