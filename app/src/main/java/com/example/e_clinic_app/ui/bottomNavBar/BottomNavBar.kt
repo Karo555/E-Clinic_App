@@ -13,7 +13,15 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.e_clinic_app.ui.navigation.Routes
-
+/**
+ * A composable function that represents the Bottom Navigation Bar in the e-clinic application.
+ *
+ * This navigation bar provides quick access to the Home, Chat, and Settings screens. It highlights
+ * the currently selected tab and allows users to navigate between these screens using the provided
+ * `NavController`.
+ *
+ * @param navController The `NavController` used for navigation between screens.
+ */
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
