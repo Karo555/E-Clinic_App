@@ -23,14 +23,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.e_clinic_app.data.model.Message
 import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
+/**
+ * A data class representing an item in the Bottom Navigation Bar.
+ *
+ * Each item in the navigation bar is defined by its label, icon, and navigation route.
+ *
+ * @property label The text label displayed for the navigation item.
+ * @property icon The icon associated with the navigation item.
+ * @property route The navigation route corresponding to the item.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatDetailScreen(
