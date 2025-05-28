@@ -30,58 +30,103 @@ data class MedicalFormState(
     val selectedSubtype: String = "",
     val hasMedications: Boolean? = null
 )
-
+/**
+ * A `ViewModel` class that manages the state and logic for the Medical Form Stepper screen in the e-clinic application.
+ *
+ * This ViewModel handles the multi-step form process, including updating personal information, medical conditions,
+ * and medications. It also manages the form's submission to Firebase Firestore and provides error handling.
+ *
+ * The ViewModel includes:
+ * - State management for the current step, personal information, conditions, and medications.
+ * - Methods to update and validate form data.
+ * - Firebase Firestore integration for saving the form data.
+ * - Navigation between steps in the form.
+ */
 class MedicalFormStepperViewModel : ViewModel() {
-
+    /**
+     * A `StateFlow` that holds the current state of the medical form.
+     */
     private val _uiState = MutableStateFlow(MedicalFormState())
     val uiState: StateFlow<MedicalFormState> = _uiState
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
-
+    /**
+     * Updates the personal information in the form state.
+     *
+     * @param firstName The user's first name.
+     * @param lastName The user's last name.
+     */
     fun updatePersonalInfo(firstName: String, lastName: String) {
         _uiState.value = _uiState.value.copy(
             personalInfo = PersonalInfo(firstName, lastName)
         )
     }
 
+    /**
+     * Updates the list of medical conditions in the form state.
+     *
+     * @param conditions A list of `MedicalCondition` objects representing the user's conditions.
+     */
     fun updateConditions(conditions: List<MedicalCondition>) {
         _uiState.value = _uiState.value.copy(conditions = conditions)
     }
-
+    /**
+     * Sets whether the user has medical conditions.
+     *
+     * @param hasConditions A boolean indicating if the user has conditions.
+     */
     fun setHasConditions(hasConditions: Boolean) {
         _uiState.value = _uiState.value.copy(hasConditions = hasConditions)
     }
-
+    /**
+     * Applies the condition selection by clearing the conditions list if the user has no conditions.
+     */
     fun applyConditionSelection() {
         if (_uiState.value.hasConditions == false) {
             updateConditions(emptyList())
         }
     }
-
+    /**
+     * Updates the list of medications in the form state.
+     *
+     * @param medications A list of `Medication` objects representing the user's medications.
+     */
     fun updateMedications(medications: List<Medication>) {
         _uiState.value = _uiState.value.copy(medications = medications)
     }
-
+    /**
+     * Navigates to the next step in the form.
+     */
     fun goToNextStep() {
         if (_uiState.value.step < 3) {
             _uiState.value = _uiState.value.copy(step = _uiState.value.step + 1)
         }
     }
-
+    /**
+     * Navigates to the previous step in the form.
+     */
     fun goToPreviousStep() {
         if (_uiState.value.step > 0) {
             _uiState.value = _uiState.value.copy(step = _uiState.value.step - 1)
         }
     }
-
+    /**
+     * Updates the selected condition category in the form state.
+     *
+     * @param category The selected condition category.
+     */
     fun updateConditionCategory(category: String) {
         _uiState.value = _uiState.value.copy(
             selectedCategory = category,
             selectedSubtype = "" // reset subtype
         )
     }
-
+    /**
+     * Updates the selected condition subtype in the form state.
+     *
+     * @param subtype The selected condition subtype.
+     */
     fun updateConditionSubtype(subtype: String) {
         _uiState.value = _uiState.value.copy(selectedSubtype = subtype)
 
@@ -92,7 +137,9 @@ class MedicalFormStepperViewModel : ViewModel() {
         }
     }
 
-
+    /**
+     * Submits the form data to Firebase Firestore.
+     */
     fun submitForm() {
         val user = auth.currentUser ?: return
         val uid = user.uid
@@ -129,11 +176,17 @@ class MedicalFormStepperViewModel : ViewModel() {
                 }
         }
     }
-
+    /**
+     * Sets whether the user takes medications.
+     *
+     * @param has A boolean indicating if the user takes medications.
+     */
     fun setHasMedications(has: Boolean) {
         _uiState.value = _uiState.value.copy(hasMedications = has)
     }
-
+    /**
+     * Applies the medication selection by clearing the medications list if the user has no medications.
+     */
     fun applyMedicationSelection() {
         if (_uiState.value.hasMedications == false) {
             updateMedications(emptyList())

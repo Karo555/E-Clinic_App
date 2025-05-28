@@ -13,15 +13,31 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.foundation.clickable
-import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.icons.filled.ArrowDropDown
-import kotlinx.coroutines.launch
 import androidx.compose.material3.rememberModalBottomSheetState
 import com.example.e_clinic_app.data.model.DosageUnit
 import com.example.e_clinic_app.data.model.Drug
 import com.example.e_clinic_app.data.model.Frequency
 import com.example.e_clinic_app.presentation.viewmodel.MedicationsViewModel
-
+/**
+ * A composable function that represents the Medical Form Stepper screen in the e-clinic application.
+ *
+ * This screen guides users through a multi-step form to collect their medical information, including
+ * personal details, medical conditions, and medications. The form is divided into four steps:
+ * - Step 1: Personal Information
+ * - Step 2: Medical Conditions
+ * - Step 3: Medications
+ * - Step 4: Review and Submit
+ *
+ * The screen includes:
+ * - A stepper header to indicate the current step.
+ * - A bottom navigation bar for navigating between steps.
+ * - Validation for each step to ensure required fields are completed.
+ * - A review screen to summarize the entered information before submission.
+ *
+ * @param viewModel The `MedicalFormStepperViewModel` instance used to manage the form's state and logic.
+ * @param onFormCompleted A callback function triggered when the form is successfully submitted.
+ */
 @Composable
 fun StepperBottomNavBar(
     step: Int,
@@ -71,7 +87,25 @@ fun isStepValid(state: MedicalFormState): Boolean {
         else -> false
     }
 }
-
+/**
+ * A composable function that represents the Medical Form Stepper screen in the e-clinic application.
+ *
+ * This screen guides users through a multi-step form to collect their medical information, including
+ * personal details, medical conditions, and medications. The form is divided into four steps:
+ * - Step 1: Personal Information
+ * - Step 2: Medical Conditions
+ * - Step 3: Medications
+ * - Step 4: Review and Submit
+ *
+ * The screen includes:
+ * - A stepper header to indicate the current step.
+ * - A bottom navigation bar for navigating between steps.
+ * - Validation for each step to ensure required fields are completed.
+ * - A review screen to summarize the entered information before submission.
+ *
+ * @param viewModel The `MedicalFormStepperViewModel` instance used to manage the form's state and logic.
+ * @param onFormCompleted A callback function triggered when the form is successfully submitted.
+ */
 @Composable
 fun MedicalFormStepperScreen(
     viewModel: MedicalFormStepperViewModel = viewModel(),
@@ -153,7 +187,13 @@ fun MedicalFormStepperScreen(
 
 }
 
-
+/**
+ * A composable function that represents the header for the stepper.
+ *
+ * This component displays the step titles and highlights the current step.
+ *
+ * @param currentStep The index of the current step.
+ */
 @Composable
 fun StepperHeader(currentStep: Int) {
     val steps = listOf("Personal Info", "Conditions", "Medications", "Review")
@@ -174,7 +214,15 @@ fun StepperHeader(currentStep: Int) {
         }
     }
 }
-
+/**
+ * A composable function that represents the personal information step in the form.
+ *
+ * This step collects the user's first and last name.
+ *
+ * @param firstName The user's first name.
+ * @param lastName The user's last name.
+ * @param onInputChange A callback function triggered when the input fields are updated.
+ */
 @Composable
 fun StepPersonalInfo(
     firstName: String,
@@ -214,7 +262,20 @@ fun StepPersonalInfo(
         )
     }
 }
-
+/**
+ * A composable function that represents the medical conditions step in the form.
+ *
+ * This step allows users to specify their medical conditions, including category and subtype.
+ *
+ * @param conditions A list of the user's medical conditions.
+ * @param hasConditions A boolean indicating whether the user has any medical conditions.
+ * @param selectedCategory The selected category of the condition.
+ * @param selectedSubtype The selected subtype of the condition.
+ * @param onSelectionChange A callback function triggered when the conditions list is updated.
+ * @param onHasConditionChange A callback function triggered when the "Has Conditions" state changes.
+ * @param onCategoryChange A callback function triggered when the condition category is updated.
+ * @param onSubtypeChange A callback function triggered when the condition subtype is updated.
+ */
 @Composable
 fun StepMedicalConditions(
     conditions: List<MedicalCondition>,
@@ -294,7 +355,17 @@ fun StepMedicalConditions(
         }
     }
 }
-
+/**
+ * A composable function that represents the medications step in the form.
+ *
+ * This step allows users to specify their medications, including drug, dosage, unit, and frequency.
+ *
+ * @param medications A list of the user's medications.
+ * @param hasMedications A boolean indicating whether the user takes any medications.
+ * @param onHasMedicationsChange A callback function triggered when the "Has Medications" state changes.
+ * @param onMedicationsChange A callback function triggered when the medications list is updated.
+ * @param viewModel The `MedicationsViewModel` instance used to manage the medications data.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StepMedications(
@@ -574,7 +645,13 @@ fun StepMedications(
     }
 }
 
-
+/**
+ * A composable function that represents the review and submit step in the form.
+ *
+ * This step displays a summary of the entered information for the user to review before submission.
+ *
+ * @param state The `MedicalFormState` containing the form's current state.
+ */
 @Composable
 fun StepReviewAndSubmit(
     state: MedicalFormState
@@ -623,7 +700,16 @@ fun StepReviewAndSubmit(
         }
     }
 }
-
+/**
+ * A composable function that represents a dropdown menu with a label.
+ *
+ * This component is used for selecting options in the form, such as condition categories or subtypes.
+ *
+ * @param label The label for the dropdown menu.
+ * @param options A list of options to display in the dropdown menu.
+ * @param selectedOption The currently selected option.
+ * @param onOptionSelected A callback function triggered when an option is selected.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DropdownMenuWithLabel(
