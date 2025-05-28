@@ -21,12 +21,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.e_clinic_app.data.model.DocumentMeta
 import com.example.e_clinic_app.presentation.viewmodel.MyDocumentsViewModel
-import com.example.e_clinic_app.ui.navigation.Routes
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-
+/**
+ * A composable function that represents the My Documents screen in the e-clinic application.
+ *
+ * This screen allows users to manage their uploaded documents, such as medical reports or prescriptions.
+ * Users can upload new documents, view existing ones, and delete documents they no longer need.
+ *
+ * The screen includes:
+ * - A button to upload documents using the system file picker.
+ * - A list of uploaded documents displayed in a scrollable list.
+ * - Each document item includes options to view or delete the document.
+ * - Integration with Firebase Storage for document management.
+ *
+ * @param navController The `NavController` used for navigating back to the previous screen.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDocumentsScreen(

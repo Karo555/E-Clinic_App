@@ -19,7 +19,25 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.data.institutionsByCity
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-
+/**
+ * A composable function that represents the Edit Public Profile screen in the e-clinic application.
+ *
+ * This screen allows doctors to edit their public profile information, including personal details,
+ * specialization, experience, license number, bio, availability, and associated institution.
+ *
+ * The screen includes:
+ * - Input fields for first name, last name, specialization, years of experience, and license number.
+ * - Dropdown menus for selecting a city and institution.
+ * - A multi-line text field for entering a short bio.
+ * - A list of checkboxes for selecting available days.
+ * - Validation for required fields and error messages for invalid inputs.
+ * - A "Save Profile" button to submit the changes and a "Cancel" button to exit without saving.
+ *
+ * The profile data is loaded from Firebase Firestore and updated upon submission.
+ *
+ * @param onSubmitSuccess A callback function triggered when the profile is successfully saved.
+ * @param onCancel A callback function triggered when the user cancels the editing process.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPublicProfileScreen(
