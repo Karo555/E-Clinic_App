@@ -18,6 +18,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.e_clinic_app.ui.admin.components.MedicalConditionPicker
 import com.example.e_clinic_app.ui.onboarding.StepMedications
 
+/**
+ * A composable function that represents the Edit Medical Information screen in the e-clinic application.
+ *
+ * This screen allows users to input or update their medical information, including personal details,
+ * known medical conditions, and medications. It provides expandable sections for better organization
+ * and supports form validation to ensure required fields are completed.
+ *
+ * The screen handles loading states, error messages, and unsaved changes through a confirmation dialog.
+ * It also provides a callback for successful submission or cancellation of the form.
+ *
+ * @param viewModel The `EditMedicalInfoViewModel` instance used to manage the screen's state. Defaults to a local `viewModel`.
+ * @param isEditing A flag indicating whether the screen is in edit mode or submission mode.
+ * @param onSubmitSuccess A callback function invoked when the form is successfully submitted.
+ * @param onCancel A callback function invoked when the user cancels the form.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditMedicalInfoScreen(
@@ -172,7 +187,16 @@ fun EditMedicalInfoScreen(
     }
 }
 
-/** A simple expandable section with a chevron toggle in its header. */
+/**
+ * A composable function representing an expandable section with a toggleable header.
+ *
+ * This section is used to group related form fields, allowing users to expand or collapse the content.
+ *
+ * @param title The title displayed in the header of the section.
+ * @param expanded A flag indicating whether the section is expanded or collapsed.
+ * @param onToggle A callback function invoked when the section's header is clicked to toggle its state.
+ * @param content The composable content displayed within the section when expanded.
+ */
 @Composable
 fun ExpandableSection(
     title: String,
