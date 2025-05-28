@@ -35,7 +35,20 @@ import com.example.e_clinic_app.ui.navigation.Routes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
+/**
+ * A composable function that represents the Doctor Home Tab screen in the e-clinic application.
+ *
+ * This screen serves as the main dashboard for doctors, providing a personalized greeting,
+ * quick access to key functionalities such as managing patients and appointments, and a list
+ * of upcoming appointments grouped by date.
+ *
+ * The screen includes a top app bar with the doctor's name, a bottom navigation bar, and a
+ * scrollable layout for quick actions and appointments. It also provides a button to set
+ * availability.
+ *
+ * @param navController The `NavController` used for navigation to other screens.
+ * @param viewModel The `DoctorHomeViewModel` instance used to manage the screen's state and data.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DoctorHomeTabScreen(
@@ -236,5 +249,11 @@ fun DoctorHomeTabScreen(
         }
     }
 }
-
+/**
+ * A data class representing a navigation item for the quick access section.
+ *
+ * @property label The label displayed for the navigation item.
+ * @property icon The icon associated with the navigation item.
+ * @property route The navigation route to be triggered when the item is clicked.
+ */
 data class NavItem(val label: String, val icon: ImageVector, val route: String)

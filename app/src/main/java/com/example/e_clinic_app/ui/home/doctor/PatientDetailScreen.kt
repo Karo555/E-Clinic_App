@@ -14,7 +14,16 @@ import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-
+/**
+ * A composable function that represents the Patient Detail screen in the e-clinic application.
+ *
+ * This screen displays detailed information about a specific patient, including their name, email,
+ * and bio. It handles different UI states such as loading, error, and success, ensuring a smooth
+ * user experience. The screen also includes a top app bar with a back navigation button.
+ *
+ * @param navController The `NavController` used for navigating back to the previous screen.
+ * @param patientId The unique identifier of the patient whose details are being displayed.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientDetailScreen(

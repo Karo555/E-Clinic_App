@@ -19,7 +19,21 @@ import com.example.e_clinic_app.ui.navigation.Routes
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.foundation.lazy.items
-
+/**
+ * A composable function that represents the Patients screen in the e-clinic application.
+ *
+ * This screen displays a searchable and sortable list of patients associated with a specific doctor.
+ * It allows the doctor to search for patients by name and view their last visit date. Clicking on a
+ * patient navigates to the Patient Detail screen for more information.
+ *
+ * The screen includes:
+ * - A search bar for filtering patients by name.
+ * - A toggle button for sorting the list (currently a placeholder).
+ * - A scrollable list of patients with their names and last visit dates.
+ *
+ * @param navController The `NavController` used for navigation to other screens.
+ * @param doctorId The unique identifier of the doctor whose patients are being displayed.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientsScreen(
