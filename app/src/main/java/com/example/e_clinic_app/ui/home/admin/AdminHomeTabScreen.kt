@@ -30,6 +30,18 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
 
+/**
+ * A composable function that represents the Admin Home Tab screen in the e-clinic application.
+ *
+ * This screen serves as the main dashboard for administrators, providing quick access to key
+ * functionalities such as managing doctors, managing patients, viewing reports, and handling
+ * system alerts. It also displays recent reports for quick review.
+ *
+ * The screen includes a top app bar, a bottom navigation bar, and a grid-based navigation layout
+ * for admin actions. Recent reports are displayed in a horizontally scrollable list.
+ *
+ * @param navController The `NavController` used for navigation to other screens.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminHomeTabScreen(navController: NavController) {
@@ -112,6 +124,19 @@ fun AdminHomeTabScreen(navController: NavController) {
         }
     }
 }
+
+/**
+ * A composable function that represents the Admin Home Tab screen in the e-clinic application.
+ *
+ * This screen serves as the main dashboard for administrators, providing quick access to key
+ * functionalities such as managing doctors, managing patients, viewing reports, and handling
+ * system alerts. It also displays recent reports for quick review.
+ *
+ * The screen includes a top app bar, a bottom navigation bar, and a grid-based navigation layout
+ * for admin actions. Recent reports are displayed in a horizontally scrollable list.
+ *
+ * @param navController The `NavController` used for navigation to other screens.
+ */
 @Composable
 fun AdminNavigationGrid(navController: NavController) {
     val navigationItems = listOf(
