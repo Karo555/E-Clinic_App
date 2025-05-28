@@ -34,7 +34,25 @@ import com.example.e_clinic_app.MainActivity
 import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
 import com.example.e_clinic_app.ui.navigation.Routes
 import com.google.firebase.auth.FirebaseAuth
-
+/**
+ * A composable function that represents the Settings Tab screen in the e-clinic application.
+ *
+ * This screen provides users with options to manage their account and preferences. It includes
+ * navigation to various settings-related features such as editing public profiles, managing documents,
+ * and logging out of the application.
+ *
+ * The screen includes:
+ * - A top app bar with the title "Settings".
+ * - A settings icon and a description of the screen's purpose.
+ * - Buttons for navigating to:
+ *   - Edit Public Profile (for doctors) or Edit Medical Information (for other users).
+ *   - My Documents screen for managing uploaded documents.
+ *   - Logging out of the application.
+ * - A bottom navigation bar for navigating between main app sections.
+ *
+ * @param navController The `NavController` used for navigating between screens.
+ * @param currentUserRole The role of the current user (e.g., "Doctor"), which determines the available options.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsTabScreen(

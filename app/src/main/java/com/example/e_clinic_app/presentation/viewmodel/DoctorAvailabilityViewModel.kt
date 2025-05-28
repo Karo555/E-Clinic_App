@@ -13,26 +13,39 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 /**
- * ViewModel to load and save a doctor's weekly availability schedule.
+ * ViewModel for managing a doctor's weekly availability schedule in the e-clinic application.
+ *
+ * This ViewModel provides functionality to load and save the weekly schedule of a doctor
+ * from Firestore. The schedule is represented as a map of day names to a list of time slots.
+ *
+ * @property firestore The Firestore instance used for database operations.
  */
 class DoctorAvailabilityViewModel(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) : ViewModel() {
 
     private val _schedule = MutableStateFlow<Map<String, List<String>>>(emptyMap())
-    /** Weekly schedule: day name (e.g. "Monday") to list of "HH:mm" slots */
+    /** A state flow containing the weekly schedule: day name (e.g., "Monday") to list of "HH:mm" slots. */
     val schedule: StateFlow<Map<String, List<String>>> = _schedule.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
+    /** A state flow indicating whether the schedule is currently being loaded or saved. */
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
+    /** A state flow containing any error messages encountered during operations. */
     val error: StateFlow<String?> = _error.asStateFlow()
 
     private val currentUserId: String?
+        /** The unique identifier of the currently authenticated user (doctor). */
         get() = Firebase.auth.currentUser?.uid
 
-    /** Load the current weeklySchedule from Firestore */
+    /**
+     * Loads the current weekly schedule of the doctor from Firestore.
+     *
+     * The schedule is fetched from the `doctorInfo` document in the `profile` collection
+     * of the authenticated user's Firestore document.
+     */
     fun loadSchedule() {
         val uid = currentUserId ?: run {
             _error.value = "Not authenticated"
@@ -65,7 +78,15 @@ class DoctorAvailabilityViewModel(
         }
     }
 
-    /** Save a new weeklySchedule to Firestore */
+    /**
+     * Saves the updated weekly schedule of the doctor to Firestore.
+     *
+     * The schedule is saved to the `doctorInfo` document in the `profile` collection
+     * of the authenticated user's Firestore document. The availability flag is also updated
+     * based on whether the schedule is empty or not.
+     *
+     * @param updated The updated weekly schedule to save.
+     */
     fun saveSchedule(updated: Map<String, List<String>>) {
         val uid = currentUserId ?: run {
             _error.value = "Not authenticated"

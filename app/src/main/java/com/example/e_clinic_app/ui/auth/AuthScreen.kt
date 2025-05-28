@@ -17,7 +17,20 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-
+/**
+ * A composable function that represents the authentication screen in the e-clinic application.
+ *
+ * This screen provides functionality for users to log in or register, depending on the selected mode.
+ * It includes fields for email and password, a role selection dropdown (for registration), and navigation
+ * to other screens based on the user's role and authentication status.
+ *
+ * @param onNavigateToHome A callback invoked to navigate to the home screen.
+ * @param onNavigateToFirstLogin A callback invoked to navigate to the first login screen for patients.
+ * @param onNavigateToDoctorFirstLogin A callback invoked to navigate to the first login screen for doctors.
+ * @param onNavigateToGlobalAdminDashboard A callback invoked to navigate to the global admin dashboard.
+ * @param onNavigateToInstitutionAdminDashboard A callback invoked to navigate to the institution admin dashboard.
+ * @param onNavigateToResetPassword A callback invoked to navigate to the reset password screen.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen(

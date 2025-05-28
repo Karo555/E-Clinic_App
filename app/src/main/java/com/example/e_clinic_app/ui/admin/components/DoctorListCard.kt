@@ -10,6 +10,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * A composable function that displays a card representing a doctor's information.
+ *
+ * This card includes the doctor's full name and specialization, and it is clickable
+ * to perform an action when selected.
+ *
+ * @param fullName The full name of the doctor to display.
+ * @param specialization The specialization of the doctor to display.
+ * @param onClick A lambda function to execute when the card is clicked. Defaults to an empty action.
+ */
 @Composable
 fun DoctorListCard(
     fullName: String,

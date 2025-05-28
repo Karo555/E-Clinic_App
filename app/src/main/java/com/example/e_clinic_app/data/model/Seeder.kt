@@ -6,10 +6,22 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 
 /**
- * Seeds the Firestore `drugs` collection with initial sample data.
- * Call this once (e.g., in Application.onCreate or a debug screen) to populate the catalog.
+ * Provides functionality to seed the Firestore `drugs` collection with initial sample data.
+ *
+ * This object is responsible for populating the `drugs` collection in Firestore with predefined
+ * sample data. It is intended to be used for testing or initializing the application with
+ * default data. The seeding process is performed asynchronously using coroutines.
  */
 object DrugSeeder {
+    /**
+     * Seeds the `drugs` collection with a predefined list of sample drugs.
+     *
+     * This method creates a list of sample `Drug` objects and inserts them into the Firestore
+     * database using the provided `DrugRepository`. The operation is performed on a background
+     * thread using the `Dispatchers.IO` coroutine dispatcher.
+     *
+     * @param repository The `DrugRepository` instance used to interact with the Firestore database.
+     */
     fun seed(repository: DrugRepository) {
         CoroutineScope(Dispatchers.IO).launch {
             val now = Instant.now()

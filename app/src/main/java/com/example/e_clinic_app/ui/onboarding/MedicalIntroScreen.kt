@@ -10,7 +10,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.ui.navigation.Routes
-
+/**
+ * A composable function that represents the Medical Introduction screen in the e-clinic application.
+ *
+ * This screen provides an introduction to the medical profile setup process. It informs users about
+ * the purpose of the form, what information they need to prepare, and the estimated time required to complete it.
+ *
+ * The screen includes:
+ * - A title and description explaining the medical profile setup.
+ * - A list of items to prepare, such as medical history, medications, and known conditions.
+ * - An estimated time to complete the form.
+ * - A button to proceed to the first step of the medical form.
+ *
+ * @param navController The `NavController` used for navigating to the next screen in the onboarding process.
+ */
 @Composable
 fun MedicalIntroScreen(navController: NavController) {
     Column(

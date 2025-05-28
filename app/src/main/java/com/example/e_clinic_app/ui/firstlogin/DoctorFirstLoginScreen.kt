@@ -16,7 +16,18 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.data.institutionsByCity
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-
+/**
+ * A composable function that represents the first login screen for doctors in the e-clinic application.
+ *
+ * This screen allows doctors to set up their profile by providing personal details, specialization,
+ * experience, medical license number, and availability. It also includes options to select a city
+ * and institution, and displays a preview of the entered information.
+ *
+ * The screen validates the input fields and saves the data to the Firestore database upon submission.
+ * It handles error messages, loading states, and provides a user-friendly interface for profile setup.
+ *
+ * @param onSubmitSuccess A callback function invoked when the profile setup is successfully completed.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorFirstLoginScreen(

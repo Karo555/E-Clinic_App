@@ -1,5 +1,19 @@
 package com.example.e_clinic_app.ui.navigation
-
+/**
+ * An object that defines the route constants used for navigation in the e-clinic application.
+ *
+ * These constants represent the unique identifiers for different screens and navigation destinations
+ * within the app. They are used in the navigation graph to define routes and manage navigation between
+ * various composable screens.
+ *
+ * Routes include:
+ * - Authentication and onboarding screens.
+ * - Post-login screens for patients, doctors, and admins.
+ * - Admin dashboards for global and institution administrators.
+ * - Patient and doctor-specific features, such as visits, chat, and profile management.
+ * - Nested navigation tabs for chat, visits, and settings.
+ * - Other features like browsing doctors, managing documents, and viewing visit details.
+ */
 object Routes {
     //auth and onboarding
     const val AUTH = "auth"
@@ -59,4 +73,7 @@ object Routes {
 
     //patient documents
     const val MY_DOCUMENTS = "my_documents"
+
+    // visit detail for patient
+    const val VISIT_DETAIL = "visit_detail"
 }

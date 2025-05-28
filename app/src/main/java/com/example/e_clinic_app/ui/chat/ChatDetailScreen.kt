@@ -1,27 +1,43 @@
 package com.example.e_clinic_app.ui.chat
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.e_clinic_app.data.model.Message
 import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
+/**
+ * A data class representing an item in the Bottom Navigation Bar.
+ *
+ * Each item in the navigation bar is defined by its label, icon, and navigation route.
+ *
+ * @property label The text label displayed for the navigation item.
+ * @property icon The icon associated with the navigation item.
+ * @property route The navigation route corresponding to the item.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatDetailScreen(
@@ -30,9 +46,16 @@ fun ChatDetailScreen(
 ) {
     val messages by viewModel.messages.collectAsState()
     val error by viewModel.error.collectAsState()
+    val uploadProgress by viewModel.uploadProgress.collectAsState()
+    val context = LocalContext.current
     var inputText by remember { mutableStateOf("") }
-    val focusManager = LocalFocusManager.current
     val fmt = DateTimeFormatter.ofPattern("HH:mm")
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.sendAttachment(it) }
+    }
 
     Scaffold(
         topBar = {
@@ -46,53 +69,59 @@ fun ChatDetailScreen(
             )
         },
         bottomBar = {
-            Surface(
-                tonalElevation = 4.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+            Column {
+                uploadProgress?.let {
+                    LinearProgressIndicator(progress = it, modifier = Modifier.fillMaxWidth())
+                }
+                Surface(
+                    tonalElevation = 4.dp,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    TextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
-                        placeholder = { Text("Type a message") },
-                        modifier = Modifier.weight(1f),
-                        maxLines = 4,
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            imeAction = ImeAction.Send
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onSend = {
+                    Row(
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = {
+                            launcher.launch(arrayOf("image/*", "application/pdf", "text/plain"))
+                        }) {
+                            Icon(Icons.Filled.AttachFile, contentDescription = "Attach")
+                        }
+                        TextField(
+                            value = inputText,
+                            onValueChange = { inputText = it },
+                            placeholder = { Text("Type a message") },
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
+                            keyboardActions = KeyboardActions(
+                                onSend = {
+                                    if (inputText.isNotBlank()) {
+                                        viewModel.sendMessage(inputText.trim())
+                                        inputText = ""
+                                    }
+                                }
+                            ),
+                            enabled = uploadProgress == null
+                        )
+                        IconButton(
+                            onClick = {
                                 if (inputText.isNotBlank()) {
                                     viewModel.sendMessage(inputText.trim())
                                     inputText = ""
-                                    focusManager.clearFocus()
                                 }
-                            }
-                        )
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            if (inputText.isNotBlank()) {
-                                viewModel.sendMessage(inputText.trim())
-                                inputText = ""
-                                focusManager.clearFocus()
-                            }
+                            },
+                            enabled = inputText.isNotBlank() && uploadProgress == null
+                        ) {
+                            Icon(Icons.Filled.Send, contentDescription = "Send")
                         }
-                    ) {
-                        Text("Send")
                     }
                 }
             }
         }
     ) { padding ->
         Box(
-            modifier = Modifier
+            Modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
@@ -122,14 +151,41 @@ fun ChatDetailScreen(
                                 color = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Column(
-                                    modifier = Modifier
-                                        .padding(12.dp)
+                                    modifier = Modifier.padding(12.dp)
                                 ) {
-                                    Text(
-                                        text = msg.text,
-                                        color = if (isMe) Color.White else Color.Black
-                                    )
-                                    Spacer(Modifier.height(4.dp))
+                                    msg.attachmentUrl?.let { url ->
+                                        if (msg.attachmentType?.startsWith("image") == true) {
+                                            AsyncImage(
+                                                model = url,
+                                                contentDescription = msg.attachmentName,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        context.startActivity(
+                                                            Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                        )
+                                                    }
+                                            )
+                                        } else {
+                                            Text(
+                                                text = msg.attachmentName ?: "Attachment",
+                                                color = if (isMe) Color.White else MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.clickable {
+                                                    context.startActivity(
+                                                        Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                    )
+                                                }
+                                            )
+                                        }
+                                        Spacer(Modifier.height(4.dp))
+                                    }
+                                    if (msg.text.isNotEmpty()) {
+                                        Text(
+                                            text = msg.text,
+                                            color = if (isMe) Color.White else Color.Black
+                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                    }
                                     Text(
                                         text = msg.timestamp
                                             .toDate()

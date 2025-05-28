@@ -16,7 +16,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.e_clinic_app.presentation.viewmodel.ChatListViewModel
 import com.example.e_clinic_app.presentation.viewmodel.ChatThread
 import androidx.compose.foundation.lazy.items
-
+/**
+ * A composable function that represents the Chat Tab screen in the e-clinic application.
+ *
+ * This screen displays a list of chat threads, allowing users to view and select a chat with a doctor.
+ * It handles loading states, error messages, and empty states when no chats are available.
+ * Each chat thread is displayed as a card, and clicking on a thread navigates to the Chat Detail screen.
+ *
+ * @param navController The `NavController` used for navigation to the Chat Detail screen.
+ * @param viewModel The `ChatListViewModel` instance used to manage the list of chat threads. Defaults to a local `viewModel`.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatTabScreen(

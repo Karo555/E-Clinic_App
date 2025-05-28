@@ -8,24 +8,39 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
+/**
+ * ViewModel for managing the medications catalog in the e-clinic application.
+ *
+ * This ViewModel handles loading, refreshing, and exposing the list of drugs
+ * from the repository, along with loading and error states.
+ *
+ * @property repository The repository used to fetch and manage drug data.
+ */
 class MedicationsViewModel(
     private val repository: DrugRepository = DrugRepository()
 ) : ViewModel() {
 
     private val _drugs = MutableStateFlow<List<Drug>>(emptyList())
+    /** A state flow containing the list of drugs in the catalog. */
     val drugs: StateFlow<List<Drug>> = _drugs.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
+    /** A state flow indicating whether the drug data is currently being loaded. */
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
+    /** A state flow containing any error messages encountered during operations. */
     val error: StateFlow<String?> = _error.asStateFlow()
 
     init {
         loadDrugs()
     }
-
+    /**
+     * Loads the list of drugs from the repository.
+     *
+     * This method fetches the drug data and updates the state flows
+     * for the drug list, loading state, and error state.
+     */
     private fun loadDrugs() {
         _isLoading.value = true
         viewModelScope.launch {
@@ -44,7 +59,7 @@ class MedicationsViewModel(
     }
 
     /**
-     * Refreshes the drug catalog from Firestore.
+     * Refreshes the drug catalog by reloading the data from the repository.
      */
     fun refreshDrugs() = loadDrugs()
 }

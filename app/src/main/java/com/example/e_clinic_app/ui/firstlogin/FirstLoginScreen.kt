@@ -13,7 +13,19 @@ import com.example.e_clinic_app.data.model.MedicalCondition
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-
+/**
+ * A composable function that represents the First Login screen in the e-clinic application.
+ *
+ * This screen allows users to input their basic medical information, including first name, last name,
+ * and known medical conditions. It supports both submission mode for new users and edit mode for
+ * updating existing information.
+ *
+ * The screen validates user input, displays error messages for invalid fields, and saves the data
+ * to Firestore upon successful submission. It also provides a success dialog upon completion.
+ *
+ * @param onSubmitSuccess A callback function invoked when the form is successfully submitted.
+ * @param isEditing A flag indicating whether the screen is in edit mode or submission mode. Defaults to `false`.
+ */
 @Composable
 fun FirstLoginScreen(
     onSubmitSuccess: () -> Unit,

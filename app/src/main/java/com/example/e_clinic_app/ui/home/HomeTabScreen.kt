@@ -8,7 +8,21 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-
+/**
+ * A composable function that represents the Home Tab screen in the e-clinic application.
+ *
+ * This screen determines the user's role (Doctor, Patient, or Admin) and navigates them to the appropriate
+ * dashboard based on their role. It fetches user-specific data from Firebase Firestore and displays a loading
+ * state while the data is being retrieved.
+ *
+ * The screen includes:
+ * - Firebase authentication to identify the current user.
+ * - Firestore queries to fetch user role and profile information.
+ * - Navigation to the appropriate dashboard based on the user's role.
+ * - Error handling for failed data retrieval.
+ *
+ * @param navController The `NavController` used for navigating to other screens.
+ */
 @Composable
 fun HomeTabScreen(navController: NavController) {
     val role = remember { mutableStateOf<String?>(null) }

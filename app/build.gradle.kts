@@ -42,10 +42,14 @@ android {
 
 dependencies {
     // firebase storage
-    implementation(platform("com.google.firebase:firebase-bom:33.14.0"))
+    implementation(platform(libs.firebase.bom.v33140))
+
     // Firebase Storage & Firestore (no versions needed)
-    implementation("com.google.firebase:firebase-storage-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation(libs.google.firebase.storage.ktx)
+    implementation(libs.com.google.firebase.firebase.firestore.ktx)
+
+    // image handler
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
     // compose
     implementation(platform(libs.androidx.compose.bom.v20230300))

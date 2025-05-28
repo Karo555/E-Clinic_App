@@ -9,9 +9,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.launch
-
+/**
+ * ViewModel for managing the user's role in the e-clinic application.
+ *
+ * This ViewModel retrieves the role of the currently authenticated user
+ * from the Firestore database and exposes it as a state flow.
+ */
 class UserViewModel : ViewModel() {
     private val _role = MutableStateFlow<String?>(null)
+    /** A state flow containing the role of the currently authenticated user. */
     val role: StateFlow<String?> = _role
 
     init {

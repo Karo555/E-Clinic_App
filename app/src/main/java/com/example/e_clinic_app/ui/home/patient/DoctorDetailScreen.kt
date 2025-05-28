@@ -29,7 +29,23 @@ import androidx.navigation.NavController
 import java.time.format.DateTimeFormatter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-
+/**
+ * A composable function that represents the Doctor Detail screen in the e-clinic application.
+ *
+ * This screen displays detailed information about a specific doctor, including their name, availability status,
+ * and a list of available appointment slots. Users can book an appointment by selecting a slot, which triggers
+ * a booking action and displays a confirmation message.
+ *
+ * The screen includes:
+ * - A top app bar with a back navigation button.
+ * - A loading indicator while data is being fetched.
+ * - An error message if the data fails to load.
+ * - A detailed view of the doctor's profile, including their name and availability status.
+ * - A list of available appointment slots grouped by date, allowing users to book appointments.
+ *
+ * @param navController The `NavController` used for navigating back to the previous screen.
+ * @param viewModel The `DoctorDetailViewModel` instance used to manage the screen's state and data.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorDetailScreen(

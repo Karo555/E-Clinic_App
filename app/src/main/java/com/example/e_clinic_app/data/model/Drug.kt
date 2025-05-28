@@ -2,7 +2,23 @@ package com.example.e_clinic_app.data.model
 
 import java.time.Instant
 
-// Represents a drug definition in the app and Firestore
+/**
+ * Represents a drug definition in the e-clinic application.
+ *
+ * This data class contains details about a drug, including its name, formulation,
+ * available dosage units, common dosages, default frequency, and metadata such as
+ * creation and update timestamps.
+ *
+ * @property id The unique identifier for the drug.
+ * @property name The name of the drug.
+ * @property formulation The formulation of the drug (e.g., tablet, syrup).
+ * @property availableUnits A list of dosage units in which the drug is available.
+ * @property commonDosages A map of dosage units to a list of common dosage values.
+ * @property defaultFrequency The default frequency for administering the drug.
+ * @property searchableNames A list of alternative names or keywords for searching the drug.
+ * @property createdAt The timestamp indicating when the drug was created.
+ * @property updatedAt The timestamp indicating when the drug was last updated.
+ */
 data class Drug(
     val id: String,
     val name: String,

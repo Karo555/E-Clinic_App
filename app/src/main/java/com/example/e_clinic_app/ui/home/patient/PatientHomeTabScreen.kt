@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -44,8 +45,24 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
 import com.example.e_clinic_app.ui.navigation.Routes
-import androidx.compose.foundation.lazy.items
-
+/**
+ * A composable function that represents the Patient Home Tab screen in the e-clinic application.
+ *
+ * This screen serves as the main dashboard for patients, providing access to key features such as
+ * browsing doctors, viewing visits, and exploring specialties. It also displays a list of available
+ * doctors and allows patients to search for doctors or specialties.
+ *
+ * The screen includes:
+ * - A top app bar with a greeting message and a profile button.
+ * - A search bar for finding doctors or specialties.
+ * - A navigation grid for quick access to "Browse Doctors" and "Visits" sections.
+ * - A horizontally scrollable list of specialties.
+ * - A section displaying available doctors with their details, such as name, specialization, and experience.
+ * - Error and loading states for the doctors list.
+ *
+ * @param navController The `NavController` used for navigating to other screens.
+ * @param viewModel The `PatientDashboardViewModel` instance used to manage the screen's state and data.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientHomeTabScreen(

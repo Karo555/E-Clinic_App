@@ -17,7 +17,21 @@ import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewMod
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-
+/**
+ * A composable function that represents the Set Availability screen in the e-clinic application.
+ *
+ * This screen allows doctors to set their weekly availability by selecting start and end times for each day of the week.
+ * It provides a user-friendly interface with time pickers for each day and validates the input to ensure proper time ranges.
+ *
+ * The screen includes:
+ * - A vertical scrollable layout for all days of the week.
+ * - Time pickers for selecting start and end times for each day.
+ * - A button to save the availability schedule, which updates the backend and navigates back to the previous screen.
+ * - Error handling and loading indicators for a smooth user experience.
+ *
+ * @param navController The `NavController` used for navigating back to the previous screen.
+ * @param viewModel The `DoctorAvailabilityViewModel` instance used to manage the screen's state and data.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetAvailabilityScreen(

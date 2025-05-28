@@ -27,7 +27,27 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-
+/**
+ * The main entry point of the e-clinic application.
+ *
+ * This activity initializes the application, sets up Firebase, and manages the navigation graph.
+ * It determines the start destination of the app based on the user's authentication status and role.
+ *
+ * Key features:
+ * - Seeds the drug repository with initial data using `DrugSeeder`.
+ * - Initializes Firebase services for authentication and Firestore database access.
+ * - Determines the user's role (e.g., Patient, Doctor, Admin) and sets the appropriate start destination.
+ * - Applies the app's theme using `EClinic_AppTheme`.
+ * - Displays a loading indicator while determining the start destination.
+ *
+ * Navigation:
+ * - Routes to authentication, home, or role-specific screens based on the user's profile and role.
+ * - Uses `AppNavGraph` to manage navigation between screens.
+ *
+ * @see DrugSeeder
+ * @see EClinic_AppTheme
+ * @see AppNavGraph
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         DrugSeeder.seed(DrugRepository())

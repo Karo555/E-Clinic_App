@@ -11,9 +11,24 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Represents the authentication mode (login or register).
+ */
 enum class AuthMode { LOGIN, REGISTER }
+/**
+ * Represents the user roles available in the application.
+ */
 enum class UserRole { Admin, Patient, Doctor }
-
+/**
+ * A data class representing the UI state of the authentication screen.
+ *
+ * @property email The email entered by the user.
+ * @property password The password entered by the user.
+ * @property role The selected user role (for registration).
+ * @property isLoading Indicates whether an authentication operation is in progress.
+ * @property isSuccess Indicates whether the last operation was successful.
+ * @property errorMessage An optional error message for the last operation.
+ */
 data class AuthUiState(
     val email: String = "",
     val password: String = "",
@@ -22,7 +37,12 @@ data class AuthUiState(
     val isSuccess: Boolean = false,
     val errorMessage: String? = null,
 )
-
+/**
+ * A ViewModel class that manages the authentication logic for the e-clinic application.
+ *
+ * This class handles user login, registration, password reset, and state management for the authentication screen.
+ * It interacts with Firebase Authentication and Firestore to perform these operations.
+ */
 class AuthViewModel : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -36,27 +56,47 @@ class AuthViewModel : ViewModel() {
 
     private val _passwordVisible = MutableStateFlow(false)
     val passwordVisible: StateFlow<Boolean> = _passwordVisible.asStateFlow()
-
+    /**
+     * Toggles the authentication mode between login and registration.
+     */
     fun toggleAuthMode() {
         _authMode.value = if (_authMode.value == AuthMode.LOGIN) AuthMode.REGISTER else AuthMode.LOGIN
     }
-
+    /**
+     * Updates the email in the UI state.
+     *
+     * @param email The new email value.
+     */
     fun onEmailChange(email: String) {
         _uiState.value = _uiState.value.copy(email = email)
     }
-
+    /**
+     * Updates the password in the UI state.
+     *
+     * @param password The new password value.
+     */
     fun onPasswordChange(password: String) {
         _uiState.value = _uiState.value.copy(password = password)
     }
-
+    /**
+     * Updates the user role in the UI state.
+     *
+     * @param role The new user role.
+     */
     fun onRoleChange(role: UserRole) {
         _uiState.value = _uiState.value.copy(role = role)
     }
-
+    /**
+     * Toggles the visibility of the password field.
+     */
     fun togglePasswordVisibility() {
         _passwordVisible.value = !_passwordVisible.value
     }
-
+    /**
+     * Performs the login operation using Firebase Authentication.
+     *
+     * @param onSuccess A callback invoked when the login is successful.
+     */
     fun login(onSuccess: () -> Unit) {
         val email = _uiState.value.email.trim()
         val password = _uiState.value.password
@@ -84,7 +124,11 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
-
+    /**
+     * Performs the registration operation using Firebase Authentication and Firestore.
+     *
+     * @param onSuccess A callback invoked when the registration is successful.
+     */
     fun register(onSuccess: () -> Unit) {
         val email = _uiState.value.email.trim()
         val password = _uiState.value.password
@@ -134,7 +178,12 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
-
+    /**
+     * Sends a password reset email to the specified email address.
+     *
+     * @param email The email address to send the reset link to.
+     * @param onComplete A callback invoked with the success status and an optional error message.
+     */
     fun sendPasswordResetEmail(email: String, onComplete: (Boolean, String?) -> Unit) {
         if (email.isBlank()) {
             onComplete(false, "Please enter your email address.")
@@ -150,7 +199,9 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
-
+    /**
+     * Resets the UI state to its initial values.
+     */
     fun resetState() {
         _uiState.value = AuthUiState()
     }

@@ -19,7 +19,23 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.e_clinic_app.ui.navigation.Routes
 import com.google.firebase.auth.FirebaseAuth
-
+/**
+ * A composable function that represents the Login screen in the e-clinic application.
+ *
+ * This screen allows users to log in to their accounts using their email and password.
+ * It provides error handling for invalid credentials and displays a loading state during the login process.
+ * Upon successful login, the user is navigated to the Home screen.
+ *
+ * The screen includes:
+ * - Input fields for email and password.
+ * - A login button that triggers Firebase authentication.
+ * - Error messages for invalid input or failed login attempts.
+ * - A "Forgot password?" link for password recovery.
+ * - A link to navigate to the registration screen for new users.
+ *
+ * @param navController The `NavController` used for navigating to other screens.
+ * @param onLoginSuccess A callback function triggered upon successful login, which navigates the user to the Home screen.
+ */
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -119,7 +135,11 @@ fun LoginScreen(
         )
     }
 }
-
+/**
+ * A composable function that provides a preview of the Login screen.
+ *
+ * This function is used for development purposes to visualize the Login screen in isolation.
+ */
 @Composable
 fun LoginScreenPreview() {
     val navController = rememberNavController()
@@ -128,7 +148,11 @@ fun LoginScreenPreview() {
         onLoginSuccess = { }
     )
 }
-
+/**
+ * A composable function that displays a preview of the Login screen in the Android Studio Preview tool.
+ *
+ * This function is annotated with `@Preview` to enable rendering in the design editor.
+ */
 @Preview(showBackground = true)
 @Composable
 fun PreviewLoginScreen() {

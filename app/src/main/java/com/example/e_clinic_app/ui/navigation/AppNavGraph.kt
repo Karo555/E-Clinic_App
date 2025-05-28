@@ -34,12 +34,35 @@ import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
+import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
+import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
 import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
+import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
 
-
+/**
+ * A composable function that defines the navigation graph for the e-clinic application.
+ *
+ * This function sets up the navigation structure of the app, including routes for authentication,
+ * onboarding, dashboards, settings, chat, visits, and other features. It uses the `NavHost` to
+ * manage navigation between different screens based on the user's role and actions.
+ *
+ * The navigation graph includes:
+ * - Authentication flow (login, reset password, onboarding).
+ * - Role-based dashboards for patients, doctors, and admins.
+ * - Chat functionality, including chat list and chat details.
+ * - Visits management for patients and doctors.
+ * - Profile editing and settings screens.
+ * - Doctor and patient-specific features, such as browsing doctors and viewing patient details.
+ *
+ * @param navController The `NavHostController` used to manage navigation between screens.
+ * @param startDestination The initial route to display when the app starts.
+ * @param currentUserRole The role of the currently logged-in user (e.g., "Doctor", "Patient", "Admin").
+ * @param patientDashboardViewModel The `PatientDashboardViewModel` instance for managing patient dashboard state.
+ * @param doctorHomeViewModel The `DoctorHomeViewModel` instance for managing doctor dashboard state.
+ */
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
@@ -167,7 +190,10 @@ fun AppNavGraph(
                     savedStateHandle = backStackEntry.savedStateHandle
                 )
             )
-            PatientDetailScreen(navController, backStackEntry.arguments!!.getString("doctorId")!!)
+            DoctorDetailScreen(
+                navController = navController,
+                viewModel = vm
+            )
         }
 
         // Availability setup
@@ -244,5 +270,20 @@ fun AppNavGraph(
         composable(Routes.MY_DOCUMENTS) {
             MyDocumentsScreen(navController)
         }
+
+        // Patient visit details
+        composable(
+            route = "${Routes.VISIT_DETAIL}/{appointmentId}",
+            arguments = listOf(navArgument("appointmentId") { type = NavType.StringType })
+        ) { backStackEntry ->
+                        val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
+                        val vm: VisitDetailViewModel = viewModel(
+                                factory = VisitDetailViewModel.provideFactory(
+                                        firestore = FirebaseFirestore.getInstance(),
+                                        appointmentId = appointmentId
+                                            )
+                                    )
+                        VisitDetailScreen(navController, vm)
+                    }
     }
 }
