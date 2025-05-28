@@ -10,7 +10,16 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
-
+/**
+ * A composable function that represents the Reset Password screen in the e-clinic application.
+ *
+ * This screen allows users to request a password reset by entering their email address. It validates
+ * the email format, displays error messages for invalid input, and shows a success message if the reset
+ * email is sent successfully. The screen also provides a button to navigate back to the login screen.
+ *
+ * @param onBackToLogin A callback invoked to navigate back to the login screen.
+ * @param viewModel The `AuthViewModel` instance used to handle the password reset logic. Defaults to a local `viewModel`.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResetPasswordScreen(
