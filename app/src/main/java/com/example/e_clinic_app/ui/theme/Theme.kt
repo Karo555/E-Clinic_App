@@ -1,6 +1,5 @@
 package com.example.e_clinic_app.ui.theme
 
-//import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -21,18 +20,23 @@ private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
-
+/**
+ * Provides the theme configuration for the e-clinic application.
+ *
+ * This file defines the light and dark color schemes, as well as dynamic color support
+ * for devices running Android 12 (API level 31) or higher. The theme is applied using
+ * Material 3 design principles to ensure a consistent and modern look across the app.
+ *
+ * The theme includes:
+ * - Light and dark color schemes with primary, secondary, and tertiary colors.
+ * - Dynamic color support for adapting to the system's wallpaper-based color palette.
+ * - Integration with Material 3's `MaterialTheme` for typography and color scheme.
+ *
+ * @param darkTheme A boolean indicating whether the app should use the dark theme. Defaults to the system's dark theme setting.
+ * @param dynamicColor A boolean indicating whether to use dynamic colors (available on Android 12+). Defaults to true.
+ * @param content A composable lambda that represents the UI content to which the theme will be applied.
+ */
 @Composable
 fun EClinic_AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
