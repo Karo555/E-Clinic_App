@@ -11,17 +11,31 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * ViewModel for managing the details of a specific visit (appointment) in the e-clinic application.
+ *
+ * This ViewModel fetches the details of an appointment from Firestore and exposes it as a state flow.
+ *
+ * @property firestore The Firestore instance used for database operations.
+ * @property appointmentId The unique identifier of the appointment to be loaded.
+ */
 class VisitDetailViewModel(
     private val firestore: FirebaseFirestore,
     private val appointmentId: String
 ) : ViewModel() {
     private val _appointment = MutableStateFlow<Appointment?>(null)
+    /** A state flow containing the details of the appointment. */
     val appointment: StateFlow<Appointment?> = _appointment.asStateFlow()
 
     init {
         loadAppointment()
     }
-
+    /**
+     * Loads the details of the appointment from Firestore.
+     *
+     * This method fetches the appointment data using the provided appointment ID
+     * and updates the state flow with the retrieved data.
+     */
     private fun loadAppointment() = viewModelScope.launch {
         val snap = firestore.collection("appointments")
             .document(appointmentId)
@@ -30,6 +44,13 @@ class VisitDetailViewModel(
     }
 
     companion object {
+        /**
+         * Provides a factory for creating instances of `VisitDetailViewModel`.
+         *
+         * @param firestore The Firestore instance to use.
+         * @param appointmentId The unique identifier of the appointment.
+         * @return A factory for creating `VisitDetailViewModel` instances.
+         */
         fun provideFactory(
             firestore: FirebaseFirestore,
             appointmentId: String

@@ -5,7 +5,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,10 +19,15 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 
+
 /**
- * ViewModel for the Doctor Detail screen.
- * Fetches a single doctor's profile, expands its weekly schedule
- * into concrete slots for the next 7 days, and allows booking.
+ * ViewModel for the Doctor Detail screen in the e-clinic application.
+ *
+ * This ViewModel fetches a doctor's profile, expands their weekly schedule into
+ * available slots for the next 7 days, and allows booking appointments.
+ *
+ * @property firestore The Firestore instance used for database operations.
+ * @property savedStateHandle The state handle for accessing saved state, including the doctor ID.
  */
 class DoctorDetailViewModel(
     private val firestore: FirebaseFirestore,
@@ -31,18 +35,31 @@ class DoctorDetailViewModel(
 ) : ViewModel() {
 
     /**
-     * UI states for doctor detail.
+     * Represents the UI state of the Doctor Detail screen.
      */
     sealed interface UiState {
+        /** Indicates that the data is currently being loaded. */
         object Loading : UiState
+        /**
+         * Indicates that the data has been successfully loaded.
+         *
+         * @property doctor The doctor's profile data.
+         * @property slots The list of available appointment slots.
+         */
         data class Success(
             val doctor: Doctor,
             val slots: List<LocalDateTime>
         ) : UiState
+        /**
+         * Indicates that an error occurred while loading the data.
+         *
+         * @property throwable The exception that caused the error.
+         */
         data class Error(val throwable: Throwable) : UiState
     }
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
+    /** A state flow containing the current UI state of the Doctor Detail screen. */
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private val doctorId: String = checkNotNull(
@@ -52,7 +69,12 @@ class DoctorDetailViewModel(
     init {
         loadDoctor()
     }
-
+    /**
+     * Loads the doctor's profile and expands their weekly schedule into available slots.
+     *
+     * This method fetches the doctor's profile from Firestore, processes their weekly schedule
+     * to generate appointment slots for the next 7 days, and filters out already-booked slots.
+     */
     private fun loadDoctor() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
@@ -130,7 +152,11 @@ class DoctorDetailViewModel(
     }
 
     /**
-     * Books an appointment at the given slot, embedding both doctor and patient info.
+     * Books an appointment at the specified slot.
+     *
+     * This method creates a new appointment in Firestore, embedding both doctor and patient information.
+     *
+     * @param slot The selected appointment slot to book.
      */
     fun bookAppointment(slot: LocalDateTime) {
         viewModelScope.launch {
@@ -187,6 +213,13 @@ class DoctorDetailViewModel(
     }
 
     companion object {
+        /**
+         * Provides a factory for creating instances of `DoctorDetailViewModel`.
+         *
+         * @param firestore The Firestore instance to use.
+         * @param savedStateHandle The state handle for accessing saved state.
+         * @return A factory for creating `DoctorDetailViewModel` instances.
+         */
         fun provideFactory(
             firestore: FirebaseFirestore,
             savedStateHandle: SavedStateHandle
