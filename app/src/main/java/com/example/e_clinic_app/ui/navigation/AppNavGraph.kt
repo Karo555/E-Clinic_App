@@ -42,7 +42,27 @@ import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
 import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
 import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
 
-
+/**
+ * A composable function that defines the navigation graph for the e-clinic application.
+ *
+ * This function sets up the navigation structure of the app, including routes for authentication,
+ * onboarding, dashboards, settings, chat, visits, and other features. It uses the `NavHost` to
+ * manage navigation between different screens based on the user's role and actions.
+ *
+ * The navigation graph includes:
+ * - Authentication flow (login, reset password, onboarding).
+ * - Role-based dashboards for patients, doctors, and admins.
+ * - Chat functionality, including chat list and chat details.
+ * - Visits management for patients and doctors.
+ * - Profile editing and settings screens.
+ * - Doctor and patient-specific features, such as browsing doctors and viewing patient details.
+ *
+ * @param navController The `NavHostController` used to manage navigation between screens.
+ * @param startDestination The initial route to display when the app starts.
+ * @param currentUserRole The role of the currently logged-in user (e.g., "Doctor", "Patient", "Admin").
+ * @param patientDashboardViewModel The `PatientDashboardViewModel` instance for managing patient dashboard state.
+ * @param doctorHomeViewModel The `DoctorHomeViewModel` instance for managing doctor dashboard state.
+ */
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
