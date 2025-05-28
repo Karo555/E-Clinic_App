@@ -10,7 +10,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.e_clinic_app.data.model.MedicalCondition
 
-
+/**
+ * A composable function that allows users to select and manage a list of medical conditions.
+ *
+ * This picker provides a list of predefined medical conditions, each with optional subtypes,
+ * and allows users to select or deselect conditions and their corresponding types.
+ *
+ * @param selectedConditions The list of currently selected medical conditions.
+ * @param onSelectionChanged A callback invoked when the selection changes, providing the updated list of selected conditions.
+ */
 @Composable
 fun MedicalConditionPicker(
     selectedConditions: List<MedicalCondition>,
