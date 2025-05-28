@@ -21,6 +21,20 @@ import com.example.e_clinic_app.data.institutionsByCity
 import com.example.e_clinic_app.presentation.viewmodel.BrowseDoctorsViewModel
 import com.example.e_clinic_app.ui.navigation.Routes
 
+/**
+ * A composable function that represents the Browse Doctors screen in the e-clinic application.
+ *
+ * This screen allows patients to search for and filter doctors based on various criteria such as name,
+ * specialization, city, and years of experience. It displays a list of doctors matching the search
+ * and filter criteria, and clicking on a doctor navigates to the Doctor Detail screen.
+ *
+ * The screen includes:
+ * - A search bar for searching doctors by name.
+ * - Expandable filters for selecting specialization, city, and minimum years of experience.
+ * - A scrollable list of doctors with their details such as name, specialization, institution, and bio.
+ *
+ * @param navController The `NavController` used for navigation to other screens.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowseDoctorsScreen(navController: NavController) {
@@ -115,7 +129,18 @@ fun BrowseDoctorsScreen(navController: NavController) {
         }
     }
 }
-
+/**
+ * A composable function that represents a dropdown menu for selecting an option from a list.
+ *
+ * This component is used in the filters section of the Browse Doctors screen to allow users to
+ * select a specialization or city from a predefined list of options.
+ *
+ * @param T The type of the options in the dropdown menu.
+ * @param selected The currently selected option.
+ * @param options The list of options to display in the dropdown menu.
+ * @param label The label for the dropdown menu.
+ * @param onOptionSelected A callback invoked when an option is selected.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun <T> DropdownMenuBox(

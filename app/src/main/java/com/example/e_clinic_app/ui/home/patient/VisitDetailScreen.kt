@@ -19,7 +19,24 @@ import com.google.firebase.auth.FirebaseAuth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
+/**
+ * A composable function that represents the Visit Detail screen in the e-clinic application.
+ *
+ * This screen displays detailed information about a specific visit or appointment, including the date, time,
+ * doctor details, and preparation instructions. It also provides an option to initiate a chat with the doctor.
+ *
+ * The screen includes:
+ * - A top app bar with a back navigation button.
+ * - A detailed view of the appointment, including:
+ *   - Date and time of the visit.
+ *   - Doctor's name.
+ *   - Preparation instructions (e.g., fasting requirements, additional notes).
+ * - A button to navigate to the chat screen for communication with the doctor.
+ * - A loading indicator while the appointment data is being fetched.
+ *
+ * @param navController The `NavController` used for navigating to other screens.
+ * @param viewModel The `VisitDetailViewModel` instance used to manage the screen's state and data.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VisitDetailScreen(

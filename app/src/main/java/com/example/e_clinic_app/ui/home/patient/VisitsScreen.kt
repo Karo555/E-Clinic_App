@@ -22,7 +22,23 @@ import com.example.e_clinic_app.ui.navigation.Routes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
+/**
+ * A composable function that represents the Visits screen in the e-clinic application.
+ *
+ * This screen displays a list of appointments categorized into upcoming, completed, and cancelled visits.
+ * Users can filter appointments by doctor and navigate to detailed visit information.
+ *
+ * The screen includes:
+ * - A top app bar with a back navigation button.
+ * - A dropdown menu to filter appointments by doctor.
+ * - Categorized sections for upcoming, completed, and cancelled visits.
+ * - A loading indicator while data is being fetched.
+ * - An error message if the data fails to load.
+ * - A message when no appointments are available.
+ *
+ * @param navController The `NavController` used for navigating to other screens.
+ * @param viewModel The `AppointmentsViewModel` instance used to manage the screen's state and data.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun VisitsScreen(
@@ -190,7 +206,18 @@ fun VisitsScreen(
         }
     }
 }
-
+/**
+ * A composable function that represents a single row in the list of visits.
+ *
+ * This component displays the details of an appointment, including the date, time, doctor's name,
+ * and preparation instructions. Clicking on the row navigates to the Visit Detail screen.
+ *
+ * @param appt The `Appointment` object containing the details of the visit.
+ * @param navController The `NavController` used for navigation to the Visit Detail screen.
+ * @param dateFmt The `DateTimeFormatter` used to format the appointment date.
+ * @param timeFmt The `DateTimeFormatter` used to format the appointment time.
+ * @param zone The `ZoneId` representing the time zone for formatting the date and time.
+ */
 @Composable
 private fun VisitRow(
     appt: Appointment,
