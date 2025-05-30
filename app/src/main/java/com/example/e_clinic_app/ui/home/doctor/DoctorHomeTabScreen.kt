@@ -1,5 +1,6 @@
 package com.example.e_clinic_app.ui.home.doctor
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -84,6 +85,7 @@ fun DoctorHomeTabScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Log.i("DoctorHomeTabScreen", "Doctor's name: $doctorName")
                         Text("Welcome back,", style = typography.labelMedium)
                         Text("Dr. $doctorName", style = typography.titleLarge)
                     }

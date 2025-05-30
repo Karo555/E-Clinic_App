@@ -27,6 +27,5 @@ data class Drug(
     val commonDosages: Map<DosageUnit, List<Double>>,
     val defaultFrequency: Frequency,
     val searchableNames: List<String> = emptyList(),
-    val createdAt: Instant? = null,
-    val updatedAt: Instant? = null
+    val createdAt: Instant? = null
 )
