@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.util.Patterns
+
 
 /**
  * Represents the authentication mode (login or register).
@@ -140,6 +142,12 @@ class AuthViewModel : ViewModel() {
             return
         }
 
+        val (isValid, errorMessage) = validateRegistrationFields(email, password)
+        if (!isValid) {
+            _uiState.value = _uiState.value.copy(errorMessage = errorMessage)
+            return
+        }
+
         _uiState.value = _uiState.value.copy(
             errorMessage = null,
             isSuccess = false,
@@ -205,4 +213,43 @@ class AuthViewModel : ViewModel() {
     fun resetState() {
         _uiState.value = AuthUiState()
     }
+}
+
+/**
+ * Validates the registration fields for email and password.
+ *
+ * @param email The email entered by the user.
+ * @param password The password entered by the user.
+ * @return A pair containing a boolean indicating success and an optional error message.
+ */
+fun validateRegistrationFields(email: String, password: String): Pair<Boolean, String?> {
+    if (email.isBlank() || password.isBlank()) {
+        return Pair(false, "Email and password must not be empty.")
+    }
+
+    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        return Pair(false, "Invalid email format.")
+    }
+
+    if (password.length < 8) {
+        return Pair(false, "Password must be at least 8 characters long.")
+    }
+
+    if (!password.any { it.isDigit() }) {
+        return Pair(false, "Password must contain at least one digit.")
+    }
+
+    if (!password.any { it.isUpperCase() }) {
+        return Pair(false, "Password must contain at least one uppercase letter.")
+    }
+
+    if (!password.any { it.isLowerCase() }) {
+        return Pair(false, "Password must contain at least one lowercase letter.")
+    }
+
+    if (!password.any { "!@#$%^&*()-_=+[]{}|;:'\",.<>?/".contains(it) }) {
+        return Pair(false, "Password must contain at least one special character.")
+    }
+
+    return Pair(true, null)
 }
