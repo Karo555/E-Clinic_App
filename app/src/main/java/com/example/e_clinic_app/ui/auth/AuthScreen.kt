@@ -13,23 +13,20 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.e_clinic_app.service.FirebaseService
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+
 /**
  * A composable function that represents the authentication screen in the e-clinic application.
  *
  * This screen provides functionality for users to log in or register, depending on the selected mode.
  * It includes fields for email and password, a role selection dropdown (for registration), and navigation
  * to other screens based on the user's role and authentication status.
- *
- * @param onNavigateToHome A callback invoked to navigate to the home screen.
- * @param onNavigateToFirstLogin A callback invoked to navigate to the first login screen for patients.
- * @param onNavigateToDoctorFirstLogin A callback invoked to navigate to the first login screen for doctors.
- * @param onNavigateToGlobalAdminDashboard A callback invoked to navigate to the global admin dashboard.
- * @param onNavigateToInstitutionAdminDashboard A callback invoked to navigate to the institution admin dashboard.
- * @param onNavigateToResetPassword A callback invoked to navigate to the reset password screen.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,12 +111,39 @@ fun AuthScreen(
                     }
                 }
             }
-//TODO( "transfer the button logic to viewModel part")
+
             Button(onClick = {
                 coroutineScope.launch {
                     if (authMode == AuthMode.LOGIN) {
                         viewModel.login {
                             coroutineScope.launch {
+                                // 1. Fetch the FCM token (suspend) and upload it
+                                try {
+                                    val token = FirebaseMessaging.getInstance().token.await()
+                                    val uploadTask = FirebaseService.uploadTokenToFirestore(token)
+                                    if (uploadTask != null) {
+                                        try {
+                                            uploadTask?.let {
+                                                uploadTask?.let {
+                                                    if (it is Task<*>) {
+                                                        it.await()
+                                                        Log.d("AuthScreen", "FCM token written successfully.")
+                                                    } else {
+                                                        Log.e("AuthScreen", "uploadTask is not a valid Task.")
+                                                    }
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            Log.e("AuthScreen", "Failed to write FCM token", e)
+                                        }
+                                    } else {
+                                        Log.w("AuthScreen", "uploadTokenToFirestore returned null (no authenticated user).")
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("AuthScreen", "Failed to retrieve FCM token", e)
+                                }
+
+                                // 2. Role-based navigation logic
                                 val currentUser = FirebaseAuth.getInstance().currentUser
                                 val db = FirebaseFirestore.getInstance()
 
@@ -135,7 +159,6 @@ fun AuthScreen(
                                                 val profile = db.collection("users").document(uid)
                                                     .collection("profile").document("basicInfo")
                                                     .get().await()
-
                                                 if (profile.exists()) onNavigateToHome()
                                                 else onNavigateToFirstLogin()
                                             }
@@ -144,7 +167,6 @@ fun AuthScreen(
                                                 val profile = db.collection("users").document(uid)
                                                     .collection("profile").document("doctorInfo")
                                                     .get().await()
-
                                                 if (profile.exists()) onNavigateToHome()
                                                 else onNavigateToDoctorFirstLogin()
                                             }
@@ -183,7 +205,6 @@ fun AuthScreen(
                                                 val profile = db.collection("users").document(uid)
                                                     .collection("profile").document("doctorInfo")
                                                     .get().await()
-
                                                 if (profile.exists()) onNavigateToHome()
                                                 else onNavigateToDoctorFirstLogin()
                                             }
