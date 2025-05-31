@@ -1,9 +1,6 @@
 package com.example.e_clinic_app.ui.login
 
 import androidx.compose.foundation.clickable
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,19 +9,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.e_clinic_app.ui.navigation.Routes
+import com.example.e_clinic_app.service.FirebaseService
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
+
 /**
  * A composable function that represents the Login screen in the e-clinic application.
  *
  * This screen allows users to log in to their accounts using their email and password.
  * It provides error handling for invalid credentials and displays a loading state during the login process.
- * Upon successful login, the user is navigated to the Home screen.
+ * Upon successful login, it fetches the FCM token and uploads it to Firestore before navigating the user to the Home screen.
  *
  * The screen includes:
  * - Input fields for email and password.
@@ -99,8 +97,20 @@ fun LoginScreen(
                     FirebaseAuth.getInstance()
                         .signInWithEmailAndPassword(email.trim(), password)
                         .addOnSuccessListener {
-                            isLoading = false
-                            onLoginSuccess()
+                            // Upon successful login, fetch the FCM token
+                            FirebaseMessaging.getInstance().token
+                                .addOnSuccessListener { token ->
+                                    // Upload token to Firestore
+                                    FirebaseService.uploadTokenToFirestore(token)
+                                    // Stop loading and navigate
+                                    isLoading = false
+                                    onLoginSuccess()
+                                }
+                                .addOnFailureListener { e ->
+                                    // If token retrieval fails, still navigate, but log the error
+                                    isLoading = false
+                                    onLoginSuccess()
+                                }
                         }
                         .addOnFailureListener {
                             isLoading = false
@@ -119,7 +129,7 @@ fun LoginScreen(
             Text(
                 text = "Forgot password?",
                 color = Color(0xFF00C9A7),
-                modifier = Modifier.clickable { TODO() },
+                modifier = Modifier.clickable { /* TODO: implement forgot-password flow */ },
                 textAlign = TextAlign.Center
             )
         }
@@ -134,27 +144,4 @@ fun LoginScreen(
             textAlign = TextAlign.Center
         )
     }
-}
-/**
- * A composable function that provides a preview of the Login screen.
- *
- * This function is used for development purposes to visualize the Login screen in isolation.
- */
-@Composable
-fun LoginScreenPreview() {
-    val navController = rememberNavController()
-    LoginScreen(
-        navController,
-        onLoginSuccess = { }
-    )
-}
-/**
- * A composable function that displays a preview of the Login screen in the Android Studio Preview tool.
- *
- * This function is annotated with `@Preview` to enable rendering in the design editor.
- */
-@Preview(showBackground = true)
-@Composable
-fun PreviewLoginScreen() {
-    LoginScreenPreview()
 }

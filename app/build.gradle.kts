@@ -47,7 +47,6 @@ dependencies {
     // Firebase Storage & Firestore (no versions needed)
     implementation(libs.google.firebase.storage.ktx)
     implementation(libs.com.google.firebase.firebase.firestore.ktx)
-
     // image handler
     implementation("io.coil-kt:coil-compose:2.4.0")
 

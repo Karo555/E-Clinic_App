@@ -1,23 +1,27 @@
 package com.example.e_clinic_app
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.e_clinic_app.data.repository.DrugRepository
+import androidx.navigation.compose.rememberNavController
+import androidx.core.content.ContextCompat
 import com.example.e_clinic_app.presentation.viewmodel.UserViewModel
 import com.example.e_clinic_app.ui.navigation.AppNavGraph
 import com.example.e_clinic_app.ui.navigation.Routes
@@ -26,31 +30,34 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+
 /**
  * The main entry point of the e-clinic application.
  *
  * This activity initializes the application, sets up Firebase, and manages the navigation graph.
  * It determines the start destination of the app based on the user's authentication status and role.
  *
- * Key features:
- * - Seeds the drug repository with initial data using `DrugSeeder`.
- * - Initializes Firebase services for authentication and Firestore database access.
- * - Determines the user's role (e.g., Patient, Doctor, Admin) and sets the appropriate start destination.
- * - Applies the app's theme using `EClinic_AppTheme`.
- * - Displays a loading indicator while determining the start destination.
- *
- * Navigation:
- * - Routes to authentication, home, or role-specific screens based on the user's profile and role.
- * - Uses `AppNavGraph` to manage navigation between screens.
- *
- * @see DrugSeeder
- * @see EClinic_AppTheme
- * @see AppNavGraph
+ * It also requests the POST_NOTIFICATIONS permission at runtime for Android 13+.
  */
 class MainActivity : ComponentActivity() {
+
+    // Launcher for requesting the POST_NOTIFICATIONS permission (Android 13+)
+    private val requestNotificationPermissionLauncher =
+        registerForActivityResult(RequestPermission()) { isGranted: Boolean ->
+            // You can respond to the user’s choice here if needed (e.g., show a toast or log).
+            // For MVP, we’ll not block the UI if they deny.
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 1. Initialize Firebase
         FirebaseApp.initializeApp(this)
+
+        // 2. Request notification permission if needed (Android 13+)
+        requestPostNotificationsPermissionIfNeeded()
+
+        // 3. Enable edge-to-edge and set up Compose content
         enableEdgeToEdge()
         setContent {
             EClinic_AppTheme {
@@ -132,6 +139,31 @@ class MainActivity : ComponentActivity() {
                     ) {
                         CircularProgressIndicator()
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks and requests the POST_NOTIFICATIONS permission on Android 13+.
+     */
+    private fun requestPostNotificationsPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    // Permission already granted; do nothing.
+                }
+                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                    // Optionally, show an in-app explanation before requesting.
+                    // For MVP, we directly request.
+                    requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                else -> {
+                    // Directly request the permission for the first time.
+                    requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
         }
