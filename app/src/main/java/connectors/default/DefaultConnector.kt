@@ -1,139 +1,162 @@
-
-@file:kotlin.Suppress(
+@file:Suppress(
   "KotlinRedundantDiagnosticSuppress",
-  "LocalVariableName",
   "MayBeConstant",
   "RedundantVisibilityModifier",
   "RemoveEmptyClassBody",
   "SpellCheckingInspection",
-  "LocalVariableName",
-  "unused",
+  "unused"
 )
-
 package connectors.default
 
-import com.google.firebase.dataconnect.getInstance as _fdcGetInstance
+import com.google.firebase.FirebaseApp
+import com.google.firebase.dataconnect.ConnectorConfig
+import com.google.firebase.dataconnect.DataConnectSettings
+import com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
+import com.google.firebase.dataconnect.FirebaseDataConnect
+import com.google.firebase.dataconnect.generated.GeneratedConnector
+import com.google.firebase.dataconnect.generated.GeneratedMutation
+import com.google.firebase.dataconnect.generated.GeneratedOperation
+import com.google.firebase.dataconnect.generated.GeneratedQuery
+import com.google.firebase.dataconnect.getInstance
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.SerializationStrategy
 
-public interface DefaultConnector : com.google.firebase.dataconnect.generated.GeneratedConnector<DefaultConnector> {
-  override val dataConnect: com.google.firebase.dataconnect.FirebaseDataConnect
-
-  
-
+/**
+ * A “default” implementation of a Firebase DataConnect connector.
+ *
+ * This interface and its generated implementations let you run queries and mutations
+ * against your Firebase backend. The example below assumes you have configured
+ * your `connector = "default"` in your DataConnect rules.
+ */
+public interface DefaultConnector : GeneratedConnector<DefaultConnector> {
+  override val dataConnect: FirebaseDataConnect
   public companion object {
     @Suppress("MemberVisibilityCanBePrivate")
-    public val config: com.google.firebase.dataconnect.ConnectorConfig = com.google.firebase.dataconnect.ConnectorConfig(
+    public val config: ConnectorConfig = ConnectorConfig(
       connector = "default",
       location = "asia-east1",
-      serviceId = "EClinic_App",
+      serviceId = "EClinic_App"
     )
 
-    public fun getInstance(
-      dataConnect: com.google.firebase.dataconnect.FirebaseDataConnect
-    ):DefaultConnector = synchronized(instances) {
-      instances.getOrPut(dataConnect) {
-        DefaultConnectorImpl(dataConnect)
+    /**
+     * Returns a singleton instance of `DefaultConnector` tied to the given `dataConnect`.
+     */
+    public fun getInstance(dataConnect: FirebaseDataConnect): DefaultConnector =
+      synchronized(instances) {
+        instances.getOrPut(dataConnect) {
+          DefaultConnectorImpl(dataConnect)
+        }
       }
-    }
 
-    private val instances = java.util.WeakHashMap<com.google.firebase.dataconnect.FirebaseDataConnect, DefaultConnectorImpl>()
+    private val instances: java.util.WeakHashMap<FirebaseDataConnect, DefaultConnectorImpl> =
+      java.util.WeakHashMap()
   }
 }
 
-public val DefaultConnector.Companion.instance:DefaultConnector
-  get() = getInstance(com.google.firebase.dataconnect.FirebaseDataConnect._fdcGetInstance(config))
+/**
+ * A convenience property that returns a `DefaultConnector` using the default FirebaseDataConnect singleton.
+ */
+public val DefaultConnector.Companion.instance: DefaultConnector
+  get() = getInstance(FirebaseDataConnect.getInstance(config))
 
+/**
+ * Alternate overload: get an instance by just providing optional DataConnectSettings.
+ */
 public fun DefaultConnector.Companion.getInstance(
-  settings: com.google.firebase.dataconnect.DataConnectSettings = com.google.firebase.dataconnect.DataConnectSettings()
-):DefaultConnector =
-  getInstance(com.google.firebase.dataconnect.FirebaseDataConnect._fdcGetInstance(config, settings))
+  settings: DataConnectSettings = DataConnectSettings()
+): DefaultConnector =
+  getInstance(FirebaseDataConnect.getInstance(config))
 
+/**
+ * Alternate overload: get an instance by providing a FirebaseApp and optional DataConnectSettings.
+ */
 public fun DefaultConnector.Companion.getInstance(
-  app: com.google.firebase.FirebaseApp,
-  settings: com.google.firebase.dataconnect.DataConnectSettings = com.google.firebase.dataconnect.DataConnectSettings()
-):DefaultConnector =
-  getInstance(com.google.firebase.dataconnect.FirebaseDataConnect._fdcGetInstance(app, config, settings))
+  app: FirebaseApp,
+  settings: DataConnectSettings = DataConnectSettings()
+): DefaultConnector =
+  getInstance(FirebaseDataConnect.getInstance(config))
 
+/**
+ * The actual implementation of DefaultConnector.  GeneratedQuery and GeneratedMutation lists
+ * will be empty unless you generate specific operations via DataConnect codegen.
+ */
 private class DefaultConnectorImpl(
-  override val dataConnect: com.google.firebase.dataconnect.FirebaseDataConnect
+  override val dataConnect: FirebaseDataConnect
 ) : DefaultConnector {
-  
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
-  override fun operations(): List<com.google.firebase.dataconnect.generated.GeneratedOperation<DefaultConnector, *, *>> =
+  @ExperimentalFirebaseDataConnect
+  override fun operations(): List<GeneratedOperation<DefaultConnector, *, *>> =
     queries() + mutations()
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
-  override fun mutations(): List<com.google.firebase.dataconnect.generated.GeneratedMutation<DefaultConnector, *, *>> =
-    listOf(
-      
-    )
+  @ExperimentalFirebaseDataConnect
+  override fun mutations(): List<GeneratedMutation<DefaultConnector, *, *>> =
+    listOf()
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
-  override fun queries(): List<com.google.firebase.dataconnect.generated.GeneratedQuery<DefaultConnector, *, *>> =
-    listOf(
-      
-    )
+  @ExperimentalFirebaseDataConnect
+  override fun queries(): List<GeneratedQuery<DefaultConnector, *, *>> =
+    listOf()
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
-  override fun copy(dataConnect: com.google.firebase.dataconnect.FirebaseDataConnect) =
+  @ExperimentalFirebaseDataConnect
+  override fun copy(dataConnect: FirebaseDataConnect): DefaultConnector =
     DefaultConnectorImpl(dataConnect)
 
   override fun equals(other: Any?): Boolean =
-    other is DefaultConnectorImpl &&
-    other.dataConnect == dataConnect
+    other is DefaultConnectorImpl && other.dataConnect == dataConnect
 
   override fun hashCode(): Int =
-    java.util.Objects.hash(
-      "DefaultConnectorImpl",
-      dataConnect,
-    )
+    java.util.Objects.hash("DefaultConnectorImpl", dataConnect)
 
   override fun toString(): String =
     "DefaultConnectorImpl(dataConnect=$dataConnect)"
 }
 
-
-
+/**
+ * Base class for generated query implementations.  You can invoke
+ * connector.query(…) to create instances of these at runtime.
+ * The generated code will subclass this and fill in the operationName, serializers, etc.
+ */
 private open class DefaultConnectorGeneratedQueryImpl<Data, Variables>(
   override val connector: DefaultConnector,
   override val operationName: String,
-  override val dataDeserializer: kotlinx.serialization.DeserializationStrategy<Data>,
-  override val variablesSerializer: kotlinx.serialization.SerializationStrategy<Variables>,
-) : com.google.firebase.dataconnect.generated.GeneratedQuery<DefaultConnector, Data, Variables> {
+  override val dataDeserializer: DeserializationStrategy<Data>,
+  override val variablesSerializer: SerializationStrategy<Variables>,
+) : GeneratedQuery<DefaultConnector, Data, Variables> {
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
+  @ExperimentalFirebaseDataConnect
   override fun copy(
     connector: DefaultConnector,
     operationName: String,
-    dataDeserializer: kotlinx.serialization.DeserializationStrategy<Data>,
-    variablesSerializer: kotlinx.serialization.SerializationStrategy<Variables>,
-  ) =
-    DefaultConnectorGeneratedQueryImpl(
-      connector, operationName, dataDeserializer, variablesSerializer
-    )
+    dataDeserializer: DeserializationStrategy<Data>,
+    variablesSerializer: SerializationStrategy<Variables>,
+  ) = DefaultConnectorGeneratedQueryImpl(
+    connector,
+    operationName,
+    dataDeserializer,
+    variablesSerializer
+  )
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
+  @ExperimentalFirebaseDataConnect
   override fun <NewVariables> withVariablesSerializer(
-    variablesSerializer: kotlinx.serialization.SerializationStrategy<NewVariables>
-  ) =
+    variablesSerializer: SerializationStrategy<NewVariables>
+  ): GeneratedQuery<DefaultConnector, Data, NewVariables> =
     DefaultConnectorGeneratedQueryImpl(
       connector, operationName, dataDeserializer, variablesSerializer
     )
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
+  @ExperimentalFirebaseDataConnect
   override fun <NewData> withDataDeserializer(
-    dataDeserializer: kotlinx.serialization.DeserializationStrategy<NewData>
-  ) =
+    dataDeserializer: DeserializationStrategy<NewData>
+  ): GeneratedQuery<DefaultConnector, NewData, Variables> =
     DefaultConnectorGeneratedQueryImpl(
       connector, operationName, dataDeserializer, variablesSerializer
     )
 
   override fun equals(other: Any?): Boolean =
-    other is DefaultConnectorGeneratedQueryImpl<*,*> &&
-    other.connector == connector &&
-    other.operationName == operationName &&
-    other.dataDeserializer == dataDeserializer &&
-    other.variablesSerializer == variablesSerializer
+    other is DefaultConnectorGeneratedQueryImpl<*, *> &&
+            other.connector == connector &&
+            other.operationName == operationName &&
+            other.dataDeserializer == dataDeserializer &&
+            other.variablesSerializer == variablesSerializer
 
   override fun hashCode(): Int =
     java.util.Objects.hash(
@@ -143,52 +166,56 @@ private open class DefaultConnectorGeneratedQueryImpl<Data, Variables>(
 
   override fun toString(): String =
     "DefaultConnectorGeneratedQueryImpl(" +
-    "operationName=$operationName, " +
-    "dataDeserializer=$dataDeserializer, " +
-    "variablesSerializer=$variablesSerializer, " +
-    "connector=$connector)"
+            "operationName=$operationName, " +
+            "dataDeserializer=$dataDeserializer, " +
+            "variablesSerializer=$variablesSerializer, " +
+            "connector=$connector)"
 }
 
+/**
+ * Base class for generated mutation implementations.  You can invoke
+ * connector.mutation(…) to create instances of these at runtime.
+ * The generated code will subclass this and fill in the operationName, serializers, etc.
+ */
 private open class DefaultConnectorGeneratedMutationImpl<Data, Variables>(
   override val connector: DefaultConnector,
   override val operationName: String,
-  override val dataDeserializer: kotlinx.serialization.DeserializationStrategy<Data>,
-  override val variablesSerializer: kotlinx.serialization.SerializationStrategy<Variables>,
-) : com.google.firebase.dataconnect.generated.GeneratedMutation<DefaultConnector, Data, Variables> {
+  override val dataDeserializer: DeserializationStrategy<Data>,
+  override val variablesSerializer: SerializationStrategy<Variables>,
+) : GeneratedMutation<DefaultConnector, Data, Variables> {
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
+  @ExperimentalFirebaseDataConnect
   override fun copy(
     connector: DefaultConnector,
     operationName: String,
-    dataDeserializer: kotlinx.serialization.DeserializationStrategy<Data>,
-    variablesSerializer: kotlinx.serialization.SerializationStrategy<Variables>,
-  ) =
-    DefaultConnectorGeneratedMutationImpl(
-      connector, operationName, dataDeserializer, variablesSerializer
-    )
+    dataDeserializer: DeserializationStrategy<Data>,
+    variablesSerializer: SerializationStrategy<Variables>,
+  ) = DefaultConnectorGeneratedMutationImpl(
+    connector, operationName, dataDeserializer, variablesSerializer
+  )
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
+  @ExperimentalFirebaseDataConnect
   override fun <NewVariables> withVariablesSerializer(
-    variablesSerializer: kotlinx.serialization.SerializationStrategy<NewVariables>
-  ) =
+    variablesSerializer: SerializationStrategy<NewVariables>
+  ): GeneratedMutation<DefaultConnector, Data, NewVariables> =
     DefaultConnectorGeneratedMutationImpl(
       connector, operationName, dataDeserializer, variablesSerializer
     )
 
-  @com.google.firebase.dataconnect.ExperimentalFirebaseDataConnect
+  @ExperimentalFirebaseDataConnect
   override fun <NewData> withDataDeserializer(
-    dataDeserializer: kotlinx.serialization.DeserializationStrategy<NewData>
-  ) =
+    dataDeserializer: DeserializationStrategy<NewData>
+  ): GeneratedMutation<DefaultConnector, NewData, Variables> =
     DefaultConnectorGeneratedMutationImpl(
       connector, operationName, dataDeserializer, variablesSerializer
     )
 
   override fun equals(other: Any?): Boolean =
-    other is DefaultConnectorGeneratedMutationImpl<*,*> &&
-    other.connector == connector &&
-    other.operationName == operationName &&
-    other.dataDeserializer == dataDeserializer &&
-    other.variablesSerializer == variablesSerializer
+    other is DefaultConnectorGeneratedMutationImpl<*, *> &&
+            other.connector == connector &&
+            other.operationName == operationName &&
+            other.dataDeserializer == dataDeserializer &&
+            other.variablesSerializer == variablesSerializer
 
   override fun hashCode(): Int =
     java.util.Objects.hash(
@@ -198,19 +225,8 @@ private open class DefaultConnectorGeneratedMutationImpl<Data, Variables>(
 
   override fun toString(): String =
     "DefaultConnectorGeneratedMutationImpl(" +
-    "operationName=$operationName, " +
-    "dataDeserializer=$dataDeserializer, " +
-    "variablesSerializer=$variablesSerializer, " +
-    "connector=$connector)"
+            "operationName=$operationName, " +
+            "dataDeserializer=$dataDeserializer, " +
+            "variablesSerializer=$variablesSerializer, " +
+            "connector=$connector)"
 }
-
-
-
-
-// The lines below are used by the code generator to ensure that this file is deleted if it is no
-// longer needed. Any files in this directory that contain the lines below will be deleted by the
-// code generator if the file is no longer needed. If, for some reason, you do _not_ want the code
-// generator to delete this file, then remove the line below (and this comment too, if you want).
-
-// FIREBASE_DATA_CONNECT_GENERATED_FILE MARKER 42da5e14-69b3-401b-a9f1-e407bee89a78
-// FIREBASE_DATA_CONNECT_GENERATED_FILE CONNECTOR default
