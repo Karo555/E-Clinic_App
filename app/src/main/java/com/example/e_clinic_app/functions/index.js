@@ -1,52 +1,57 @@
 /**
- * 1. Import required modules
+ * functions/index.js
+ *
+ * Uses the Firebase Functions v1 API:
+ *  1) onNewChatMessage — triggers on new documents under /chats/{chatId}/messages/{messageId}
+ *  2) dailyAppointmentReminder — runs once per day at midnight UTC
  */
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
 
-/**
- * 2. Initialize the Admin SDK
- *    This automatically picks up the service account when deployed to Firebase.
- */
+const { firestore, pubsub } = require("firebase-functions/v1");
+const admin = require("firebase-admin");
+
+// Initialize the Firebase Admin SDK
 admin.initializeApp();
+
+// Firestore reference
 const db = admin.firestore();
 
 /**
- * 3. onNewChatMessage Cloud Function
+ * 1) onNewChatMessage
  *
- *    - Trigger: When a new document is created under "chats/{chatId}/messages/{messageId}"
- *    - Action:
- *        a) Read the newly written message (senderId, text, timestamp).
- *        b) Read the parent chat doc to get doctorId & patientId.
- *        c) Determine recipientId (the opposite of senderId).
- *        d) Look up that user’s fcmToken in /users/{recipientId}.fcmToken.
- *        e) If fcmToken exists, send a push notification via FCM.
+ * Trigger on any new document created under:
+ *   /chats/{chatId}/messages/{messageId}
+ *
+ * Expects each `chats/{chatId}` to have fields: { doctorId, patientId }.
+ * When a message arrives, we determine the “other” participant (recipient),
+ * fetch their fcmToken from /users/{recipientId}/fcmToken, and send a push.
  */
 exports.onNewChatMessage = functions.firestore
-  .document('chats/{chatId}/messages/{messageId}')
+  .document("chats/{chatId}/messages/{messageId}")
   .onCreate(async (snap, context) => {
-    // 3.1: Fetch the message data
-    const messageData = snap.data();
-    if (!messageData) {
-      console.log('No data in new chat message snapshot.');
-      return null;
-    }
-    const { senderId, text } = messageData;
-
-    // 3.2: Extract chatId from the context, then read the parent chat document
-    const chatId = context.params.chatId; // e.g. "doctor123_patient456"
     try {
-      const chatDocRef = db.collection('chats').doc(chatId);
-      const chatDocSnap = await chatDocRef.get();
-      if (!chatDocSnap.exists) {
-        console.log(`Chat document ${chatId} does not exist.`);
+      // 1. Read the new message data
+      const messageData = snap.data();
+      if (!messageData) {
+        console.log("onNewChatMessage: no message data found");
         return null;
       }
-      const chatFields = chatDocSnap.data();
-      const doctorId = chatFields.doctorId;
-      const patientId = chatFields.patientId;
+      const { senderId, text = "" } = messageData;
 
-      // 3.3: Determine recipient: if sender is patient, send to doctor, otherwise send to patient
+      // 2. Read the parent chat document
+      const chatId = context.params.chatId; // e.g. "doctor123_patient456"
+      const chatDocRef = db.collection("chats").doc(chatId);
+      const chatSnap = await chatDocRef.get();
+      if (!chatSnap.exists) {
+        console.log(`onNewChatMessage: chat ${chatId} does not exist`);
+        return null;
+      }
+    const chatData = chatSnap.data();
+    if (!chatData || !chatData.doctorId || !chatData.patientId) {
+      console.log(`onNewChatMessage: invalid chat data for chatId=${chatId}`);
+      return null;
+    }
+    const { doctorId, patientId } = chatData;
+      // 3. Determine the recipient (the opposite of senderId)
       let recipientId;
       if (senderId === patientId) {
         recipientId = doctorId;
@@ -54,48 +59,173 @@ exports.onNewChatMessage = functions.firestore
         recipientId = patientId;
       } else {
         console.log(
-          `SenderId (${senderId}) is neither patientId (${patientId}) nor doctorId (${doctorId}). Aborting.`
+          `onNewChatMessage: senderId (${senderId}) is neither doctorId (${doctorId}) nor patientId (${patientId})`
         );
         return null;
       }
 
-      // 3.4: Load recipient’s user document to get fcmToken
-      const userDocRef = db.collection('users').doc(recipientId);
-      const userDocSnap = await userDocRef.get();
-      if (!userDocSnap.exists) {
-        console.log(`User document for recipientId=${recipientId} not found.`);
+      // 4. Fetch the recipient’s FCM token
+      const userSnap = await db.collection("users").doc(recipientId).get();
+      if (!userSnap.exists) {
+        console.log(`onNewChatMessage: no user doc for recipientId=${recipientId}`);
         return null;
       }
-      const fcmToken = userDocSnap.get('fcmToken');
+      const fcmToken = userSnap.get("fcmToken");
       if (!fcmToken) {
-        console.log(`No fcmToken for user ${recipientId}.`);
+        console.log(`onNewChatMessage: no fcmToken for user ${recipientId}`);
         return null;
       }
 
-      // 3.5: Build notification payload
-      const truncatedBody = text.length > 100 ? text.substring(0, 100) + '…' : text;
+      // 5. Build and send the notification payload
+      const truncatedText = text.length > 100 ? text.substring(0, 100) + "…" : text;
       const payload = {
         notification: {
-          title: 'New Message',
-          body: truncatedBody,
+          title: "New Message",
+          body: truncatedText,
         },
         data: {
-          chatId: chatId,
-          senderId: senderId,
-          click_action: 'FLUTTER_NOTIFICATION_CLICK', // or your own action if needed
+          chatId,
+          senderId,
+          click_action: "FLUTTER_NOTIFICATION_CLICK",
         },
       };
 
-      // 3.6: Send a push to the device token
       const response = await admin.messaging().sendToDevice(fcmToken, payload);
       console.log(
-        `Notification sent to user ${recipientId} (token=${fcmToken}). Response:`,
+        `onNewChatMessage: notification sent to ${recipientId} (token=${fcmToken}), response=`,
         response
       );
-
       return null;
     } catch (error) {
-      console.error('Error in onNewChatMessage function:', error);
+      console.error("onNewChatMessage: error sending notification", error);
+      return null;
+    }
+  });
+
+/**
+ * 2) dailyAppointmentReminder
+ *
+ * Runs every day at 00:00 UTC. Queries `/appointments` for any appointment
+ * scheduled ~24 hours from now (status == "scheduled"), then pushes a reminder
+ * to each patient’s device via their fcmToken under /users/{patientId}/fcmToken.
+ */
+exports.dailyAppointmentReminder = functions.pubsub
+  .schedule("0 0 * * *") // Every day at midnight UTC
+  .timeZone("UTC")
+  .onRun(async (context) => {
+    try {
+      const now = admin.firestore.Timestamp.now();
+      // 24 hours from now
+      const in24h = admin.firestore.Timestamp.fromDate(
+        new Date(now.toDate().getTime() + 24 * 60 * 60 * 1000)
+      );
+      // 25 hours from now (window end)
+      const in25h = admin.firestore.Timestamp.fromDate(
+        new Date(in24h.toDate().getTime() + 60 * 60 * 1000)
+      );
+
+      // 1) Query appointments with status="scheduled" and date in [in24h, in25h)
+      const appointmentsSnap = await db
+        .collection("appointments")
+        .where("status", "==", "scheduled")
+        .where("date", ">=", in24h)
+        .where("date", "<", in25h)
+        .get();
+
+      if (appointmentsSnap.empty) {
+        console.log("dailyAppointmentReminder: no appointments 24h out");
+        return null;
+      }
+
+      // 2) For each matching appointment, send a reminder to the patient
+      const sendPromises = [];
+      appointmentsSnap.forEach((docSnap) => {
+        const data = docSnap.data();
+        const {
+          date: appointmentTimestamp,
+          doctorFirstName,
+          doctorLastName,
+          patientFirstName,
+          patientLastName,
+          patientId,
+          doctorId,
+        } = data;
+
+        // Format the appointment date/time
+        const appointmentDateStr = appointmentTimestamp
+          .toDate()
+          .toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+
+        // Fetch patient’s FCM token
+        const p = db
+          .collection("users")
+          .doc(patientId)
+          .get()
+          .then((userSnap) => {
+            if (!userSnap.exists) {
+              console.log(`dailyAppointmentReminder: no user for patientId=${patientId}`);
+              return null;
+            }
+            const fcmToken = userSnap.get("fcmToken");
+            if (!fcmToken) {
+              console.log(`dailyAppointmentReminder: no fcmToken for patient ${patientId}`);
+              return null;
+            }
+
+            // Build notification payload
+            const payload = {
+              notification: {
+                title: "Appointment Reminder",
+                body: `Hi ${patientFirstName}, you have an appointment with Dr. ${doctorFirstName} ${doctorLastName} on ${appointmentDateStr}.`,
+              },
+              data: {
+                appointmentId: docSnap.id,
+                doctorId,
+                click_action: "FLUTTER_NOTIFICATION_CLICK",
+              },
+            };
+
+            return admin.messaging().sendToDevice(fcmToken, payload);
+          })
+          .then((response) => {
+            if (response && response.results) {
+              const result0 = response.results[0];
+              if (result0.error) {
+                console.error(
+                  `dailyAppointmentReminder: push failed for patientId=${patientId}`,
+                  result0.error
+                );
+              } else {
+                console.log(
+                  `dailyAppointmentReminder: reminder sent to patientId=${patientId} for appointmentId=${docSnap.id}`
+                );
+              }
+            }
+            return null;
+          })
+          .catch((err) => {
+            console.error(
+              `dailyAppointmentReminder: error sending push for patient ${patientId}`,
+              err
+            );
+            return null;
+          });
+
+        sendPromises.push(p);
+      });
+
+      // Wait for all sends to complete
+      await Promise.all(sendPromises);
+      console.log("dailyAppointmentReminder: all reminders processed");
+      return null;
+    } catch (error) {
+      console.error("dailyAppointmentReminder: error", error);
       return null;
     }
   });
