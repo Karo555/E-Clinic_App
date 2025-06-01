@@ -35,6 +35,7 @@ import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewMod
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
+import com.example.e_clinic_app.ui.admin.model.InstitutionAdminsScreen
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
@@ -168,6 +169,10 @@ fun AppNavGraph(
         }
         composable(Routes.INSTITUTION_ADMIN_DASHBOARD) {
             AdminHomeTabScreen(navController)
+        }
+
+        composable(Routes.MANAGE_INSTITUTION_ADMINS) {   // <-- New Composable
+            InstitutionAdminsScreen(navController)
         }
 
         // Patient & Doctor dashboards
