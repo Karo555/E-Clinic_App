@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.generativeai)
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
+    implementation(libs.com.google.firebase.firebase.storage.ktx)
     debugImplementation(libs.ui.tooling)
     implementation(libs.androidx.material.icons.extended)
 
