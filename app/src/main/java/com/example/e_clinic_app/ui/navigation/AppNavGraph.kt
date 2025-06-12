@@ -224,12 +224,9 @@ fun AppNavGraph(
             VisitsScreen(navController, vm)
         }
 
-        // Doctor's own appointments
+        // Doctor's all appointments (historic and upcoming, grouped by month)
         composable(Routes.DOCTOR_APPOINTMENTS) {
-            val vm: AppointmentsViewModel = viewModel(
-                factory = AppointmentsViewModel.factoryForDoctor()
-            )
-            VisitsScreen(navController = navController, viewModel = vm)
+            com.example.e_clinic_app.ui.home.doctor.DoctorAppointmentsScreen(navController)
         }
 
         // Chat detail
