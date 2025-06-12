@@ -4,7 +4,10 @@ import com.example.e_clinic_app.ui.settings.SettingsTabScreen
 import AdminHomeTabScreen
 import com.example.e_clinic_app.ui.settings.EditPublicProfileScreen
 import android.util.Log
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -60,7 +63,6 @@ import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
  *
  * @param navController The `NavHostController` used to manage navigation between screens.
  * @param startDestination The initial route to display when the app starts.
- * @param currentUserRole The role of the currently logged-in user (e.g., "Doctor", "Patient", "Admin").
  * @param patientDashboardViewModel The `PatientDashboardViewModel` instance for managing patient dashboard state.
  * @param doctorHomeViewModel The `DoctorHomeViewModel` instance for managing doctor dashboard state.
  */
@@ -68,32 +70,37 @@ import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
 fun AppNavGraph(
     navController: NavHostController,
     startDestination: String,
-    currentUserRole: String?,
     patientDashboardViewModel: PatientDashboardViewModel = viewModel(),
     doctorHomeViewModel: DoctorHomeViewModel = viewModel()
 ) {
-    Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination and role = $currentUserRole")
+    Log.d("AppNavGraph", "AppNavGraph COMPOSABLE recomposed")
+    Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination")
 
     NavHost(navController = navController, startDestination = startDestination) {
+        Log.d("AppNavGraph", "NavHost lambda recomposed")
 
         // Home
         composable(Routes.HOME) {
-            HomeTabScreen(navController)
+            // Dynamically show the correct dashboard based on user role
+            val userViewModel: com.example.e_clinic_app.presentation.viewmodel.UserViewModel = viewModel()
+            val currentUserRole by userViewModel.role.collectAsState()
+            when (currentUserRole) {
+                "Doctor" -> DoctorHomeTabScreen(navController, doctorHomeViewModel)
+                "Patient" -> PatientHomeTabScreen(navController, patientDashboardViewModel)
+                // Add Admin or other roles as needed
+                else -> CircularProgressIndicator()
+            }
         }
 
         // Chat list (Chat tab)
         composable(Routes.CHAT_TAB) {
-            Log.d("AppNavGraph", "currentUserRole passed to ChatTabScreen: $currentUserRole")
             ChatTabScreen(navController)
         }
 
         // Settings
         composable(Routes.SETTINGS_TAB) {
-            Log.d("AppNavGraph", "currentUserRole passed to SettingsTabScreen: $currentUserRole")
-            SettingsTabScreen(
-                navController = navController,
-                currentUserRole = currentUserRole
-            )
+            Log.d("AppNavGraph", "Navigating to SettingsTabScreen")
+            SettingsTabScreen(navController = navController)
         }
 
         // Auth flow
@@ -257,7 +264,6 @@ fun AppNavGraph(
 
         // Doctor edit profile
         composable(Routes.EDIT_PUBLIC_PROFILE) {
-            Log.d("SettingsTabScreen", "currentUserRole: $currentUserRole")
             EditPublicProfileScreen(
                 onSubmitSuccess = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() }

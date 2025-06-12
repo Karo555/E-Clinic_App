@@ -30,6 +30,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import android.util.Log
 
 /**
  * The main entry point of the e-clinic application.
@@ -60,7 +61,9 @@ class MainActivity : ComponentActivity() {
         // 3. Enable edge-to-edge and set up Compose content
         enableEdgeToEdge()
         setContent {
+            Log.d("MainActivity", "setContent recomposed")
             EClinic_AppTheme {
+                Log.d("MainActivity", "EClinic_AppTheme recomposed")
                 val navController = rememberNavController()
                 // Cache user role in a ViewModel to avoid repeated Firestore reads
                 val userViewModel: UserViewModel = viewModel()
@@ -68,7 +71,8 @@ class MainActivity : ComponentActivity() {
 
                 var startDestination by remember { mutableStateOf<String?>(null) }
 
-                LaunchedEffect(true) {
+                LaunchedEffect(Unit) {
+                    Log.d("MainActivity", "LaunchedEffect running for startDestination check")
                     val user = FirebaseAuth.getInstance().currentUser
                     val db = FirebaseFirestore.getInstance()
 
@@ -126,11 +130,11 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                Log.d("MainActivity", "startDestination = $startDestination")
                 if (startDestination != null) {
                     AppNavGraph(
                         navController = navController,
-                        startDestination = startDestination!!,
-                        currentUserRole = currentRole
+                        startDestination = startDestination!!
                     )
                 } else {
                     Box(

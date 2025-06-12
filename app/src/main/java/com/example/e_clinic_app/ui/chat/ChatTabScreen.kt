@@ -38,6 +38,9 @@ fun ChatTabScreen(
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Chats") })
+        },
+        bottomBar = {
+            com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar(navController)
         }
     ) { padding ->
         Box(
