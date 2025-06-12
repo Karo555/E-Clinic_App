@@ -25,6 +25,7 @@ generativeai = "0.9.0"
 firebaseDatabase = "21.0.0"
 firebaseMessaging = "24.1.1"
 firebaseStorageKtx = "21.0.2"
+zxingAndroidEmbedded = "4.3.0"
 
 [libraries]
 androidx-activity-compose-v170 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
@@ -68,6 +69,7 @@ generativeai = { group = "com.google.ai.client.generativeai", name = "generative
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 com-google-firebase-firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
+zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
