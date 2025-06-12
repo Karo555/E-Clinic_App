@@ -4,10 +4,14 @@ import com.example.e_clinic_app.ui.settings.SettingsTabScreen
 import AdminHomeTabScreen
 import com.example.e_clinic_app.ui.settings.EditPublicProfileScreen
 import android.util.Log
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -24,7 +28,6 @@ import com.example.e_clinic_app.ui.chat.ChatTabScreen
 import com.example.e_clinic_app.ui.chat.ChatDetailScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
-import com.example.e_clinic_app.ui.home.HomeTabScreen
 import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
 import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
 import com.example.e_clinic_app.ui.home.patient.PatientHomeTabScreen
@@ -85,10 +88,17 @@ fun AppNavGraph(
             val userViewModel: com.example.e_clinic_app.presentation.viewmodel.UserViewModel = viewModel()
             val currentUserRole by userViewModel.role.collectAsState()
             when (currentUserRole) {
-                "Doctor" -> DoctorHomeTabScreen(navController, doctorHomeViewModel)
-                "Patient" -> PatientHomeTabScreen(navController, patientDashboardViewModel)
-                // Add Admin or other roles as needed
-                else -> CircularProgressIndicator()
+                "Doctor" -> DoctorHomeTabScreen(
+                    navController = navController,
+                    viewModel = doctorHomeViewModel
+                )
+                "Patient" -> PatientHomeTabScreen(
+                    navController = navController,
+                    viewModel = patientDashboardViewModel
+                )
+                else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
         }
 
@@ -182,14 +192,6 @@ fun AppNavGraph(
 
         composable(Routes.MANAGE_INSTITUTION_ADMINS) {   // <-- New Composable
             InstitutionAdminsScreen(navController)
-        }
-
-        // Patient & Doctor dashboards
-        composable(Routes.PATIENT_DASHBOARD) {
-            PatientHomeTabScreen(navController, patientDashboardViewModel)
-        }
-        composable(Routes.DOCTOR_DASHBOARD) {
-            DoctorHomeTabScreen(navController, doctorHomeViewModel)
         }
 
         // Doctor detail
