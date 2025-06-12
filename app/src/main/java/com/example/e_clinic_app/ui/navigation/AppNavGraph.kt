@@ -83,11 +83,13 @@ fun AppNavGraph(
 
         // Chat list (Chat tab)
         composable(Routes.CHAT_TAB) {
+            Log.d("AppNavGraph", "currentUserRole passed to ChatTabScreen: $currentUserRole")
             ChatTabScreen(navController)
         }
 
         // Settings
         composable(Routes.SETTINGS_TAB) {
+            Log.d("AppNavGraph", "currentUserRole passed to SettingsTabScreen: $currentUserRole")
             SettingsTabScreen(
                 navController = navController,
                 currentUserRole = currentUserRole
@@ -255,11 +257,13 @@ fun AppNavGraph(
 
         // Doctor edit profile
         composable(Routes.EDIT_PUBLIC_PROFILE) {
+            Log.d("SettingsTabScreen", "currentUserRole: $currentUserRole")
             EditPublicProfileScreen(
                 onSubmitSuccess = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
             )
         }
+
         composable(Routes.DOCTOR_PATIENTS) {
             PatientsScreen(
                 navController = navController,

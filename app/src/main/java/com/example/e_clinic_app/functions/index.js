@@ -1,3 +1,49 @@
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+admin.initializeApp();
+// functions/src/index.ts
+
+export const createInstitutionAdmin = functions.https.onCall(async (data, context) => {
+    // Check if request is authenticated
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Only authenticated users can create admins.');
+    }
+
+    // Optionally check if current user is a Global Admin
+    const requesterUID = context.auth.uid;
+    const requesterDoc = await admin.firestore().collection('users').doc(requesterUID).get();
+
+    if (!requesterDoc.exists || requesterDoc.data()?.role !== 'ADMIN') {
+        throw new functions.https.HttpsError('permission-denied', 'Only Global Admins can create institution admins.');
+    }
+
+    // Get data from client
+    const { email, password, institutionId } = data;
+
+    if (!email || !password || !institutionId) {
+        throw new functions.https.HttpsError('invalid-argument', 'Email, password, and institutionId are required.');
+    }
+
+    // Create the new user
+    const userRecord = await admin.auth().createUser({
+        email: email,
+        password: password,
+        emailVerified: false,
+        disabled: false,
+    });
+
+    // Add to Firestore
+    await admin.firestore().collection('users').doc(userRecord.uid).set({
+        email: email,
+        institutionId: institutionId,
+        role: 'INSTITUTION_ADMIN',
+        uid: userRecord.uid,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return { message: 'Institution admin created successfully.' };
+});
+
 /**
  * functions/index.js
  *
@@ -8,9 +54,6 @@
 
 const { firestore, pubsub } = require("firebase-functions/v1");
 const admin = require("firebase-admin");
-
-// Initialize the Firebase Admin SDK
-admin.initializeApp();
 
 // Firestore reference
 const db = admin.firestore();
