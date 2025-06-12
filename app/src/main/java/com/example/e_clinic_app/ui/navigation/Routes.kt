@@ -78,4 +78,6 @@ object Routes {
 
     // visit detail for patient
     const val VISIT_DETAIL = "visit_detail"
+    // appointment detail for doctor
+    const val APPOINTMENT_DETAIL = "appointment_detail"
 }

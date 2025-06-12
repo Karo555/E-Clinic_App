@@ -231,6 +231,25 @@ fun AppNavGraph(
             com.example.e_clinic_app.ui.home.doctor.DoctorAppointmentsScreen(navController)
         }
 
+        // Doctor appointment detail (doctor POV)
+        composable(
+            route = "${Routes.APPOINTMENT_DETAIL}/{appointmentId}",
+            arguments = listOf(navArgument("appointmentId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
+            val vm: com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel = viewModel(
+                factory = com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel.provideFactory(
+                    firestore = FirebaseFirestore.getInstance(),
+                    appointmentId = appointmentId
+                )
+            )
+            com.example.e_clinic_app.ui.home.doctor.AppointmentDetailScreen(
+                navController = navController,
+                viewModel = vm,
+                onCreatePrescription = { /* TODO: Implement prescription creation navigation */ }
+            )
+        }
+
         // Chat detail
         composable(
             route = "${Routes.CHAT_DETAIL}/{pairId}",

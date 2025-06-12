@@ -164,7 +164,7 @@ private fun AppointmentRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                navController.navigate("${Routes.VISIT_DETAIL}/${appt.id}")
+                navController.navigate("${Routes.APPOINTMENT_DETAIL}/${appt.id}")
             }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -184,4 +184,3 @@ private fun AppointmentRow(
         }
     }
 }
-

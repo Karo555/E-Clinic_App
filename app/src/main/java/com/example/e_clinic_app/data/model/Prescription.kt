@@ -17,11 +17,13 @@ import java.time.Instant
  * @property createdAt The timestamp indicating when the prescription was created.
  * @property updatedAt The timestamp indicating the last update to the prescription.
  */
+
 data class Prescription(
     val id: String,
     val patientId: String,
     val prescriberId: String,
     val medications: List<Medication>,
+    val dosageUnit: DosageUnit,
     val startDate: Instant,
     val endDate: Instant? = null,
     val notes: String? = null,

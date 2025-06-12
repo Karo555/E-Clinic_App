@@ -12,14 +12,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 /**
- * ViewModel for managing the details of a specific visit (appointment) in the e-clinic application.
+ * ViewModel for managing the details of a specific appointment (doctor's POV) in the e-clinic application.
  *
  * This ViewModel fetches the details of an appointment from Firestore and exposes it as a state flow.
  *
  * @property firestore The Firestore instance used for database operations.
  * @property appointmentId The unique identifier of the appointment to be loaded.
  */
-class VisitDetailViewModel(
+class AppointmentDetailViewModel(
     private val firestore: FirebaseFirestore,
     private val appointmentId: String
 ) : ViewModel() {
@@ -32,9 +32,6 @@ class VisitDetailViewModel(
     }
     /**
      * Loads the details of the appointment from Firestore.
-     *
-     * This method fetches the appointment data using the provided appointment ID
-     * and updates the state flow with the retrieved data.
      */
     private fun loadAppointment() = viewModelScope.launch {
         val snap = firestore.collection("appointments")
@@ -44,37 +41,31 @@ class VisitDetailViewModel(
     }
 
     /**
-     * Updates the prescriptions for the current appointment and saves them to Firestore.
-     * @param prescriptions The new list of prescriptions to save.
+     * Adds a new prescription to the appointment and updates the Firestore document.
+     *
+     * @param appointmentId The ID of the appointment to update.
+     * @param prescription The prescription data to add.
      */
-    fun updatePrescriptions(prescriptions: List<com.example.e_clinic_app.data.model.Prescription>) = viewModelScope.launch {
-        val current = _appointment.value
-        if (current != null) {
-            val updated = current.copy(prescriptions = prescriptions)
-            firestore.collection("appointments")
-                .document(current.id)
-                .update("prescriptions", prescriptions)
-                .await()
-            _appointment.value = updated
-        }
+    fun addPrescription(appointmentId: String, prescription: com.example.e_clinic_app.data.model.Prescription) = viewModelScope.launch {
+        val docRef = firestore.collection("appointments").document(appointmentId)
+        val snap = docRef.get().await()
+        val current = snap.toObject(com.example.e_clinic_app.data.appointment.Appointment::class.java)
+        val updatedPrescriptions = (current?.prescriptions ?: emptyList()) + prescription
+        docRef.update("prescriptions", updatedPrescriptions).await()
+        // Refresh local state
+        loadAppointment()
     }
 
     companion object {
-        /**
-         * Provides a factory for creating instances of `VisitDetailViewModel`.
-         *
-         * @param firestore The Firestore instance to use.
-         * @param appointmentId The unique identifier of the appointment.
-         * @return A factory for creating `VisitDetailViewModel` instances.
-         */
         fun provideFactory(
             firestore: FirebaseFirestore,
             appointmentId: String
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return VisitDetailViewModel(firestore, appointmentId) as T
+        ): ViewModelProvider.Factory =
+            object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
+                    return AppointmentDetailViewModel(firestore, appointmentId) as T
+                }
             }
-        }
     }
 }
