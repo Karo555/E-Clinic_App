@@ -1,33 +1,59 @@
 package com.example.e_clinic_app.ui.home.doctor
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChatBubble
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.*
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.e_clinic_app.data.model.*
+import com.example.e_clinic_app.data.model.DosageUnit
+import com.example.e_clinic_app.data.model.Prescription
 import com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel
-import java.time.Instant
+import com.example.e_clinic_app.ui.navigation.Routes
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import com.example.e_clinic_app.data.model.Frequency
-import androidx.compose.foundation.clickable
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppointmentDetailScreen(
     navController: NavController,
     viewModel: AppointmentDetailViewModel,
-    onCreatePrescription: () -> Unit
 ) {
     val appointment by viewModel.appointment.collectAsState()
     val zone = ZoneId.of("Europe/Warsaw")
@@ -42,7 +68,7 @@ fun AppointmentDetailScreen(
                 title = { Text("Appointment Details") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -71,7 +97,7 @@ fun AppointmentDetailScreen(
                     text = "Patient: ${appt.patientFirstName} ${appt.patientLastName}",
                     style = MaterialTheme.typography.bodyLarge
                 )
-                Divider()
+                HorizontalDivider()
                 Text(
                     text = "Preparation Instructions:",
                     style = MaterialTheme.typography.titleSmall
@@ -92,10 +118,10 @@ fun AppointmentDetailScreen(
                 Button(
                     onClick = {
                         // build pairId from sorted UIDs
-                        val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
                         currentUserId?.let { uid ->
                             val pairId = listOf(uid, appt.patientId).sorted().joinToString("_")
-                            navController.navigate("${com.example.e_clinic_app.ui.navigation.Routes.CHAT_DETAIL}/$pairId")
+                            navController.navigate("${Routes.CHAT_DETAIL}/$pairId")
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -113,7 +139,7 @@ fun AppointmentDetailScreen(
                         onSave = { prescription ->
                             viewModel.addPrescription(appt.id, prescription)
                             showDialog = false
-                        }
+                        },
                     )
                 }
             }
@@ -177,29 +203,18 @@ fun CreatePrescriptionDialog(
         },
         confirmButton = {
             Button(onClick = {
-                val medication = Medication(
-                    drug = Drug(
-                        id = drugName.lowercase().replace(" ", "_"),
-                        name = drugName,
-                        formulation = "",
-                        availableUnits = listOf(unit),
-                        commonDosages = mapOf(unit to listOf(amount.toDoubleOrNull() ?: 0.0)),
-                        defaultFrequency = Frequency.ONCE_DAILY
-                    ),
-                    amount = amount.toDoubleOrNull() ?: 0.0,
-                    unit = unit,
-                    frequency = Frequency.valueOf(frequency.replace(" ", "_").uppercase())
+                onSave(
+                    Prescription(
+                        id = UUID.randomUUID().toString(),
+                        authorId = prescriberId,
+                        dateIssued = Timestamp.now(),
+                        dosage = amount,
+                        frequency = frequency,
+                        medication = drugName ,
+                        notes = notes,
+                        patientId = patientId,
+                    )
                 )
-                val prescription = Prescription(
-                    id = java.util.UUID.randomUUID().toString(),
-                    patientId = patientId,
-                    prescriberId = prescriberId,
-                    medications = listOf(medication),
-                    dosageUnit = unit,
-                    startDate = Instant.now(),
-                    notes = notes
-                )
-                onSave(prescription)
             }) {
                 Text("Save")
             }

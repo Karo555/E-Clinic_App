@@ -1,8 +1,6 @@
 package com.example.e_clinic_app.ui.navigation
 
-import com.example.e_clinic_app.ui.settings.SettingsTabScreen
 import AdminHomeTabScreen
-import com.example.e_clinic_app.ui.settings.EditPublicProfileScreen
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,40 +12,45 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.NavType
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
-import com.example.e_clinic_app.ui.home.doctor.PatientDetailScreen
-import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
-import com.example.e_clinic_app.ui.auth.AuthScreen
-import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
-import com.example.e_clinic_app.ui.chat.ChatTabScreen
-import com.example.e_clinic_app.ui.chat.ChatDetailScreen
-import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
-import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
-import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
-import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
-import com.example.e_clinic_app.ui.home.patient.PatientHomeTabScreen
-import com.example.e_clinic_app.ui.home.patient.VisitsScreen
-import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
-import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
-import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.presentation.viewmodel.AppointmentsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
+import com.example.e_clinic_app.presentation.viewmodel.PrescriptionsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
+import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.admin.model.InstitutionAdminsScreen
+import com.example.e_clinic_app.ui.auth.AuthScreen
+import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
+import com.example.e_clinic_app.ui.chat.ChatDetailScreen
+import com.example.e_clinic_app.ui.chat.ChatTabScreen
+import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
+import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
+import com.example.e_clinic_app.ui.home.doctor.AppointmentDetailScreen
+import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
+import com.example.e_clinic_app.ui.home.doctor.PatientDetailScreen
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
-import com.google.firebase.auth.FirebaseAuth
+import com.example.e_clinic_app.ui.home.doctor.PrescriptionsScreenDoctor
+import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
 import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
 import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
-import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
+import com.example.e_clinic_app.ui.home.patient.PatientHomeTabScreen
 import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
+import com.example.e_clinic_app.ui.home.patient.VisitsScreen
+import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
+import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
+import com.example.e_clinic_app.ui.settings.EditPublicProfileScreen
+import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
+import com.example.e_clinic_app.ui.settings.SettingsTabScreen
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 /**
  * A composable function that defines the navigation graph for the e-clinic application.
@@ -85,17 +88,20 @@ fun AppNavGraph(
         // Home
         composable(Routes.HOME) {
             // Dynamically show the correct dashboard based on user role
-            val userViewModel: com.example.e_clinic_app.presentation.viewmodel.UserViewModel = viewModel()
+            val userViewModel: com.example.e_clinic_app.presentation.viewmodel.UserViewModel =
+                viewModel()
             val currentUserRole by userViewModel.role.collectAsState()
             when (currentUserRole) {
                 "Doctor" -> DoctorHomeTabScreen(
                     navController = navController,
                     viewModel = doctorHomeViewModel
                 )
+
                 "Patient" -> PatientHomeTabScreen(
                     navController = navController,
                     viewModel = patientDashboardViewModel
                 )
+
                 else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
@@ -237,16 +243,16 @@ fun AppNavGraph(
             arguments = listOf(navArgument("appointmentId") { type = NavType.StringType })
         ) { backStackEntry ->
             val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
-            val vm: com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel = viewModel(
-                factory = com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel.provideFactory(
-                    firestore = FirebaseFirestore.getInstance(),
-                    appointmentId = appointmentId
+            val vm: com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel =
+                viewModel(
+                    factory = com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel.provideFactory(
+                        firestore = FirebaseFirestore.getInstance(),
+                        appointmentId = appointmentId
+                    )
                 )
-            )
-            com.example.e_clinic_app.ui.home.doctor.AppointmentDetailScreen(
+            AppointmentDetailScreen(
                 navController = navController,
                 viewModel = vm,
-                onCreatePrescription = { /* TODO: Implement prescription creation navigation */ }
             )
         }
 
@@ -268,7 +274,7 @@ fun AppNavGraph(
         // patient details for doctor POV
         composable(
             route = "${Routes.PATIENT_DETAIL}/{patientId}",
-            arguments = listOf(navArgument("patientId"){ type = NavType.StringType })
+            arguments = listOf(navArgument("patientId") { type = NavType.StringType })
         ) { backStackEntry ->
             val patientId = backStackEntry.arguments!!.getString("patientId")!!
             val vm: PatientDetailViewModel = viewModel(
@@ -303,20 +309,28 @@ fun AppNavGraph(
         composable(Routes.MY_DOCUMENTS) {
             MyDocumentsScreen(navController)
         }
+        // Prescription screen
+
+        composable(Routes.PRESCRIPTIONS) {
+            PrescriptionsScreenDoctor(navController, viewModel = PrescriptionsViewModel() )
+
+        }
 
         // Patient visit details
         composable(
             route = "${Routes.VISIT_DETAIL}/{appointmentId}",
             arguments = listOf(navArgument("appointmentId") { type = NavType.StringType })
         ) { backStackEntry ->
-                        val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
-                        val vm: VisitDetailViewModel = viewModel(
-                                factory = VisitDetailViewModel.provideFactory(
-                                        firestore = FirebaseFirestore.getInstance(),
-                                        appointmentId = appointmentId
-                                            )
-                                    )
-                        VisitDetailScreen(navController, vm)
-                    }
+            val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
+            val vm: VisitDetailViewModel = viewModel(
+                factory = VisitDetailViewModel.provideFactory(
+                    firestore = FirebaseFirestore.getInstance(),
+                    appointmentId = appointmentId
+                )
+            )
+            VisitDetailScreen(navController, vm)
+        }
     }
+
+
 }

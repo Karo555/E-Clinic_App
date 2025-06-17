@@ -113,7 +113,9 @@ fun DoctorHomeTabScreen(
                 Spacer(Modifier.height(8.dp))
                 val quickActions = listOf(
                     NavItem("Patients", Icons.Outlined.Group, Routes.DOCTOR_PATIENTS),
-                    NavItem("Appointments", Icons.Outlined.Event, Routes.DOCTOR_APPOINTMENTS)
+                    NavItem("Appointments", Icons.Outlined.Event, Routes.DOCTOR_APPOINTMENTS),
+                    NavItem("Personal Availability", Icons.Outlined.Schedule, Routes.DOCTOR_AVAILABILITY),
+                    NavItem("Prescriptions", Icons.Outlined.EventAvailable, Routes.PRESCRIPTIONS),
                 )
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(quickActions) { item ->

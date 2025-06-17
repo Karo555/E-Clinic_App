@@ -1,32 +1,60 @@
 package com.example.e_clinic_app.data.model
 
-import java.time.Instant
-/**
- * Represents a prescription in the e-clinic application.
- *
- * This data class contains details about a prescription, including the patient and prescriber IDs,
- * a list of medications, the start and optional end dates, notes, and timestamps for creation and updates.
- *
- * @property id The unique identifier for the prescription.
- * @property patientId The unique identifier of the patient associated with the prescription.
- * @property prescriberId The unique identifier of the prescriber who issued the prescription.
- * @property medications The list of medications included in the prescription.
- * @property startDate The start date of the prescription.
- * @property endDate The optional end date of the prescription.
- * @property notes Optional notes or instructions related to the prescription.
- * @property createdAt The timestamp indicating when the prescription was created.
- * @property updatedAt The timestamp indicating the last update to the prescription.
- */
+import com.google.firebase.Timestamp
 
+
+/**
+ * Represents a medical prescription.
+ *
+ * This data class stores information about a prescription, including its unique identifier,
+ * the ID of the authoring healthcare professional, the date it was issued, dosage instructions,
+ * frequency of administration, the prescribed medication, any additional notes, and the ID of
+ * the patient for whom it is intended.
+ *
+ * @property id The unique identifier for this prescription. Defaults to an empty string.
+ * @property authorId The unique identifier of the healthcare professional who authored this prescription. Defaults to an empty string.
+ * @property dateIssued The date and time when the prescription was issued. Uses Firebase `Timestamp`. Can be null if not yet issued or if the date is unknown.
+ * @property dosage The prescribed dosage of the medication (e.g., "500mg", "1 tablet"). Defaults to an empty string.
+ * @property frequency How often the medication should be taken (e.g., "Twice a day", "Every 4 hours"). Defaults to an empty string.
+ * @property medication The name of the prescribed medication. Defaults to an empty string.
+ * @property notes Any additional notes or instructions related to the prescription. Defaults to an empty string.
+ * @property patientId The unique identifier of the patient for whom this prescription is intended. Defaults to an empty string.
+ */
 data class Prescription(
-    val id: String,
-    val patientId: String,
-    val prescriberId: String,
-    val medications: List<Medication>,
-    val dosageUnit: DosageUnit,
-    val startDate: Instant,
-    val endDate: Instant? = null,
-    val notes: String? = null,
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now()
-)
+    val id: String = "",
+    val authorId: String = "",
+    val dateIssued: Timestamp? = null, // Use Timestamp
+    val dosage: String = "",
+    val frequency: String = "",
+    val medication: String = "",
+    val notes: String = "",
+    val patientId: String = ""
+) {
+    // Extension function to convert Prescription to Firestore format
+    companion object {
+        fun fromFirestoreMap(map: Map<String, Any>): Prescription {
+            return Prescription(
+                id = map["id"] as? String ?: "",
+                authorId = map["authorId"] as? String ?: "",
+                dateIssued = map["dateIssued"] as? Timestamp,
+                dosage = map["dosage"] as? String ?: "",
+                frequency = map["frequency"] as? String ?: "",
+                medication = map["medication"] as? String ?: "",
+                notes = map["notes"] as? String ?: "",
+                patientId = map["patientId"] as? String ?: ""
+            )
+        }
+    }
+}
+fun Prescription.toFirestoreMap(): Map<String, Any?> {
+    return mapOf(
+        "id" to id,
+        "authorId" to authorId,
+        "dateIssued" to dateIssued,
+        "dosage" to dosage,
+        "frequency" to frequency,
+        "medication" to medication,
+        "notes" to notes,
+        "patientId" to patientId
+    )
+}

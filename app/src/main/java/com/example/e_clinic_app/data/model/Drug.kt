@@ -17,7 +17,6 @@ import java.time.Instant
  * @property defaultFrequency The default frequency for administering the drug.
  * @property searchableNames A list of alternative names or keywords for searching the drug.
  * @property createdAt The timestamp indicating when the drug was created.
- * @property updatedAt The timestamp indicating when the drug was last updated.
  */
 data class Drug(
     val id: String,
@@ -29,3 +28,16 @@ data class Drug(
     val searchableNames: List<String> = emptyList(),
     val createdAt: Instant? = null
 )
+
+fun Drug.toFirestoreMap(): Map<String, Any?> {
+    return mapOf(
+        "id" to id,
+        "name" to name,
+        "formulation" to formulation,
+        "availableUnits" to availableUnits.map { it.name },
+        "commonDosages" to commonDosages.mapKeys { it.key.name },
+        "defaultFrequency" to defaultFrequency.name,
+        "searchableNames" to searchableNames,
+        "createdAt" to createdAt?.toEpochMilli()
+    )
+}

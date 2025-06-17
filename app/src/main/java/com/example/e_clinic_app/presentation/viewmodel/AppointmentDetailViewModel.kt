@@ -1,9 +1,12 @@
 package com.example.e_clinic_app.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.e_clinic_app.data.appointment.Appointment
+import com.example.e_clinic_app.data.model.Prescription
+import com.example.e_clinic_app.data.model.toFirestoreMap
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,14 +49,26 @@ class AppointmentDetailViewModel(
      * @param appointmentId The ID of the appointment to update.
      * @param prescription The prescription data to add.
      */
-    fun addPrescription(appointmentId: String, prescription: com.example.e_clinic_app.data.model.Prescription) = viewModelScope.launch {
-        val docRef = firestore.collection("appointments").document(appointmentId)
-        val snap = docRef.get().await()
-        val current = snap.toObject(com.example.e_clinic_app.data.appointment.Appointment::class.java)
-        val updatedPrescriptions = (current?.prescriptions ?: emptyList()) + prescription
-        docRef.update("prescriptions", updatedPrescriptions).await()
-        // Refresh local state
-        loadAppointment()
+    fun addPrescription(appointmentId: String, prescription: Prescription) = viewModelScope.launch {
+        try {
+            // Use the extension function to convert to Firestore-compatible format
+            val firestoreData = prescription.toFirestoreMap()
+
+            firestore.collection("prescriptions")
+                .add(firestoreData)
+                .await()
+
+            // Optionally refresh local state or notify success
+            loadAppointment()
+
+            // You might want to add success logging or UI feedback here
+            Log.d("AppointmentDetailViewModel", "Prescription added successfully")
+
+        } catch (e: Exception) {
+            // Handle any errors
+            Log.e("AppointmentDetailViewModel", "Failed to add prescription to Firestore", e)
+            // Consider showing error message to user
+        }
     }
 
     companion object {

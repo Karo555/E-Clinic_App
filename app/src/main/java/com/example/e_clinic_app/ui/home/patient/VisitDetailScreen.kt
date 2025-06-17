@@ -113,7 +113,7 @@ fun VisitDetailScreen(
                     Text("Chat with Doctor")
                 }
                 Spacer(Modifier.height(24.dp))
-                Divider()
+                HorizontalDivider()
                 Text(
                     text = "Prescribed Prescriptions:",
                     style = MaterialTheme.typography.titleSmall
@@ -127,8 +127,8 @@ fun VisitDetailScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Column(Modifier.padding(12.dp)) {
-                                    Text("Medicine: ${prescription.medications}", style = MaterialTheme.typography.bodyMedium)
-                                    Text("Dosage: ${prescription.dosageUnit}", style = MaterialTheme.typography.bodySmall)
+                                    Text("Medicine: ${prescription.medication}", style = MaterialTheme.typography.bodyMedium)
+                                    Text("Dosage: ${prescription.dosage}", style = MaterialTheme.typography.bodySmall)
                                     if (!prescription.notes.isNullOrBlank()) {
                                         Text("Instructions: ${prescription.notes}", style = MaterialTheme.typography.bodySmall)
                                     }
