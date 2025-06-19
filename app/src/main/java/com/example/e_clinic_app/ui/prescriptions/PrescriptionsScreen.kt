@@ -1,5 +1,7 @@
-package com.example.e_clinic_app.ui.home.doctor
+package com.example.e_clinic_app.ui.prescriptions
 
+import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,7 +40,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrescriptionsScreenDoctor(navController: NavController, viewModel: PrescriptionsViewModel) {
+fun PrescriptionsScreen(navController: NavController, viewModel: PrescriptionsViewModel) {
     val prescriptions by viewModel.prescriptions.collectAsState()
 
     Scaffold(
@@ -70,7 +73,10 @@ fun PrescriptionsScreenDoctor(navController: NavController, viewModel: Prescript
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(prescriptions) { prescription ->
-                    PrescriptionCard(prescription = prescription)
+                    PrescriptionCard(
+                        prescription = prescription,
+                        navController = navController
+                    )
                 }
             }
         }
@@ -78,20 +84,30 @@ fun PrescriptionsScreenDoctor(navController: NavController, viewModel: Prescript
 }
 
 @Composable
-private fun PrescriptionCard(prescription: Prescription) {
+private fun PrescriptionCard(prescription: Prescription, navController: NavController) {
     val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
         .withZone(ZoneId.systemDefault())
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                val id = prescription.id
+                if (!id.isNullOrEmpty()) {
+                    navController.navigate("prescriptionDetail/$id")
+                } else {
+                    Log.e("NAV_ERROR", "❌ Prescription ID is null or empty. Navigation skipped.")
+                }
+            },
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(4.dp)
-    ) {
+    )
+
+    {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Medication name - prominent display
             Text(
                 text = prescription.medication,
                 style = MaterialTheme.typography.headlineSmall,
@@ -130,11 +146,14 @@ private fun PrescriptionCard(prescription: Prescription) {
 
             // Date issued
             Text(
-                text = "Issued: ${dateFormatter.format(prescription.dateIssued?.let {
-                    Instant.ofEpochSecond(
-                        it.seconds,
-                        prescription.dateIssued.nanoseconds.toLong() ?: 0)
-                })}",
+                text = "Issued: ${
+                    dateFormatter.format(prescription.dateIssued?.let {
+                        Instant.ofEpochSecond(
+                            it.seconds,
+                            prescription.dateIssued.nanoseconds.toLong() ?: 0
+                        )
+                    })
+                }",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -145,7 +164,7 @@ private fun PrescriptionCard(prescription: Prescription) {
                     text = "Notes: $notes",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                    fontStyle = FontStyle.Italic,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -184,21 +203,24 @@ private fun CompactPrescriptionCard(prescription: Prescription) {
             )
 
             Text(
-                text = "Issued: ${dateFormatter.format(prescription.dateIssued?.let {
-                    Instant.ofEpochSecond(
-                        it.seconds,
-                        prescription.dateIssued.nanoseconds.toLong() ?: 0)
-                })}",
+                text = "Issued: ${
+                    dateFormatter.format(prescription.dateIssued?.let {
+                        Instant.ofEpochSecond(
+                            it.seconds,
+                            prescription.dateIssued.nanoseconds.toLong() ?: 0
+                        )
+                    })
+                }",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            prescription.notes?.takeIf { it.isNotBlank() }?.let { notes ->
+            prescription.notes.takeIf { it.isNotBlank() }?.let { notes ->
                 Text(
                     text = notes,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                    fontStyle = FontStyle.Italic,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

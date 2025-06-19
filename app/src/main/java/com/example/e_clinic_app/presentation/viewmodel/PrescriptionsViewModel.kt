@@ -41,34 +41,65 @@ class PrescriptionsViewModel : ViewModel() {
                     .whereEqualTo("authorId", user?.uid)
                     .get()
                     .addOnSuccessListener { snapshot ->
-                        val prescriptionsList = snapshot.documents.mapNotNull { it.toObject(Prescription::class.java) }
+                        val prescriptionsList = snapshot.documents.mapNotNull { doc ->
+                            doc.toObject(Prescription::class.java)?.copy(id = doc.id)
+                        }
+
                         _prescriptions.value = prescriptionsList
-                        Log.d("PrescriptionsViewModel", "Loaded ${prescriptionsList.size} prescriptions for doctor.")
+                        Log.d(
+                            "PrescriptionsViewModel",
+                            "Loaded ${prescriptionsList.size} prescriptions for doctor."
+                        )
                     }
                     .addOnFailureListener { exception ->
-                        Log.e("PrescriptionsViewModel", "Failed to load prescriptions for doctor.", exception)
+                        Log.e(
+                            "PrescriptionsViewModel",
+                            "Failed to load prescriptions for doctor.",
+                            exception
+                        )
                         _prescriptions.value = emptyList()
                     }
             }
+
             "Patient" -> {
                 fs.collection("prescriptions")
                     .whereEqualTo("patientId", user?.uid)
                     .get()
                     .addOnSuccessListener { snapshot ->
-                        val prescriptionsList = snapshot.documents.mapNotNull { it.toObject(Prescription::class.java) }
+                        val prescriptionsList = snapshot.documents.mapNotNull { doc ->
+                            doc.toObject(Prescription::class.java)?.copy(id = doc.id)
+                        }
+
                         _prescriptions.value = prescriptionsList
-                        Log.d("PrescriptionsViewModel", "Loaded ${prescriptionsList.size} prescriptions for patient.")
+                        Log.d(
+                            "PrescriptionsViewModel",
+                            "Loaded ${prescriptionsList.size} prescriptions for patient."
+                        )
                     }
                     .addOnFailureListener { exception ->
-                        Log.e("PrescriptionsViewModel", "Failed to load prescriptions for patient.", exception)
+                        Log.e(
+                            "PrescriptionsViewModel",
+                            "Failed to load prescriptions for patient.",
+                            exception
+                        )
                         _prescriptions.value = emptyList()
                     }
             }
+
             else -> {
-                Log.w("PrescriptionsViewModel", "Unknown role: $fetchedRole. No prescriptions loaded.")
+                Log.w(
+                    "PrescriptionsViewModel",
+                    "Unknown role: $fetchedRole. No prescriptions loaded."
+                )
                 _prescriptions.value = emptyList()
             }
         }
+
     }
+
+    fun getPrescriptionById(id: String): Prescription? {
+        return _prescriptions.value.find { it.id == id }
+    }
+
 }
 

@@ -109,4 +109,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+// https://mvnrepository.com/artifact/com.google.zxing/core
+    implementation("com.google.zxing:core:3.5.3")
+
 }

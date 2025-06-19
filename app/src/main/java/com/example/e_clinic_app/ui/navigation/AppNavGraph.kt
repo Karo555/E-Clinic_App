@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,12 +19,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
+import com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.AppointmentsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PrescriptionsViewModel
+import com.example.e_clinic_app.presentation.viewmodel.UserViewModel
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
 import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.admin.model.InstitutionAdminsScreen
@@ -34,10 +37,11 @@ import com.example.e_clinic_app.ui.chat.ChatTabScreen
 import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
 import com.example.e_clinic_app.ui.home.doctor.AppointmentDetailScreen
+import com.example.e_clinic_app.ui.home.doctor.DoctorAppointmentsScreen
 import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
 import com.example.e_clinic_app.ui.home.doctor.PatientDetailScreen
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
-import com.example.e_clinic_app.ui.home.doctor.PrescriptionsScreenDoctor
+import com.example.e_clinic_app.ui.prescriptions.PrescriptionsScreen
 import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
 import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
 import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
@@ -46,6 +50,7 @@ import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
 import com.example.e_clinic_app.ui.home.patient.VisitsScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
+import com.example.e_clinic_app.ui.prescriptions.PrescriptionDetailScreen
 import com.example.e_clinic_app.ui.settings.EditPublicProfileScreen
 import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
 import com.example.e_clinic_app.ui.settings.SettingsTabScreen
@@ -88,7 +93,7 @@ fun AppNavGraph(
         // Home
         composable(Routes.HOME) {
             // Dynamically show the correct dashboard based on user role
-            val userViewModel: com.example.e_clinic_app.presentation.viewmodel.UserViewModel =
+            val userViewModel: UserViewModel =
                 viewModel()
             val currentUserRole by userViewModel.role.collectAsState()
             when (currentUserRole) {
@@ -234,7 +239,7 @@ fun AppNavGraph(
 
         // Doctor's all appointments (historic and upcoming, grouped by month)
         composable(Routes.DOCTOR_APPOINTMENTS) {
-            com.example.e_clinic_app.ui.home.doctor.DoctorAppointmentsScreen(navController)
+            DoctorAppointmentsScreen(navController)
         }
 
         // Doctor appointment detail (doctor POV)
@@ -243,9 +248,9 @@ fun AppNavGraph(
             arguments = listOf(navArgument("appointmentId") { type = NavType.StringType })
         ) { backStackEntry ->
             val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
-            val vm: com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel =
+            val vm: AppointmentDetailViewModel =
                 viewModel(
-                    factory = com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel.provideFactory(
+                    factory = AppointmentDetailViewModel.provideFactory(
                         firestore = FirebaseFirestore.getInstance(),
                         appointmentId = appointmentId
                     )
@@ -312,7 +317,7 @@ fun AppNavGraph(
         // Prescription screen
 
         composable(Routes.PRESCRIPTIONS) {
-            PrescriptionsScreenDoctor(navController, viewModel = PrescriptionsViewModel() )
+            PrescriptionsScreen(navController, viewModel = PrescriptionsViewModel())
 
         }
 
@@ -330,7 +335,31 @@ fun AppNavGraph(
             )
             VisitDetailScreen(navController, vm)
         }
+
+        composable(
+            route = "prescriptionDetail/{prescriptionId}",
+            arguments = listOf(navArgument("prescriptionId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val prescriptionId = backStackEntry.arguments?.getString("prescriptionId")
+            val viewModel: PrescriptionsViewModel = viewModel()
+            val prescription = viewModel.prescriptions.collectAsState().value
+                .find { it.id == prescriptionId }
+
+            if (prescription != null) {
+                PrescriptionDetailScreen(
+                    prescription = prescription,
+                    navController = navController,
+                    prescriptionsViewModel = viewModel
+                )
+            } else {
+                // Handle missing prescription gracefully
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Prescription not found.")
+                }
+            }
+        }
     }
-
-
 }
