@@ -28,9 +28,10 @@ data class Prescription(
     val frequency: String = "",
     val medication: String = "",
     val notes: String = "",
-    val patientId: String = ""
+    val patientId: String = "",
+    val patientName: String = "", // Optional: Add patient name if needed
+    val doctorName : String = "" // Optional: Add doctor name if needed
 ) {
-    // Extension function to convert Prescription to Firestore format
     companion object {
         fun fromFirestoreMap(map: Map<String, Any>): Prescription {
             return Prescription(
@@ -41,7 +42,9 @@ data class Prescription(
                 frequency = map["frequency"] as? String ?: "",
                 medication = map["medication"] as? String ?: "",
                 notes = map["notes"] as? String ?: "",
-                patientId = map["patientId"] as? String ?: ""
+                patientId = map["patientId"] as? String ?: "",
+                patientName = map["patientName"] as? String ?: "",
+                doctorName = map["doctorName"] as? String ?: ""
             )
         }
     }
@@ -55,6 +58,8 @@ fun Prescription.toFirestoreMap(): Map<String, Any?> {
         "frequency" to frequency,
         "medication" to medication,
         "notes" to notes,
-        "patientId" to patientId
+        "patientId" to patientId,
+        "patientName" to patientName,
+        "doctorName" to doctorName
     )
 }

@@ -132,14 +132,14 @@ private fun PrescriptionCard(prescription: Prescription, navController: NavContr
 
             // Patient ID
             Text(
-                text = "Patient ID: ${prescription.patientId}",
+                text = "Patient Name: ${prescription.patientName}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             // Prescribed by (Author)
             Text(
-                text = "Prescribed by: ${prescription.authorId}",
+                text = "Prescribed by: ${prescription.doctorName}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

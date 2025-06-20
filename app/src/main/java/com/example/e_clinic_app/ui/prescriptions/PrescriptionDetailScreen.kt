@@ -55,8 +55,8 @@ fun PrescriptionDetailScreen(
             Text("Medication: ${prescription.medication}", style = MaterialTheme.typography.titleLarge)
             Text("Dosage: ${prescription.dosage}")
             Text("Frequency: ${prescription.frequency}")
-            Text("Patient ID: ${prescription.patientId}")
-            Text("Prescribed by: ${prescription.authorId}")
+            Text("Patient name: ${prescription.patientName}")
+            Text("Prescribed by: ${prescription.doctorName}")
             Text("Issued: ${dateFormatter.format(Instant.ofEpochSecond(prescription.dateIssued?.seconds ?: 0))}")
             prescription.notes?.let {
                 Text("Notes: $it")

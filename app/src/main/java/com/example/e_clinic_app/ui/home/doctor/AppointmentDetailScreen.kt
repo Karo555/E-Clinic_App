@@ -135,6 +135,8 @@ fun AppointmentDetailScreen(
                     CreatePrescriptionDialog(
                         patientId = appt.patientId,
                         prescriberId = appt.doctorId,
+                        patientName = "${appt.patientFirstName} ${appt.patientLastName}",
+                        prescriberName = "${appt.doctorFirstName} ${appt.doctorLastName}",
                         onDismiss = { showDialog = false },
                         onSave = { prescription ->
                             viewModel.addPrescription(appt.id, prescription)
@@ -155,7 +157,9 @@ fun AppointmentDetailScreen(
 @Composable
 fun CreatePrescriptionDialog(
     patientId: String,
+    patientName: String,
     prescriberId: String,
+    prescriberName: String,
     onDismiss: () -> Unit,
     onSave: (Prescription) -> Unit
 ) {
@@ -207,12 +211,14 @@ fun CreatePrescriptionDialog(
                     Prescription(
                         id = UUID.randomUUID().toString(),
                         authorId = prescriberId,
+                        doctorName = prescriberName,
                         dateIssued = Timestamp.now(),
                         dosage = amount,
                         frequency = frequency,
-                        medication = drugName ,
+                        medication = drugName,
                         notes = notes,
                         patientId = patientId,
+                        patientName = patientName,
                     )
                 )
             }) {
