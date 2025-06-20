@@ -349,7 +349,9 @@ fun AppNavGraph(
                 PrescriptionDetailScreen(
                     prescription = prescription,
                     navController = navController,
-                    prescriptionsViewModel = viewModel
+                    prescriptionsViewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+
                 )
             } else {
                 // Handle missing prescription gracefully

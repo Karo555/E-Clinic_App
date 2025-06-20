@@ -11,11 +11,15 @@ import android.os.Environment
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.data.model.Prescription
@@ -27,7 +31,6 @@ import java.io.FileOutputStream
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrescriptionDetailScreen(
@@ -42,7 +45,14 @@ fun PrescriptionDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Prescription Details") })
+            TopAppBar(
+                title = { Text("Prescription Details") },
+                navigationIcon = {
+                    IconButton(onClick = { onBack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
         }
     ) { padding ->
         Column(
@@ -50,32 +60,72 @@ fun PrescriptionDetailScreen(
                 .padding(padding)
                 .padding(16.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Medication: ${prescription.medication}", style = MaterialTheme.typography.titleLarge)
-            Text("Dosage: ${prescription.dosage}")
-            Text("Frequency: ${prescription.frequency}")
-            Text("Patient name: ${prescription.patientName}")
-            Text("Prescribed by: ${prescription.doctorName}")
-            Text("Issued: ${dateFormatter.format(Instant.ofEpochSecond(prescription.dateIssued?.seconds ?: 0))}")
+            Text(
+                text = "Medication: ${prescription.medication}",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "Dosage: ${prescription.dosage}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = "Frequency: ${prescription.frequency}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = "Patient name: ${prescription.patientName}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "Prescribed by: ${prescription.doctorName}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "Issued: ${dateFormatter.format(Instant.ofEpochSecond(prescription.dateIssued?.seconds ?: 0))}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             prescription.notes?.let {
-                Text("Notes: $it")
+                Text(
+                    text = "Notes: $it",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("QR Code:")
+            Text(
+                text = "QR Code:",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
             val qrBitmap = generateQrBitmap(prescription.toQrContent())
             qrBitmap?.let {
-                Image(bitmap = it.asImageBitmap(), contentDescription = "QR Code", modifier = Modifier.size(200.dp))
+                Image(
+                    bitmap = it.asImageBitmap(),
+                    contentDescription = "QR Code",
+                    modifier = Modifier
+                        .size(200.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = {
-                val saved = savePrescriptionAsPdf(context, prescription)
-                Toast.makeText(context, if (saved) "Saved as PDF" else "Failed to save", Toast.LENGTH_SHORT).show()
-            }) {
+            Button(
+                onClick = {
+                    val saved = savePrescriptionAsPdf(context, prescription)
+                    Toast.makeText(context, if (saved) "Saved as PDF" else "Failed to save", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("Save as PDF")
             }
         }
