@@ -30,5 +30,6 @@ data class Appointment(
     val patientFirstName: String = "",
     val patientLastName: String = "",
     val fastingRequired: Boolean = false,
-    val additionalPrep: String = ""
+    val additionalPrep: String = "",
+    val prescriptions: List<com.example.e_clinic_app.data.model.Prescription> = emptyList()
 )

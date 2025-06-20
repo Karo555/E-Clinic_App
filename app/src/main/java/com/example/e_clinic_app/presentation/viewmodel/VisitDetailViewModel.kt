@@ -43,6 +43,22 @@ class VisitDetailViewModel(
         _appointment.value = snap.toObject(Appointment::class.java)
     }
 
+    /**
+     * Updates the prescriptions for the current appointment and saves them to Firestore.
+     * @param prescriptions The new list of prescriptions to save.
+     */
+    fun updatePrescriptions(prescriptions: List<com.example.e_clinic_app.data.model.Prescription>) = viewModelScope.launch {
+        val current = _appointment.value
+        if (current != null) {
+            val updated = current.copy(prescriptions = prescriptions)
+            firestore.collection("appointments")
+                .document(current.id)
+                .update("prescriptions", prescriptions)
+                .await()
+            _appointment.value = updated
+        }
+    }
+
     companion object {
         /**
          * Provides a factory for creating instances of `VisitDetailViewModel`.

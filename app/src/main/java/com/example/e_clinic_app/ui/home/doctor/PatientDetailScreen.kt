@@ -13,6 +13,7 @@ import com.example.e_clinic_app.presentation.viewmodel.PatientDetailState
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 /**
  * A composable function that represents the Patient Detail screen in the e-clinic application.
@@ -46,7 +47,7 @@ fun PatientDetailScreen(
                 title = { Text("Patient Details") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -51,16 +55,30 @@ import com.google.firebase.auth.FirebaseAuth
  * - A bottom navigation bar for navigating between main app sections.
  *
  * @param navController The `NavController` used for navigating between screens.
- * @param currentUserRole The role of the current user (e.g., "Doctor"), which determines the available options.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsTabScreen(
-    navController: NavController,
-    currentUserRole: String?
+    navController: NavController
 ) {
+    Log.d("SettingsTabScreen", "SettingsTabScreen COMPOSABLE recomposed")
     val context = LocalContext.current
-    val isDoctor = currentUserRole == "Doctor"
+    // Get user role from UserViewModel
+    val userViewModel: com.example.e_clinic_app.presentation.viewmodel.UserViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val currentUserRole by userViewModel.role.collectAsState()
+    Log.d("SettingsTabScreen", "currentUserRole = $currentUserRole")
+    val isDoctor = remember(currentUserRole) { currentUserRole == "Doctor" }
+
+    if (currentUserRole.isNullOrBlank()) {
+        // Show loading spinner while user role is loading
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            androidx.compose.material3.CircularProgressIndicator()
+        }
+        return
+    }
 
     Scaffold(
         topBar = {

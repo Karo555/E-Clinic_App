@@ -1,6 +1,4 @@
 package com.example.e_clinic_app.ui.admin
-
-
 import android.app.Activity
 import android.content.Intent
 import androidx.compose.foundation.clickable
@@ -85,8 +83,8 @@ fun GlobalAdminDashboardScreen(navController: NavController) {
                 // TODO: Navigate to clinic management screen
             }
 
-            AdminSectionItem("🛡 Manage Admins") {
-                // TODO: Navigate to admin list or assignment screen
+            AdminSectionItem("🛡 Manage Institution Admins") {
+                navController.navigate("institution_admins_screen")
             }
 
             AdminSectionItem("⚙️ App Settings") {

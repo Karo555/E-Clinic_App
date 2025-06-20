@@ -31,20 +31,41 @@ fun BottomNavigationBar(navController: NavController) {
         NavigationBarItem(
             icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
             label = { Text("Home") },
-            selected = currentRoute == "home",
-            onClick = { navController.navigate(Routes.HOME) }
+            selected = currentRoute == Routes.HOME,
+            onClick = {
+                if (currentRoute != Routes.HOME) {
+                    navController.navigate(Routes.HOME) {
+                        launchSingleTop = true
+                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                    }
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = "Chat") },
             label = { Text("Chat") },
-            selected = currentRoute == "chat",
-            onClick = { navController.navigate(Routes.CHAT_TAB) }
+            selected = currentRoute == Routes.CHAT_TAB,
+            onClick = {
+                if (currentRoute != Routes.CHAT_TAB) {
+                    navController.navigate(Routes.CHAT_TAB) {
+                        launchSingleTop = true
+                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                    }
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
             label = { Text("Settings") },
-            selected = currentRoute == "settings",
-            onClick = { navController.navigate(Routes.SETTINGS_TAB) }
+            selected = currentRoute == Routes.SETTINGS_TAB,
+            onClick = {
+                if (currentRoute != Routes.SETTINGS_TAB) {
+                    navController.navigate(Routes.SETTINGS_TAB) {
+                        launchSingleTop = true
+                        popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                    }
+                }
+            }
         )
     }
 

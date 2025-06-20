@@ -6,60 +6,53 @@ import com.example.e_clinic_app.data.model.Drug
 import com.example.e_clinic_app.data.repository.DrugRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-/**
- * ViewModel for managing the medications catalog in the e-clinic application.
- *
- * This ViewModel handles loading, refreshing, and exposing the list of drugs
- * from the repository, along with loading and error states.
- *
- * @property repository The repository used to fetch and manage drug data.
- */
+import android.util.Log
+import androidx.lifecycle.ViewModelProvider
+
 class MedicationsViewModel(
-    private val repository: DrugRepository = DrugRepository()
+    private val drugRepository: DrugRepository
 ) : ViewModel() {
 
     private val _drugs = MutableStateFlow<List<Drug>>(emptyList())
-    /** A state flow containing the list of drugs in the catalog. */
-    val drugs: StateFlow<List<Drug>> = _drugs.asStateFlow()
+    val drugs: StateFlow<List<Drug>> = _drugs
 
     private val _isLoading = MutableStateFlow(false)
-    /** A state flow indicating whether the drug data is currently being loaded. */
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _error = MutableStateFlow<String?>(null)
-    /** A state flow containing any error messages encountered during operations. */
-    val error: StateFlow<String?> = _error.asStateFlow()
+    val error: StateFlow<String?> = _error
 
     init {
-        loadDrugs()
+        fetchDrugs()
     }
-    /**
-     * Loads the list of drugs from the repository.
-     *
-     * This method fetches the drug data and updates the state flows
-     * for the drug list, loading state, and error state.
-     */
-    private fun loadDrugs() {
-        _isLoading.value = true
+
+    private fun fetchDrugs() {
         viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            Log.d("MedicationsViewModel", "Fetching drugs from Firestore...")
+
             try {
-                repository.loadDrugs()
-                repository.drugs.collect { list ->
-                    _drugs.value = list
-                }
-                _error.value = null
+                val fetchedDrugs = drugRepository.getAllDrugs()
+                Log.d("MedicationsViewModel", "Fetched drugs: $fetchedDrugs")
+                _drugs.value = fetchedDrugs
             } catch (e: Exception) {
+                Log.e("MedicationsViewModel", "Error fetching drugs: ${e.message}", e)
                 _error.value = e.message
             } finally {
                 _isLoading.value = false
+                Log.d("MedicationsViewModel", "Fetching drugs completed.")
             }
         }
     }
-
-    /**
-     * Refreshes the drug catalog by reloading the data from the repository.
-     */
-    fun refreshDrugs() = loadDrugs()
+}
+class MedicationsViewModelFactory : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(MedicationsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return MedicationsViewModel(DrugRepository()) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 }

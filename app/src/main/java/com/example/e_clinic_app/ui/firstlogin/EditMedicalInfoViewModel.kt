@@ -98,8 +98,7 @@ class EditMedicalInfoViewModel : ViewModel() {
                                 ),
                                 defaultFrequency = Frequency.AS_NEEDED,
                                 searchableNames = listOf("aspirin", "acetylsalicylic acid"),
-                                createdAt = null,
-                                updatedAt = null
+                                createdAt = null
                             ), // Assuming `Drug` takes a `String` as a parameter
                             it["dose"]?.toDoubleOrNull() ?: 0.0,
                             DosageUnit.valueOf(it["frequency"] as? String ?: "DEFAULT"),

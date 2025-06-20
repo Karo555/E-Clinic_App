@@ -17,3 +17,4 @@ data class Medication(
     val unit: DosageUnit,
     val frequency: Frequency
 )
+

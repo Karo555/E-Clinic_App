@@ -28,9 +28,11 @@ object Routes {
     //reset
     const val RESET_PASSWORD = "reset_password"
 
-    //admin dashboards
+    // admin dashboards
     const val GLOBAL_ADMIN_DASHBOARD = "global_admin_dashboard"
     const val INSTITUTION_ADMIN_DASHBOARD = "institution_admin_dashboard"
+    const val MANAGE_INSTITUTION_ADMINS = "institution_admins_screen"
+
 
     //patient dashboard
     const val PATIENT_DASHBOARD = "patient_dashboard"
@@ -76,4 +78,12 @@ object Routes {
 
     // visit detail for patient
     const val VISIT_DETAIL = "visit_detail"
+    // appointment detail for doctor
+    const val APPOINTMENT_DETAIL = "appointment_detail"
+    // perscriptions
+    const val PRESCRIPTIONS = "prescriptions"
+    //availability
+    const val DOCTOR_AVAILABILITY = "doctor_availability"
+    //perscriptions
+    const val DOCTOR_PRESCRIPTIONS = "doctor_prescriptions"
 }

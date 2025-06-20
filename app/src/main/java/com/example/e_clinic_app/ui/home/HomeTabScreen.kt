@@ -1,11 +1,13 @@
 package com.example.e_clinic_app.ui.home
 
 import android.util.Log
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
+import com.example.e_clinic_app.ui.navigation.Routes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 /**
@@ -29,6 +31,7 @@ fun HomeTabScreen(navController: NavController) {
     val fullName = remember { mutableStateOf<String?>(null) }
     val specialization = remember { mutableStateOf<String?>(null) }
     val isLoading = remember { mutableStateOf(true) }
+    val hasNavigated = remember { mutableStateOf(false) }
 
     val user = FirebaseAuth.getInstance().currentUser
     if (user != null) {
@@ -95,20 +98,26 @@ fun HomeTabScreen(navController: NavController) {
     }
 
     // Navigate based on role once data is loaded
-    if (!isLoading.value && role.value != null) {
+    if (!isLoading.value && role.value != null && !hasNavigated.value) {
+        hasNavigated.value = true
+        Log.d("HomeTabScreen", "Navigating to dashboard for role: ${role.value}")
         when (role.value) {
             "Doctor" -> navController.navigate("doctor_dashboard") {
-                popUpTo(navController.graph.startDestinationId)
+                popUpTo(Routes.HOME) { inclusive = true }
                 launchSingleTop = true
             }
             "Patient" -> navController.navigate("patient_dashboard") {
-                popUpTo(navController.graph.startDestinationId)
+                popUpTo(Routes.HOME) { inclusive = true }
                 launchSingleTop = true
             }
             "Admin" -> navController.navigate("admin_dashboard") {
-                popUpTo(navController.graph.startDestinationId)
+                popUpTo(Routes.HOME) { inclusive = true }
                 launchSingleTop = true
             }
         }
+    }
+    // Optionally, show a loading spinner while navigating
+    if (isLoading.value || !hasNavigated.value) {
+        CircularProgressIndicator()
     }
 }

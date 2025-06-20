@@ -112,6 +112,31 @@ fun VisitDetailScreen(
                     Spacer(Modifier.width(8.dp))
                     Text("Chat with Doctor")
                 }
+                Spacer(Modifier.height(24.dp))
+                HorizontalDivider()
+                Text(
+                    text = "Prescribed Prescriptions:",
+                    style = MaterialTheme.typography.titleSmall
+                )
+                if (appt.prescriptions.isNullOrEmpty()) {
+                    Text("No prescriptions for this visit.", style = MaterialTheme.typography.bodyMedium)
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        appt.prescriptions.forEach { prescription ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(Modifier.padding(12.dp)) {
+                                    Text("Medicine: ${prescription.medication}", style = MaterialTheme.typography.bodyMedium)
+                                    Text("Dosage: ${prescription.dosage}", style = MaterialTheme.typography.bodySmall)
+                                    if (!prescription.notes.isNullOrBlank()) {
+                                        Text("Instructions: ${prescription.notes}", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         } ?: Box(
             Modifier
