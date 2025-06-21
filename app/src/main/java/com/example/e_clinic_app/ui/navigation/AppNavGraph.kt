@@ -107,6 +107,8 @@ fun AppNavGraph(
                     viewModel = patientDashboardViewModel
                 )
 
+                "Admin" -> AdminHomeTabScreen(navController = navController)
+
                 else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
@@ -147,14 +149,18 @@ fun AppNavGraph(
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 },
-                onNavigateToInstitutionAdminDashboard = {
-                    navController.navigate(Routes.INSTITUTION_ADMIN_DASHBOARD) {
-                        popUpTo(Routes.AUTH) { inclusive = true }
+//                onNavigateToInstitutionAdminDashboard = {
+//                    navController.navigate(Routes.INSTITUTION_ADMIN_DASHBOARD) {
+//                        popUpTo(Routes.AUTH) { inclusive = true }
+//                    }
+//                },
+                onNavigateToResetPassword = {
+                    navController.navigate(Routes.RESET_PASSWORD) {
+                        popUpTo(Routes.AUTH) {
+                            inclusive = true
+                        }
                     }
                 },
-                onNavigateToResetPassword = {
-                    navController.navigate(Routes.RESET_PASSWORD)
-                }
             )
         }
 
@@ -195,7 +201,7 @@ fun AppNavGraph(
 
         // Admin dashboards
         composable(Routes.GLOBAL_ADMIN_DASHBOARD) {
-            GlobalAdminDashboardScreen(navController)
+            AdminHomeTabScreen(navController)
         }
         composable(Routes.INSTITUTION_ADMIN_DASHBOARD) {
             AdminHomeTabScreen(navController)
