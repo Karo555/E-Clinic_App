@@ -4,7 +4,6 @@ import android.app.TimePickerDialog
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
@@ -54,10 +52,14 @@ fun SetAvailabilityScreen(
     viewModel: DoctorAvailabilityViewModel
 ) {
     val schedule by viewModel.schedule.collectAsState()
+    val sessionDuration by viewModel.sessionDuration.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // Available session durations in minutes
+    val availableDurations = listOf(15, 20, 30, 45, 60)
 
     val daysOfWeek = listOf(
         "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
@@ -263,6 +265,59 @@ fun SetAvailabilityScreen(
                         }
                     }
 
+                    // Session duration selector
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "Session Duration",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            availableDurations.forEach { duration ->
+                                val isSelected = sessionDuration == duration
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(
+                                            if (isSelected)
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.surface
+                                        )
+                                        .border(
+                                            1.dp,
+                                            if (isSelected)
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.outlineVariant,
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable {
+                                            viewModel.setSessionDuration(duration)
+                                        }
+                                        .padding(12.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "$duration min",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (isSelected)
+                                            MaterialTheme.colorScheme.onPrimary
+                                        else
+                                            MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     Spacer(Modifier.height(24.dp))
                     Button(
                         onClick = {
@@ -273,7 +328,7 @@ fun SetAvailabilityScreen(
                                     var cur = s
                                     while (cur != null && e != null && cur < e) {
                                         slots += cur.format(formatter)
-                                        cur = cur.plusMinutes(30)
+                                        cur = cur.plusMinutes(sessionDuration.toLong())
                                     }
                                     day to slots
                                 } else null
