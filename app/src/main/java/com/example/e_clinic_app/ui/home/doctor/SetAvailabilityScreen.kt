@@ -53,6 +53,7 @@ fun SetAvailabilityScreen(
 ) {
     val schedule by viewModel.schedule.collectAsState()
     val sessionDuration by viewModel.sessionDuration.collectAsState()
+    val breakDuration by viewModel.breakDuration.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -60,6 +61,9 @@ fun SetAvailabilityScreen(
 
     // Available session durations in minutes
     val availableDurations = listOf(15, 20, 30, 45, 60)
+
+    // Available break durations in minutes
+    val availableBreakDurations = listOf(0, 5, 10, 15, 20, 30)
 
     val daysOfWeek = listOf(
         "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
@@ -318,6 +322,59 @@ fun SetAvailabilityScreen(
                         }
                     }
 
+                    // Break duration selector
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "Break Duration",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            availableBreakDurations.forEach { duration ->
+                                val isSelected = breakDuration == duration
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(
+                                            if (isSelected)
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.surface
+                                        )
+                                        .border(
+                                            1.dp,
+                                            if (isSelected)
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.outlineVariant,
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .clickable {
+                                            viewModel.setBreakDuration(duration)
+                                        }
+                                        .padding(12.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = if (duration == 0) "No Break" else "$duration min",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (isSelected)
+                                            MaterialTheme.colorScheme.onPrimary
+                                        else
+                                            MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     Spacer(Modifier.height(24.dp))
                     Button(
                         onClick = {
@@ -326,9 +383,16 @@ fun SetAvailabilityScreen(
                                 if (enabledDays[day] == true && s != null && e != null && s < e) {
                                     val slots = mutableListOf<String>()
                                     var cur = s
-                                    while (cur != null && e != null && cur < e) {
+
+                                    // Calculate total slot time (session + break)
+                                    val totalSlotTime = sessionDuration + breakDuration
+
+                                    while (cur != null && e != null && cur.plusMinutes(sessionDuration.toLong()) <= e) {
+                                        // Only add the appointment start time to slots
                                         slots += cur.format(formatter)
-                                        cur = cur.plusMinutes(sessionDuration.toLong())
+
+                                        // Move to next slot start time (including break)
+                                        cur = cur.plusMinutes(totalSlotTime.toLong())
                                     }
                                     day to slots
                                 } else null
