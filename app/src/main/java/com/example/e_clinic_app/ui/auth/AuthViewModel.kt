@@ -1,10 +1,14 @@
 package com.example.e_clinic_app.ui.auth
 
 import android.util.Log
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.e_clinic_app.service.FirebaseService
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,10 +19,12 @@ import kotlinx.coroutines.tasks.await
  * Represents the authentication mode (login or register).
  */
 enum class AuthMode { LOGIN, REGISTER }
+
 /**
  * Represents the user roles available in the application.
  */
 enum class UserRole { Admin, Patient, Doctor }
+
 /**
  * A data class representing the UI state of the authentication screen.
  *
@@ -37,6 +43,7 @@ data class AuthUiState(
     val isSuccess: Boolean = false,
     val errorMessage: String? = null,
 )
+
 /**
  * A ViewModel class that manages the authentication logic for the e-clinic application.
  *
@@ -56,12 +63,14 @@ class AuthViewModel : ViewModel() {
 
     private val _passwordVisible = MutableStateFlow(false)
     val passwordVisible: StateFlow<Boolean> = _passwordVisible.asStateFlow()
+
     /**
      * Toggles the authentication mode between login and registration.
      */
     fun toggleAuthMode() {
         _authMode.value = if (_authMode.value == AuthMode.LOGIN) AuthMode.REGISTER else AuthMode.LOGIN
     }
+
     /**
      * Updates the email in the UI state.
      *
@@ -70,6 +79,7 @@ class AuthViewModel : ViewModel() {
     fun onEmailChange(email: String) {
         _uiState.value = _uiState.value.copy(email = email)
     }
+
     /**
      * Updates the password in the UI state.
      *
@@ -78,6 +88,7 @@ class AuthViewModel : ViewModel() {
     fun onPasswordChange(password: String) {
         _uiState.value = _uiState.value.copy(password = password)
     }
+
     /**
      * Updates the user role in the UI state.
      *
@@ -86,16 +97,19 @@ class AuthViewModel : ViewModel() {
     fun onRoleChange(role: UserRole) {
         _uiState.value = _uiState.value.copy(role = role)
     }
+
     /**
      * Toggles the visibility of the password field.
      */
     fun togglePasswordVisibility() {
         _passwordVisible.value = !_passwordVisible.value
     }
+
     /**
      * Performs the login operation using Firebase Authentication.
+     * After successful authentication, fetches the FCM token and uploads it to Firestore.
      *
-     * @param onSuccess A callback invoked when the login is successful.
+     * @param onSuccess A callback invoked when the login (and token upload) is successful.
      */
     fun login(onSuccess: () -> Unit) {
         val email = _uiState.value.email.trim()
@@ -116,14 +130,41 @@ class AuthViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
+                // 1) Sign in with email and password
                 auth.signInWithEmailAndPassword(email, password).await()
+
+                // 2) Retrieve the FCM token (suspend call)
+                val token = FirebaseMessaging.getInstance().token.await()
+
+                // 3) Upload the token to Firestore under users/{uid}
+                val uploadTask = FirebaseService.uploadTokenToFirestore(token)
+                if (uploadTask != null) {
+                    try {
+                        uploadTask?.let {
+                            if (it is Task<*>) {
+                                it.await()
+                                Log.d("AuthViewModel", "FCM token written successfully.")
+                            } else {
+                                Log.e("AuthViewModel", "uploadTask is not a valid Task.")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("AuthViewModel", "Failed to write FCM token", e)
+                    }
+                } else {
+                    Log.w("AuthViewModel", "uploadTokenToFirestore returned null (no authenticated user?).")
+                }
+
+                // 4) Update UI state and invoke success callback
                 _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
                 onSuccess()
+
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = e.message)
             }
         }
     }
+
     /**
      * Performs the registration operation using Firebase Authentication and Firestore.
      *
@@ -137,6 +178,12 @@ class AuthViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(
                 errorMessage = "Email and password must not be empty."
             )
+            return
+        }
+
+        val (isValid, errorMessage) = validateRegistrationFields(email, password)
+        if (!isValid) {
+            _uiState.value = _uiState.value.copy(errorMessage = errorMessage)
             return
         }
 
@@ -178,6 +225,7 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
+
     /**
      * Sends a password reset email to the specified email address.
      *
@@ -199,10 +247,50 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
+
     /**
      * Resets the UI state to its initial values.
      */
     fun resetState() {
         _uiState.value = AuthUiState()
     }
+}
+
+/**
+ * Validates the registration fields for email and password.
+ *
+ * @param email The email entered by the user.
+ * @param password The password entered by the user.
+ * @return A pair containing a boolean indicating success and an optional error message.
+ */
+fun validateRegistrationFields(email: String, password: String): Pair<Boolean, String?> {
+    if (email.isBlank() || password.isBlank()) {
+        return Pair(false, "Email and password must not be empty.")
+    }
+
+    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        return Pair(false, "Invalid email format.")
+    }
+
+    if (password.length < 8) {
+        return Pair(false, "Password must be at least 8 characters long.")
+    }
+
+    if (!password.any { it.isDigit() }) {
+        return Pair(false, "Password must contain at least one digit.")
+    }
+
+    if (!password.any { it.isUpperCase() }) {
+        return Pair(false, "Password must contain at least one uppercase letter.")
+    }
+
+    if (!password.any { it.isLowerCase() }) {
+        return Pair(false, "Password must contain at least one lowercase letter.")
+    }
+
+    if (!password.any { "!@#$%^&*()-_=+[]{}|;:'\",.<>?/".contains(it) }) {
+        return Pair(false, "Password must contain at least one special character.")
+    }
+
+    return Pair(true, null)
 }

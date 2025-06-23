@@ -19,6 +19,10 @@ import com.example.e_clinic_app.data.model.DosageUnit
 import com.example.e_clinic_app.data.model.Drug
 import com.example.e_clinic_app.data.model.Frequency
 import com.example.e_clinic_app.presentation.viewmodel.MedicationsViewModel
+import com.example.e_clinic_app.presentation.viewmodel.MedicationsViewModelFactory
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+
 /**
  * A composable function that represents the Medical Form Stepper screen in the e-clinic application.
  *
@@ -373,15 +377,16 @@ fun StepMedications(
     hasMedications: Boolean?,
     onHasMedicationsChange: (Boolean) -> Unit,
     onMedicationsChange: (List<Medication>) -> Unit,
-    viewModel: MedicationsViewModel = viewModel()
+    viewModel: MedicationsViewModel = viewModel(factory = MedicationsViewModelFactory())
 ) {
+    // drugs related stuff
     val drugs by viewModel.drugs.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
 
     // sheet state
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
     var openSheet by remember { mutableStateOf(false) }
 
     // form state
@@ -397,6 +402,12 @@ fun StepMedications(
     var expandedFrequency by remember { mutableStateOf(false) }
     var showError by remember { mutableStateOf(false) }
 
+    // Ensure drugs are loaded before displaying the dropdown
+    if (isLoading) {
+        CircularProgressIndicator()
+    } else if (error != null) {
+        Text("Error loading drugs: $error", color = MaterialTheme.colorScheme.error)
+    }
     if (openSheet) {
         LaunchedEffect(openSheet) {
             if (openSheet) sheetState.show()
@@ -636,9 +647,6 @@ fun StepMedications(
             }
         }
 
-        if (isLoading) {
-            CircularProgressIndicator()
-        }
         error?.let {
             Text("Error loading drugs: $it", color = MaterialTheme.colorScheme.error)
         }

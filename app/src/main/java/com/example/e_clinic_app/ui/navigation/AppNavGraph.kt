@@ -1,46 +1,61 @@
 package com.example.e_clinic_app.ui.navigation
 
-import com.example.e_clinic_app.ui.settings.SettingsTabScreen
 import AdminHomeTabScreen
-import com.example.e_clinic_app.ui.settings.EditPublicProfileScreen
 import android.util.Log
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.NavType
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
-import com.example.e_clinic_app.ui.home.doctor.PatientDetailScreen
-import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
-import com.example.e_clinic_app.ui.auth.AuthScreen
-import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
-import com.example.e_clinic_app.ui.chat.ChatTabScreen
-import com.example.e_clinic_app.ui.chat.ChatDetailScreen
-import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
-import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
-import com.example.e_clinic_app.ui.home.HomeTabScreen
-import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
-import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
-import com.example.e_clinic_app.ui.home.patient.PatientHomeTabScreen
-import com.example.e_clinic_app.ui.home.patient.VisitsScreen
-import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
-import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.AppointmentsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
+import com.example.e_clinic_app.presentation.viewmodel.PrescriptionsViewModel
+import com.example.e_clinic_app.presentation.viewmodel.UserViewModel
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
+import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
+import com.example.e_clinic_app.ui.admin.model.InstitutionAdminsScreen
+import com.example.e_clinic_app.ui.auth.AuthScreen
+import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
+import com.example.e_clinic_app.ui.chat.ChatDetailScreen
+import com.example.e_clinic_app.ui.chat.ChatTabScreen
+import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
+import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
+import com.example.e_clinic_app.ui.home.doctor.AppointmentDetailScreen
+import com.example.e_clinic_app.ui.home.doctor.DoctorAppointmentsScreen
+import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
+import com.example.e_clinic_app.ui.home.doctor.PatientDetailScreen
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
-import com.google.firebase.auth.FirebaseAuth
+import com.example.e_clinic_app.ui.prescriptions.PrescriptionsScreen
+import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
 import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
 import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
-import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
+import com.example.e_clinic_app.ui.home.patient.PatientHomeTabScreen
 import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
+import com.example.e_clinic_app.ui.home.patient.VisitsScreen
+import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
+import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
+import com.example.e_clinic_app.ui.prescriptions.PrescriptionDetailScreen
+import com.example.e_clinic_app.ui.settings.EditPublicProfileScreen
+import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
+import com.example.e_clinic_app.ui.settings.SettingsTabScreen
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 /**
  * A composable function that defines the navigation graph for the e-clinic application.
@@ -59,7 +74,6 @@ import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
  *
  * @param navController The `NavHostController` used to manage navigation between screens.
  * @param startDestination The initial route to display when the app starts.
- * @param currentUserRole The role of the currently logged-in user (e.g., "Doctor", "Patient", "Admin").
  * @param patientDashboardViewModel The `PatientDashboardViewModel` instance for managing patient dashboard state.
  * @param doctorHomeViewModel The `DoctorHomeViewModel` instance for managing doctor dashboard state.
  */
@@ -67,17 +81,36 @@ import com.example.e_clinic_app.ui.home.patient.VisitDetailScreen
 fun AppNavGraph(
     navController: NavHostController,
     startDestination: String,
-    currentUserRole: String?,
     patientDashboardViewModel: PatientDashboardViewModel = viewModel(),
     doctorHomeViewModel: DoctorHomeViewModel = viewModel()
 ) {
-    Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination and role = $currentUserRole")
+    Log.d("AppNavGraph", "AppNavGraph COMPOSABLE recomposed")
+    Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination")
 
     NavHost(navController = navController, startDestination = startDestination) {
+        Log.d("AppNavGraph", "NavHost lambda recomposed")
 
         // Home
         composable(Routes.HOME) {
-            HomeTabScreen(navController)
+            // Dynamically show the correct dashboard based on user role
+            val userViewModel: UserViewModel =
+                viewModel()
+            val currentUserRole by userViewModel.role.collectAsState()
+            when (currentUserRole) {
+                "Doctor" -> DoctorHomeTabScreen(
+                    navController = navController,
+                    viewModel = doctorHomeViewModel
+                )
+
+                "Patient" -> PatientHomeTabScreen(
+                    navController = navController,
+                    viewModel = patientDashboardViewModel
+                )
+
+                else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
         }
 
         // Chat list (Chat tab)
@@ -87,10 +120,8 @@ fun AppNavGraph(
 
         // Settings
         composable(Routes.SETTINGS_TAB) {
-            SettingsTabScreen(
-                navController = navController,
-                currentUserRole = currentUserRole
-            )
+            Log.d("AppNavGraph", "Navigating to SettingsTabScreen")
+            SettingsTabScreen(navController = navController)
         }
 
         // Auth flow
@@ -170,12 +201,8 @@ fun AppNavGraph(
             AdminHomeTabScreen(navController)
         }
 
-        // Patient & Doctor dashboards
-        composable(Routes.PATIENT_DASHBOARD) {
-            PatientHomeTabScreen(navController, patientDashboardViewModel)
-        }
-        composable(Routes.DOCTOR_DASHBOARD) {
-            DoctorHomeTabScreen(navController, doctorHomeViewModel)
+        composable(Routes.MANAGE_INSTITUTION_ADMINS) {   // <-- New Composable
+            InstitutionAdminsScreen(navController)
         }
 
         // Doctor detail
@@ -210,12 +237,28 @@ fun AppNavGraph(
             VisitsScreen(navController, vm)
         }
 
-        // Doctor's own appointments
+        // Doctor's all appointments (historic and upcoming, grouped by month)
         composable(Routes.DOCTOR_APPOINTMENTS) {
-            val vm: AppointmentsViewModel = viewModel(
-                factory = AppointmentsViewModel.factoryForDoctor()
+            DoctorAppointmentsScreen(navController)
+        }
+
+        // Doctor appointment detail (doctor POV)
+        composable(
+            route = "${Routes.APPOINTMENT_DETAIL}/{appointmentId}",
+            arguments = listOf(navArgument("appointmentId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
+            val vm: AppointmentDetailViewModel =
+                viewModel(
+                    factory = AppointmentDetailViewModel.provideFactory(
+                        firestore = FirebaseFirestore.getInstance(),
+                        appointmentId = appointmentId
+                    )
+                )
+            AppointmentDetailScreen(
+                navController = navController,
+                viewModel = vm,
             )
-            VisitsScreen(navController = navController, viewModel = vm)
         }
 
         // Chat detail
@@ -236,7 +279,7 @@ fun AppNavGraph(
         // patient details for doctor POV
         composable(
             route = "${Routes.PATIENT_DETAIL}/{patientId}",
-            arguments = listOf(navArgument("patientId"){ type = NavType.StringType })
+            arguments = listOf(navArgument("patientId") { type = NavType.StringType })
         ) { backStackEntry ->
             val patientId = backStackEntry.arguments!!.getString("patientId")!!
             val vm: PatientDetailViewModel = viewModel(
@@ -255,6 +298,7 @@ fun AppNavGraph(
                 onCancel = { navController.popBackStack() }
             )
         }
+
         composable(Routes.DOCTOR_PATIENTS) {
             PatientsScreen(
                 navController = navController,
@@ -270,20 +314,54 @@ fun AppNavGraph(
         composable(Routes.MY_DOCUMENTS) {
             MyDocumentsScreen(navController)
         }
+        // Prescription screen
+
+        composable(Routes.PRESCRIPTIONS) {
+            PrescriptionsScreen(navController, viewModel = PrescriptionsViewModel())
+
+        }
 
         // Patient visit details
         composable(
             route = "${Routes.VISIT_DETAIL}/{appointmentId}",
             arguments = listOf(navArgument("appointmentId") { type = NavType.StringType })
         ) { backStackEntry ->
-                        val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
-                        val vm: VisitDetailViewModel = viewModel(
-                                factory = VisitDetailViewModel.provideFactory(
-                                        firestore = FirebaseFirestore.getInstance(),
-                                        appointmentId = appointmentId
-                                            )
-                                    )
-                        VisitDetailScreen(navController, vm)
-                    }
+            val appointmentId = backStackEntry.arguments?.getString("appointmentId")!!
+            val vm: VisitDetailViewModel = viewModel(
+                factory = VisitDetailViewModel.provideFactory(
+                    firestore = FirebaseFirestore.getInstance(),
+                    appointmentId = appointmentId
+                )
+            )
+            VisitDetailScreen(navController, vm)
+        }
+
+        composable(
+            route = "prescriptionDetail/{prescriptionId}",
+            arguments = listOf(navArgument("prescriptionId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val prescriptionId = backStackEntry.arguments?.getString("prescriptionId")
+            val viewModel: PrescriptionsViewModel = viewModel()
+            val prescription = viewModel.prescriptions.collectAsState().value
+                .find { it.id == prescriptionId }
+
+            if (prescription != null) {
+                PrescriptionDetailScreen(
+                    prescription = prescription,
+                    navController = navController,
+                    prescriptionsViewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+
+                )
+            } else {
+                // Handle missing prescription gracefully
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Prescription not found.")
+                }
+            }
+        }
     }
 }
