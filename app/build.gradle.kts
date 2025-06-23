@@ -45,11 +45,19 @@ dependencies {
     // Firebase DataConnect dependency
     implementation(libs.firebase.dataconnect)
 
+    implementation(libs.androidx.work.runtime.ktx)
+
+    implementation(libs.material3)
+
+    // Kotlin Serialization dependency
     // Kotlin Serialization dependency
     implementation(libs.kotlinx.serialization.json)
 
     // firebase storage
     implementation(platform(libs.firebase.bom.v33140))
+
+    implementation(libs.text.recognition)
+    implementation(libs.vision.common)
 
     // Firebase Storage & Firestore (no versions needed)
     implementation(libs.google.firebase.storage.ktx)

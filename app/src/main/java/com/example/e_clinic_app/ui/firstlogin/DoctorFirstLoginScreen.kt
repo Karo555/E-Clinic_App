@@ -1,5 +1,10 @@
 package com.example.e_clinic_app.ui.firstlogin
 
+import android.Manifest
+import android.graphics.Bitmap
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,11 +14,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.e_clinic_app.data.institutionsByCity
+import com.example.e_clinic_app.presentation.viewmodel.IDScanViewModel
+import com.example.e_clinic_app.util.IDImageProcessor
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 /**
@@ -33,8 +42,62 @@ import kotlinx.coroutines.tasks.await
 fun DoctorFirstLoginScreen(
     onSubmitSuccess: () -> Unit
 ) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
     val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+    // ViewModel for ID scanning functionality
+    val idScanViewModel: IDScanViewModel = viewModel()
+    val idFormState by idScanViewModel.uiState.collectAsState()
+
+    // Initialize IDImageProcessor for OCR
+    val imageProcessor = remember { IDImageProcessor(context) }
+
+    // Image picker launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            idScanViewModel.setProcessingImage(true)
+            imageProcessor.processImage(
+                uri = it,
+                onSuccess = { text ->
+                    idScanViewModel.parseAndFill(text)
+                },
+                onError = { exception ->
+                    idScanViewModel.setProcessingImage(false)
+                }
+            )
+        }
+    }
+
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap: Bitmap? ->
+        bitmap?.let {
+            idScanViewModel.setProcessingImage(true)
+            imageProcessor.processImage(
+                bitmap = it,
+                onSuccess = { text ->
+                    idScanViewModel.parseAndFill(text)
+                },
+                onError = { exception ->
+                    idScanViewModel.setProcessingImage(false)
+                }
+            )
+        }
+    }
+
+    // Camera permission launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            cameraLauncher.launch(null)
+        } else {
+        }
+    }
 
     val specializationOptions = listOf(
         "Cardiology", "Dermatology", "Endocrinology", "Gastroenterology", "General Practice",
@@ -54,6 +117,9 @@ fun DoctorFirstLoginScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSubmitting by remember { mutableStateOf(false) }
 
+    // Dialog state for ID capture options
+    var showIDCaptureDialog by remember { mutableStateOf(false) }
+
     var selectedCity by remember { mutableStateOf("") }
     var isCityDropdownExpanded by remember { mutableStateOf(false) }
     val cityList = institutionsByCity.keys.toList()
@@ -66,6 +132,44 @@ fun DoctorFirstLoginScreen(
     var specializationExpanded by remember { mutableStateOf(false) }
     val filteredSpecializations = specializationOptions.filter {
         it.contains(specialization, ignoreCase = true)
+    }
+
+    // Dialog for ID capture options
+    if (showIDCaptureDialog) {
+        AlertDialog(
+            onDismissRequest = { showIDCaptureDialog = false },
+            title = { Text("Upload ID") },
+            text = { Text("Choose how you want to upload your medical ID for auto-filling") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showIDCaptureDialog = false
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                ) {
+                    Text("Take Photo")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        showIDCaptureDialog = false
+                        imagePickerLauncher.launch("image/*")
+                    }
+                ) {
+                    Text("Choose from Gallery")
+                }
+            }
+        )
+    }
+
+    // Update local state from ViewModel when it changes - moved after state declarations
+    LaunchedEffect(idFormState) {
+        if (idFormState.firstName.isNotEmpty()) firstName = idFormState.firstName
+        if (idFormState.lastName.isNotEmpty()) lastName = idFormState.lastName
+        if (idFormState.specialization.isNotEmpty()) specialization = idFormState.specialization
+        if (idFormState.experienceYears.isNotEmpty()) experienceYears = idFormState.experienceYears
+        if (idFormState.licenseNumber.isNotEmpty()) licenseNumber = idFormState.licenseNumber
     }
 
     fun isValid(): Boolean {
@@ -92,10 +196,22 @@ fun DoctorFirstLoginScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Button(
-                onClick = { /* future implementation */ },
+                onClick = { showIDCaptureDialog = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("📷 Upload ID to auto-fill (coming soon)")
+                Text("📷 Upload ID for auto-fill")
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Button(
+                onClick = { /* TODO: Implement medical license upload */ },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Text("📄 Upload medical license for auto-fill")
             }
 
             OutlinedTextField(

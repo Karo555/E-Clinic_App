@@ -186,11 +186,11 @@ fun ManageDoctorsScreen(navController: NavController) {
                                     approveDoctor(doctorId, db) { success, message ->
                                         if (success) {
                                             // Reload doctors after successful approval
-                                            LaunchedEffect(Unit) {
-                                                doctors = DoctorRepository.fetchAvailableDoctors()
+                                            Log.d("ManageDoctorsScreen", "Doctor $doctorId approved successfully")
                                             }
                                         } else {
                                             errorMessage = message
+                                            Log.e("ManageDoctorsScreen", "Failed to approve doctor $doctorId: $message")
                                         }
                                     }
                                 }
