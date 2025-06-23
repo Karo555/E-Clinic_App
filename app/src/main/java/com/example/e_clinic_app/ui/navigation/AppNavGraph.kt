@@ -1,6 +1,7 @@
 package com.example.e_clinic_app.ui.navigation
 
 import AdminHomeTabScreen
+import android.app.Application
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,6 +57,9 @@ import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
 import com.example.e_clinic_app.ui.settings.SettingsTabScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.e_clinic_app.presentation.viewmodel.PatientRemindersViewModel
+import com.example.e_clinic_app.presentation.viewmodel.PatientRemindersViewModelFactory
+import com.example.e_clinic_app.presentation.screen.patient.PatientRemindersScreen
 
 /**
  * A composable function that defines the navigation graph for the e-clinic application.
@@ -362,6 +366,16 @@ fun AppNavGraph(
                     Text("Prescription not found.")
                 }
             }
+        }
+
+        // Patient reminders
+        composable(Routes.PATIENT_REMINDERS) {
+            PatientRemindersScreen(
+                viewModel = viewModel(
+                    factory = PatientRemindersViewModelFactory(navController.context.applicationContext as Application)
+                ),
+                navigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

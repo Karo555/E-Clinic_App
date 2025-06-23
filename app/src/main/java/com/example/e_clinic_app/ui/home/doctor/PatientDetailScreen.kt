@@ -779,30 +779,23 @@ private fun FollowUpReminderDialog(
 
                 OutlinedTextField(
                     value = dateFormat.format(selectedDate.time),
-                    onValueChange = { },
+                    onValueChange = {},
                     label = { Text("Due Date") },
-                    readOnly = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showDatePicker = true },
-                    trailingIcon = {
-                        Icon(Icons.Default.DateRange, contentDescription = "Select date")
-                    }
+                        .clickable {
+                            showDatePicker = true
+                            tempDate = selectedDate.timeInMillis // Ensure tempDate is updated when opening the picker
+                        },
+                    readOnly = true
                 )
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    if (description.isNotBlank()) {
-                        onConfirm(
-                            description,
-                            Timestamp(selectedDate.time)
-                        )
-                    }
-                },
-                enabled = description.isNotBlank()
-            ) {
+            TextButton(onClick = {
+                val dueDate = Timestamp(selectedDate.timeInMillis / 1000, 0)
+                onConfirm(description, dueDate)
+            }) {
                 Text("Create")
             }
         },

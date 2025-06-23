@@ -280,6 +280,24 @@ fun PatientHomeTabScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Reminders Section
+            ElevatedCard(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { navController.navigate(Routes.PATIENT_REMINDERS) },
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "View Reminders",
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }

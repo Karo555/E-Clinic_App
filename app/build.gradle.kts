@@ -45,6 +45,11 @@ dependencies {
     // Firebase DataConnect dependency
     implementation(libs.firebase.dataconnect)
 
+    implementation(libs.androidx.work.runtime.ktx)
+
+    implementation(libs.material3)
+
+    // Kotlin Serialization dependency
     // Kotlin Serialization dependency
     implementation(libs.kotlinx.serialization.json)
 
