@@ -51,6 +51,9 @@ dependencies {
     // firebase storage
     implementation(platform(libs.firebase.bom.v33140))
 
+    implementation(libs.text.recognition)
+    implementation(libs.vision.common)
+
     // Firebase Storage & Firestore (no versions needed)
     implementation(libs.google.firebase.storage.ktx)
     implementation(libs.com.google.firebase.firebase.firestore.ktx)
