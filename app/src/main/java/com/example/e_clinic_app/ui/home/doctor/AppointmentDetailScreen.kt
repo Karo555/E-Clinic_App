@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,8 +14,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -38,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.e_clinic_app.data.appointment.AppointmentStatus
 import com.example.e_clinic_app.data.model.DosageUnit
 import com.example.e_clinic_app.data.model.Prescription
 import com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel
@@ -110,6 +117,103 @@ fun AppointmentDetailScreen(
                 if (appt.additionalPrep.isNotBlank()) {
                     Text("Additional preparation: ${appt.additionalPrep}", style = MaterialTheme.typography.bodyMedium)
                 }
+                Spacer(Modifier.height(24.dp))
+
+                // Status management section
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Appointment Status: ${appt.status.name}",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+
+                        // Different action buttons based on current status
+                        when (appt.status) {
+                            AppointmentStatus.PENDING -> {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Button(
+                                        onClick = { viewModel.updateAppointmentStatus(AppointmentStatus.CONFIRMED) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        Icon(Icons.Filled.CheckCircle, contentDescription = null)
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Approve")
+                                    }
+
+                                    Button(
+                                        onClick = { viewModel.updateAppointmentStatus(AppointmentStatus.CANCELLED) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.error
+                                        )
+                                    ) {
+                                        Icon(Icons.Filled.Close, contentDescription = null)
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Cancel")
+                                    }
+                                }
+                            }
+                            AppointmentStatus.CONFIRMED -> {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Button(
+                                        onClick = { viewModel.updateAppointmentStatus(AppointmentStatus.COMPLETED) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.secondary
+                                        )
+                                    ) {
+                                        Icon(Icons.Filled.Done, contentDescription = null)
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Mark Completed")
+                                    }
+
+                                    Button(
+                                        onClick = { viewModel.updateAppointmentStatus(AppointmentStatus.CANCELLED) },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.error
+                                        )
+                                    ) {
+                                        Icon(Icons.Filled.Close, contentDescription = null)
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Cancel")
+                                    }
+                                }
+                            }
+                            AppointmentStatus.CANCELLED -> {
+                                // For cancelled appointments, allow restoring to pending
+                                Button(
+                                    onClick = { viewModel.updateAppointmentStatus(AppointmentStatus.PENDING) },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Restore to Pending")
+                                }
+                            }
+                            AppointmentStatus.COMPLETED -> {
+                                // Completed appointments don't need status change buttons
+                                Text(
+                                    "This appointment has been completed.",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(Modifier.height(24.dp))
                 Button(onClick = { showDialog = true }) {
                     Text("Create Prescription")
