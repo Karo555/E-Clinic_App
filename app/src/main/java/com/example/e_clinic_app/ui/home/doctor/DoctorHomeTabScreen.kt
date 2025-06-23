@@ -1,5 +1,6 @@
 package com.example.e_clinic_app.ui.home.doctor
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -84,6 +85,7 @@ fun DoctorHomeTabScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Log.i("DoctorHomeTabScreen", "Doctor's name: $doctorName")
                         Text("Welcome back,", style = typography.labelMedium)
                         Text("Dr. $doctorName", style = typography.titleLarge)
                     }
@@ -111,7 +113,9 @@ fun DoctorHomeTabScreen(
                 Spacer(Modifier.height(8.dp))
                 val quickActions = listOf(
                     NavItem("Patients", Icons.Outlined.Group, Routes.DOCTOR_PATIENTS),
-                    NavItem("Appointments", Icons.Outlined.Event, Routes.DOCTOR_APPOINTMENTS)
+                    NavItem("Appointments", Icons.Outlined.Event, Routes.DOCTOR_APPOINTMENTS),
+                    NavItem("Personal Availability", Icons.Outlined.Schedule, Routes.DOCTOR_AVAILABILITY),
+                    NavItem("Prescriptions", Icons.Outlined.EventAvailable, Routes.PRESCRIPTIONS),
                 )
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(quickActions) { item ->

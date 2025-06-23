@@ -138,7 +138,8 @@ fun PatientHomeTabScreen(
             // Navigation Grid
             val navigationItems = listOf(
                 "Browse Doctors" to Routes.BROWSE_DOCTORS,
-                "Visits" to Routes.VISITS
+                "Visits" to Routes.VISITS,
+                "Prescriptions" to Routes.PRESCRIPTIONS, // Assuming this is a placeholder for future functionality
             )
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),

@@ -1,5 +1,6 @@
 package com.example.e_clinic_app.data.repository
 
+import android.util.Log
 import com.example.e_clinic_app.data.model.DosageUnit
 import com.example.e_clinic_app.data.model.Drug
 import com.example.e_clinic_app.data.model.Frequency
@@ -70,8 +71,7 @@ class DrugRepository(
                     commonDosages = commonDosages,
                     defaultFrequency = defaultFrequency,
                     searchableNames = searchableNames,
-                    createdAt = createdAt,
-                    updatedAt = updatedAt
+                    createdAt = createdAt
                 )
             } catch (e: Exception) {
                 null
@@ -113,5 +113,56 @@ class DrugRepository(
      */
     suspend fun deleteDrug(drugId: String) {
         firestore.collection("drugs").document(drugId).delete().await()
+    }
+
+    suspend fun getAllDrugs(): List<Drug> {
+        Log.d("DrugRepository", "Getting all drugs...")
+        val snapshot = firestore.collection("drugs").get().await()
+        Log.d("DrugRepository", "Fetched ${snapshot.size()} drug documents")
+
+        return snapshot.documents.mapNotNull { doc ->
+            try {
+                val id = doc.id
+                val name = doc.getString("name") ?: return@mapNotNull null
+                val formulation = doc.getString("formulation") ?: ""
+
+                Log.d("DrugRepository", "Mapping drug: $name")
+
+                // availableUnits stored as list of strings
+                val units = doc.get("availableUnits") as? List<String> ?: emptyList()
+                val availableUnits = units.mapNotNull { u ->
+                    DosageUnit.values().find { it.name == u }
+                }
+
+                // commonDosages stored as map of unit -> list of numbers
+                val cdRaw = doc.get("commonDosages") as? Map<String, List<Double>> ?: emptyMap()
+                val commonDosages = cdRaw.mapNotNull { (unitStr, values) ->
+                    val unit = DosageUnit.values().find { it.name == unitStr } ?: return@mapNotNull null
+                    unit to values
+                }.toMap()
+
+                // frequency stored as string
+                val freqStr = doc.getString("defaultFrequency") ?: Frequency.ONCE_DAILY.name
+                val defaultFrequency = Frequency.values().find { it.name == freqStr } ?: Frequency.ONCE_DAILY
+
+                // optional fields
+                val searchableNames = (doc.get("searchableNames") as? List<String>) ?: emptyList()
+
+                Drug(
+                    id = id,
+                    name = name,
+                    formulation = formulation,
+                    availableUnits = availableUnits,
+                    commonDosages = commonDosages,
+                    defaultFrequency = defaultFrequency,
+                    searchableNames = searchableNames
+                )
+            } catch (e: Exception) {
+                Log.e("DrugRepository", "Error mapping drug document: ${e.message}", e)
+                null
+            }
+        }.also { drugs ->
+            Log.d("DrugRepository", "Mapped ${drugs.size} drugs successfully")
+        }
     }
 }

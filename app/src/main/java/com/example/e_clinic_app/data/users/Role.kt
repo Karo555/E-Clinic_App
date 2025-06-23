@@ -12,5 +12,8 @@ enum class Role {
     /** Represents a doctor user in the system. */
     DOCTOR,
     /** Represents an admin user in the system. */
-    ADMIN
+    ADMIN,
+
+    //** Represents a institutional admin user in the system. */
+    INSTITUTION_ADMIN
 }

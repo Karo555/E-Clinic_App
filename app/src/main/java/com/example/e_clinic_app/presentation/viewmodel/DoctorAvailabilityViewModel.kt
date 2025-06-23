@@ -17,6 +17,7 @@ import kotlinx.coroutines.tasks.await
  *
  * This ViewModel provides functionality to load and save the weekly schedule of a doctor
  * from Firestore. The schedule is represented as a map of day names to a list of time slots.
+ * Also manages the session duration for appointments.
  *
  * @property firestore The Firestore instance used for database operations.
  */
@@ -27,6 +28,10 @@ class DoctorAvailabilityViewModel(
     private val _schedule = MutableStateFlow<Map<String, List<String>>>(emptyMap())
     /** A state flow containing the weekly schedule: day name (e.g., "Monday") to list of "HH:mm" slots. */
     val schedule: StateFlow<Map<String, List<String>>> = _schedule.asStateFlow()
+
+    private val _sessionDuration = MutableStateFlow(30) // Default to 30 minutes
+    /** A state flow containing the session duration in minutes. */
+    val sessionDuration: StateFlow<Int> = _sessionDuration.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     /** A state flow indicating whether the schedule is currently being loaded or saved. */
@@ -41,7 +46,16 @@ class DoctorAvailabilityViewModel(
         get() = Firebase.auth.currentUser?.uid
 
     /**
-     * Loads the current weekly schedule of the doctor from Firestore.
+     * Sets the session duration for appointments.
+     *
+     * @param minutes The duration of each appointment slot in minutes.
+     */
+    fun setSessionDuration(minutes: Int) {
+        _sessionDuration.value = minutes
+    }
+
+    /**
+     * Loads the current weekly schedule and session duration of the doctor from Firestore.
      *
      * The schedule is fetched from the `doctorInfo` document in the `profile` collection
      * of the authenticated user's Firestore document.
@@ -60,6 +74,11 @@ class DoctorAvailabilityViewModel(
                     .collection("profile")
                     .document("doctorInfo")
                     .get().await()
+
+                // Load session duration
+                val duration = docSnap.getLong("sessionDuration")?.toInt() ?: 30
+                _sessionDuration.value = duration
+
                 @Suppress("UNCHECKED_CAST")
                 val raw = docSnap.get("weeklySchedule") as? Map<*, *>
                 val parsed = raw?.mapNotNull { entry ->
@@ -79,7 +98,7 @@ class DoctorAvailabilityViewModel(
     }
 
     /**
-     * Saves the updated weekly schedule of the doctor to Firestore.
+     * Saves the updated weekly schedule and session duration of the doctor to Firestore.
      *
      * The schedule is saved to the `doctorInfo` document in the `profile` collection
      * of the authenticated user's Firestore document. The availability flag is also updated
@@ -100,11 +119,12 @@ class DoctorAvailabilityViewModel(
                     .document(uid)
                     .collection("profile")
                     .document("doctorInfo")
-                // Update both availability flag and schedule map
+                // Update availability flag, session duration, and schedule map
                 val availabilityFlag = updated.isNotEmpty()
                 profileRef.update(
                     mapOf(
                         "availability" to availabilityFlag,
+                        "sessionDuration" to _sessionDuration.value,
                         "weeklySchedule" to updated
                     )
                 ).await()

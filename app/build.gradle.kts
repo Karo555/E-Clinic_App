@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
 }
@@ -41,6 +42,12 @@ android {
 }
 
 dependencies {
+    // Firebase DataConnect dependency
+    implementation(libs.firebase.dataconnect)
+
+    // Kotlin Serialization dependency
+    implementation(libs.kotlinx.serialization.json)
+
     // firebase storage
     implementation(platform(libs.firebase.bom.v33140))
 
@@ -49,7 +56,7 @@ dependencies {
     implementation(libs.com.google.firebase.firebase.firestore.ktx)
 
     // image handler
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation(libs.coil.compose)
 
     // compose
     implementation(platform(libs.androidx.compose.bom.v20230300))
@@ -62,6 +69,7 @@ dependencies {
     implementation(libs.generativeai)
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
+    implementation(libs.google.firebase.dataconnect)
     debugImplementation(libs.ui.tooling)
     implementation(libs.androidx.material.icons.extended)
 
@@ -86,7 +94,6 @@ dependencies {
     //google play services
     implementation(libs.play.services.location)
     implementation(libs.play.services.auth)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -102,4 +109,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+// https://mvnrepository.com/artifact/com.google.zxing/core
+    implementation("com.google.zxing:core:3.5.3")
+
 }
