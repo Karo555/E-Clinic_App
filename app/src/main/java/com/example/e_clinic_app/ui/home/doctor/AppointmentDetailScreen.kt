@@ -354,7 +354,7 @@ fun DropdownMenuBox(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            DosageUnit.values().forEach { unit ->
+            DosageUnit.entries.forEach { unit ->
                 DropdownMenuItem(
                     text = { Text(unit.name) },
                     onClick = {

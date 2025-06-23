@@ -1,7 +1,6 @@
 package com.example.e_clinic_app.ui.home.doctor
 
 import android.app.TimePickerDialog
-import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.compose.foundation.background
@@ -152,19 +151,12 @@ fun SetAvailabilityScreen(
                                         }
                                         // Haptic feedback
                                         val vibrator = context.getSystemService<Vibrator>()
-                                        vibrator?.let {
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                                it.vibrate(
-                                                    VibrationEffect.createOneShot(
-                                                        40,
-                                                        if (isChecked) VibrationEffect.DEFAULT_AMPLITUDE else 30
-                                                    )
-                                                )
-                                            } else {
-                                                @Suppress("DEPRECATION")
-                                                it.vibrate(40)
-                                            }
-                                        }
+                                        vibrator?.vibrate(
+                                            VibrationEffect.createOneShot(
+                                                40,
+                                                if (isChecked) VibrationEffect.DEFAULT_AMPLITUDE else 30
+                                            )
+                                        )
                                     },
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = MaterialTheme.colorScheme.primary,
@@ -387,7 +379,7 @@ fun SetAvailabilityScreen(
                                     // Calculate total slot time (session + break)
                                     val totalSlotTime = sessionDuration + breakDuration
 
-                                    while (cur != null && e != null && cur.plusMinutes(sessionDuration.toLong()) <= e) {
+                                    while (cur != null && cur.plusMinutes(sessionDuration.toLong()) <= e) {
                                         // Only add the appointment start time to slots
                                         slots += cur.format(formatter)
 
