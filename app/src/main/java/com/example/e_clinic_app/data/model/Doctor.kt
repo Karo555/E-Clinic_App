@@ -27,5 +27,8 @@ data class Doctor(
     val licenseNumber: String = "",
     val bio: String = "",
     val availability: Boolean = false,
-    val weeklySchedule: Map<String, List<String>> = emptyMap()
+    val weeklySchedule: Map<String, List<String>> = emptyMap(),
+    val isVerified : Boolean = false,
+    val isBaned: Boolean = false
+
 )

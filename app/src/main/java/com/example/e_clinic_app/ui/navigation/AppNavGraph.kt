@@ -28,8 +28,8 @@ import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PrescriptionsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.UserViewModel
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
-import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.admin.model.InstitutionAdminsScreen
+import com.example.e_clinic_app.ui.admin.tools.ManageDoctorsScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
 import com.example.e_clinic_app.ui.chat.ChatDetailScreen
@@ -41,7 +41,6 @@ import com.example.e_clinic_app.ui.home.doctor.DoctorAppointmentsScreen
 import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
 import com.example.e_clinic_app.ui.home.doctor.PatientDetailScreen
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
-import com.example.e_clinic_app.ui.prescriptions.PrescriptionsScreen
 import com.example.e_clinic_app.ui.home.doctor.SetAvailabilityScreen
 import com.example.e_clinic_app.ui.home.patient.BrowseDoctorsScreen
 import com.example.e_clinic_app.ui.home.patient.DoctorDetailScreen
@@ -51,6 +50,7 @@ import com.example.e_clinic_app.ui.home.patient.VisitsScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalFormStepperScreen
 import com.example.e_clinic_app.ui.onboarding.MedicalIntroScreen
 import com.example.e_clinic_app.ui.prescriptions.PrescriptionDetailScreen
+import com.example.e_clinic_app.ui.prescriptions.PrescriptionsScreen
 import com.example.e_clinic_app.ui.settings.EditPublicProfileScreen
 import com.example.e_clinic_app.ui.settings.MyDocumentsScreen
 import com.example.e_clinic_app.ui.settings.SettingsTabScreen
@@ -369,5 +369,17 @@ fun AppNavGraph(
                 }
             }
         }
+
+        composable("manageDoctors") { ManageDoctorsScreen(
+            navController = navController
+        ) }
+//        composable("managePatients") { ManagePatientsScreen() }
+//        composable("reports") { ReportsScreen() }
+//        composable("systemAlerts") { SystemAlertsScreen() }
+//        composable("reportDetail/{report}") { backStackEntry ->
+//            val report = backStackEntry.arguments?.getString("report") ?: "Unknown Report"
+//            ReportDetailScreen(report)
+//        }
     }
 }
+
