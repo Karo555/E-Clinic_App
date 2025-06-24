@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
 import com.example.e_clinic_app.ui.navigation.Routes
+
 /**
  * A composable function that represents the Patient Home Tab screen in the e-clinic application.
  *
@@ -219,6 +220,7 @@ fun PatientHomeTabScreen(
                         CircularProgressIndicator()
                     }
                 }
+
                 is PatientDashboardViewModel.UiState.Error -> {
                     Text(
                         text = "Failed to load doctors",
@@ -226,8 +228,10 @@ fun PatientHomeTabScreen(
                         modifier = Modifier.padding(8.dp)
                     )
                 }
+
                 is PatientDashboardViewModel.UiState.Success -> {
-                    val doctors = (doctorsState as PatientDashboardViewModel.UiState.Success).doctors
+                    val doctors =
+                        (doctorsState as PatientDashboardViewModel.UiState.Success).doctors
                     if (doctors.isEmpty()) {
                         Text(
                             text = "No doctors available right now.",
@@ -280,6 +284,24 @@ fun PatientHomeTabScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Reminders Section
+            ElevatedCard(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { navController.navigate(Routes.PATIENT_REMINDERS) },
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "View Reminders",
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }

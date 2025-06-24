@@ -36,6 +36,7 @@ object Routes {
 
     //patient dashboard
     const val PATIENT_DASHBOARD = "patient_dashboard"
+    const val PATIENT_REMINDERS = "patient_reminders"
 
     //doctor dashboard
     const val DOCTOR_DASHBOARD = "doctor_dashboard"
@@ -54,7 +55,7 @@ object Routes {
     // Patient visits
     const val VISITS = "visits"
 
-    // doctor visits (doctor’s own agenda)
+    // doctor visits (doctor's own agenda)
     const val DOCTOR_APPOINTMENTS = "doctor_appointments"
 
     // chat
@@ -86,4 +87,7 @@ object Routes {
     const val DOCTOR_AVAILABILITY = "doctor_availability"
     //perscriptions
     const val DOCTOR_PRESCRIPTIONS = "doctor_prescriptions"
+
+    //admin
+    const val MANAGE_DOCTORS = "manage_doctors"
 }
