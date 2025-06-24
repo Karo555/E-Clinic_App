@@ -3,7 +3,7 @@ package com.example.e_clinic_app.data.users.patient
 import com.example.e_clinic_app.data.users.Role
 import com.example.e_clinic_app.data.users.UsersEntity
 import java.util.Date
-import java.util.UUID
+
 /**
  * Represents a patient user in the e-clinic application.
  *
@@ -19,11 +19,14 @@ import java.util.UUID
  * @property dateOfBirth The date of birth of the patient.
  */
 data class Patient(
-    override val id: UUID,
+    override val id: String,
     override val firstName: String,
     override val lastName: String,
     override val email: String,
     override val role: Role = Role.PATIENT,
     override val phoneNumber: String?,
-    val dateOfBirth:Date
+    val dateOfBirth:Date,
+    val isVerified: Boolean = false,
+    val isBaned: Boolean = false
+
 ) : UsersEntity()

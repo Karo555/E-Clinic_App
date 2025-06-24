@@ -30,6 +30,7 @@ import com.example.e_clinic_app.presentation.viewmodel.UserViewModel
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
 import com.example.e_clinic_app.ui.admin.model.InstitutionAdminsScreen
 import com.example.e_clinic_app.ui.admin.tools.ManageDoctorsScreen
+import com.example.e_clinic_app.ui.admin.tools.ManagePatientsScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
 import com.example.e_clinic_app.ui.chat.ChatDetailScreen
@@ -369,6 +370,11 @@ fun AppNavGraph(
         composable(Routes.MANAGE_DOCTORS) {
             // This screen can be implemented later
            ManageDoctorsScreen(navController)
+        }
+        //admin manage patients
+        composable(Routes.MANAGE_PATIENTS) {
+            // This screen can be implemented later
+            ManagePatientsScreen(navController)
         }
     }
 }

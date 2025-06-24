@@ -2,7 +2,6 @@ package com.example.e_clinic_app.data.users.doctor
 
 import com.example.e_clinic_app.data.users.Role
 import com.example.e_clinic_app.data.users.UsersEntity
-import java.util.UUID
 
 /**
  * Represents a doctor user in the e-clinic application.
@@ -20,7 +19,7 @@ import java.util.UUID
  * @property rating The rating of the doctor, represented as a double value.
  */
 data class Doctor(
-    override val id: UUID,
+    override val id: String,
     override val firstName: String,
     override val lastName: String,
     override val email: String,
@@ -29,4 +28,4 @@ data class Doctor(
     val specialization:Specialization,
     var rating:Double,
 
-):UsersEntity()
+    ):UsersEntity()

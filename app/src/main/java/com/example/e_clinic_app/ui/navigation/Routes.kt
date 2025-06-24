@@ -90,4 +90,6 @@ object Routes {
 
     //admin
     const val MANAGE_DOCTORS = "manage_doctors"
+
+    const val MANAGE_PATIENTS = "manage_patients"
 }
