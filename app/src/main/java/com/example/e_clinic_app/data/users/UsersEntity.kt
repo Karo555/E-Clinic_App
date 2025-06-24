@@ -1,6 +1,5 @@
 package com.example.e_clinic_app.data.users
 
-import java.util.UUID
 /**
  * Abstract base class representing a user entity in the e-clinic application.
  *
@@ -16,7 +15,7 @@ import java.util.UUID
  * @property phoneNumber The optional phone number of the user.
  */
 abstract class UsersEntity {
-    abstract val id: UUID
+    abstract val id: String
     abstract val firstName: String
     abstract val lastName: String
     abstract val email: String

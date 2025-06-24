@@ -19,7 +19,7 @@ import java.util.UUID
  * @property clinicsId The unique identifier of the clinic associated with the admin user.
  */
 data class Admin(
-    override val id: UUID,
+    override val id: String,
     override val firstName: String,
     override val lastName: String,
     override val email: String,

@@ -142,7 +142,7 @@ fun AdminHomeTabScreen(navController: NavController) {
 fun AdminNavigationGrid(navController: NavController) {
     val navigationItems = listOf(
         "Manage Doctors" to "${Routes.MANAGE_DOCTORS}",
-        "Manage Patients" to "managePatients",
+        "Manage Patients" to "${Routes.MANAGE_PATIENTS}",
         "Reports" to "reports",
         "System Alerts" to "systemAlerts"
     )
