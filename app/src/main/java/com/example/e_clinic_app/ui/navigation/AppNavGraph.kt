@@ -29,6 +29,7 @@ import com.example.e_clinic_app.presentation.viewmodel.PrescriptionsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.UserViewModel
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
 import com.example.e_clinic_app.ui.admin.model.InstitutionAdminsScreen
+import com.example.e_clinic_app.ui.admin.tools.ManageDoctorsScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
 import com.example.e_clinic_app.ui.chat.ChatDetailScreen
@@ -363,6 +364,11 @@ fun AppNavGraph(
                     Text("Prescription not found.")
                 }
             }
+        }
+        //admin manage doctors
+        composable(Routes.MANAGE_DOCTORS) {
+            // This screen can be implemented later
+           ManageDoctorsScreen(navController)
         }
     }
 }

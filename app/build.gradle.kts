@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
     implementation(libs.google.firebase.dataconnect)
+    implementation(libs.work.runtime.ktx)
     debugImplementation(libs.ui.tooling)
     implementation(libs.androidx.material.icons.extended)
 

@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
+import com.example.e_clinic_app.ui.navigation.Routes
 
 /**
  * A composable function that represents the Admin Home Tab screen in the e-clinic application.
@@ -140,7 +141,7 @@ fun AdminHomeTabScreen(navController: NavController) {
 @Composable
 fun AdminNavigationGrid(navController: NavController) {
     val navigationItems = listOf(
-        "Manage Doctors" to "manageDoctors",
+        "Manage Doctors" to "${Routes.MANAGE_DOCTORS}",
         "Manage Patients" to "managePatients",
         "Reports" to "reports",
         "System Alerts" to "systemAlerts"

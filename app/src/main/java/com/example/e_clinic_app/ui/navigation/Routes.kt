@@ -87,4 +87,7 @@ object Routes {
     const val DOCTOR_AVAILABILITY = "doctor_availability"
     //perscriptions
     const val DOCTOR_PRESCRIPTIONS = "doctor_prescriptions"
+
+    //admin
+    const val MANAGE_DOCTORS = "manage_doctors"
 }

@@ -32,6 +32,7 @@ kotlinSerializationPlugin = "2.0.21"
 textRecognition = "16.0.0"
 visionCommon = "17.0.0"
 workRuntimeKtx = "2.8.1"
+workRuntimeKtxVersion = "2.10.2"
 
 [libraries]
 androidx-activity-compose-v170 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
@@ -82,6 +83,7 @@ firebase-database = { group = "com.google.firebase", name = "firebase-database",
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 google-firebase-dataconnect = { group = "com.google.firebase", name = "firebase-dataconnect", version.ref = "firebaseDataconnect" }
 vision-common = { module = "com.google.mlkit:vision-common", version.ref = "visionCommon" }
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtxVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
