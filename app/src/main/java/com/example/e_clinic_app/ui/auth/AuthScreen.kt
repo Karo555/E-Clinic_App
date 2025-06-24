@@ -35,7 +35,7 @@ fun AuthScreen(
     onNavigateToFirstLogin: () -> Unit,
     onNavigateToDoctorFirstLogin: () -> Unit,
     onNavigateToGlobalAdminDashboard: () -> Unit,
-    onNavigateToInstitutionAdminDashboard: () -> Unit,
+//    onNavigateToInstitutionAdminDashboard: () -> Unit,
     onNavigateToResetPassword: () -> Unit
 ) {
     val viewModel: AuthViewModel = viewModel()
@@ -152,7 +152,6 @@ fun AuthScreen(
                                     try {
                                         val userDoc = db.collection("users").document(uid).get().await()
                                         val role = userDoc.getString("role")
-                                        val adminLevel = userDoc.getString("adminLevel") ?: "global"
 
                                         when (role) {
                                             "Patient" -> {
@@ -172,11 +171,7 @@ fun AuthScreen(
                                             }
 
                                             "Admin" -> {
-                                                if (adminLevel == "institution") {
-                                                    onNavigateToInstitutionAdminDashboard()
-                                                } else {
-                                                    onNavigateToGlobalAdminDashboard()
-                                                }
+                                                onNavigateToGlobalAdminDashboard()
                                             }
 
                                             else -> onNavigateToHome()
@@ -208,7 +203,8 @@ fun AuthScreen(
                                                 if (profile.exists()) onNavigateToHome()
                                                 else onNavigateToDoctorFirstLogin()
                                             }
-                                            else -> onNavigateToHome()
+                                            "Admin" -> onNavigateToGlobalAdminDashboard()
+
                                         }
                                     } catch (e: Exception) {
                                         onNavigateToFirstLogin()

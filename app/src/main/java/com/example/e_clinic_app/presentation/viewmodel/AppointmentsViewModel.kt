@@ -63,16 +63,15 @@ class AppointmentsViewModel(
             _error.value = null
             try {
                 val now = Timestamp.now()
-                val snaps = firestore.collection("appointments")
+                val query = firestore.collection("appointments")
                     .whereEqualTo(filterField, uid)
-                    .whereEqualTo("status", "CONFIRMED")
                     .whereGreaterThanOrEqualTo("date", now)
                     .orderBy("date")
-                    .get()
-                    .await()
 
-                    val list = snaps.documents.map { doc ->
-                        // Appointment ID (Firestore auto-ID as String)
+                val snaps = query.get().await()
+
+                val list = snaps.documents.map { doc ->
+                    // Appointment ID (Firestore auto-ID as String)
                     val apptId = doc.id
 
                         // Read embedded doctor name fields

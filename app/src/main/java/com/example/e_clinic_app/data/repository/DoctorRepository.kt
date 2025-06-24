@@ -59,7 +59,9 @@ object DoctorRepository {
                             licenseNumber   = p.getString("licenseNumber") ?: "",
                             bio             = p.getString("bio") ?: "",
                             availability    = true,
-                            weeklySchedule  = p.get("weeklySchedule") as? Map<String, List<String>> ?: emptyMap()
+                            weeklySchedule  = p.get("weeklySchedule") as? Map<String, List<String>> ?: emptyMap(),
+                            isVerified      = p.getBoolean("isVerified") ?: false,
+                            isBaned         = p.getBoolean("isBaned") ?: false
                         )
                     }
                     ?: run {

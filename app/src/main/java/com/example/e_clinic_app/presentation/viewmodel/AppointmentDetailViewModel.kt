@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.e_clinic_app.data.appointment.Appointment
+import com.example.e_clinic_app.data.appointment.AppointmentStatus
 import com.example.e_clinic_app.data.model.Prescription
 import com.example.e_clinic_app.data.model.toFirestoreMap
 import com.google.firebase.firestore.FirebaseFirestore
@@ -67,6 +68,29 @@ class AppointmentDetailViewModel(
         } catch (e: Exception) {
             // Handle any errors
             Log.e("AppointmentDetailViewModel", "Failed to add prescription to Firestore", e)
+            // Consider showing error message to user
+        }
+    }
+
+    /**
+     * Updates the status of an appointment in Firestore.
+     *
+     * @param newStatus The new status to set for the appointment.
+     */
+    fun updateAppointmentStatus(newStatus: AppointmentStatus) = viewModelScope.launch {
+        try {
+            // Update Firestore
+            firestore.collection("appointments")
+                .document(appointmentId)
+                .update("status", newStatus)
+                .await()
+
+            // Update local state
+            _appointment.value = _appointment.value?.copy(status = newStatus)
+
+            Log.d("AppointmentDetailViewModel", "Appointment status updated to $newStatus")
+        } catch (e: Exception) {
+            Log.e("AppointmentDetailViewModel", "Failed to update appointment status", e)
             // Consider showing error message to user
         }
     }

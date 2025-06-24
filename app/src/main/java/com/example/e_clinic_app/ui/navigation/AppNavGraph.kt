@@ -28,8 +28,8 @@ import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PrescriptionsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.UserViewModel
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
-import com.example.e_clinic_app.ui.admin.GlobalAdminDashboardScreen
 import com.example.e_clinic_app.ui.admin.model.InstitutionAdminsScreen
+import com.example.e_clinic_app.ui.admin.tools.ManageDoctorsScreen
 import com.example.e_clinic_app.ui.auth.AuthScreen
 import com.example.e_clinic_app.ui.auth.ResetPasswordScreen
 import com.example.e_clinic_app.ui.chat.ChatDetailScreen
@@ -107,6 +107,8 @@ fun AppNavGraph(
                     viewModel = patientDashboardViewModel
                 )
 
+                "Admin" -> AdminHomeTabScreen(navController = navController)
+
                 else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
@@ -147,11 +149,11 @@ fun AppNavGraph(
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 },
-                onNavigateToInstitutionAdminDashboard = {
-                    navController.navigate(Routes.INSTITUTION_ADMIN_DASHBOARD) {
-                        popUpTo(Routes.AUTH) { inclusive = true }
-                    }
-                },
+//                onNavigateToInstitutionAdminDashboard = {
+//                    navController.navigate(Routes.INSTITUTION_ADMIN_DASHBOARD) {
+//                        popUpTo(Routes.AUTH) { inclusive = true }
+//                    }
+//                },
                 onNavigateToResetPassword = {
                     navController.navigate(Routes.RESET_PASSWORD)
                 }
@@ -195,7 +197,7 @@ fun AppNavGraph(
 
         // Admin dashboards
         composable(Routes.GLOBAL_ADMIN_DASHBOARD) {
-            GlobalAdminDashboardScreen(navController)
+            AdminHomeTabScreen(navController)
         }
         composable(Routes.INSTITUTION_ADMIN_DASHBOARD) {
             AdminHomeTabScreen(navController)
@@ -362,6 +364,11 @@ fun AppNavGraph(
                     Text("Prescription not found.")
                 }
             }
+        }
+        //admin manage doctors
+        composable(Routes.MANAGE_DOCTORS) {
+            // This screen can be implemented later
+           ManageDoctorsScreen(navController)
         }
     }
 }
