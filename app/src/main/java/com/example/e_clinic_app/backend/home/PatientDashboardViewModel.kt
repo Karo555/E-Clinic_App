@@ -11,8 +11,11 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.e_clinic_app.data.repository.DoctorRepository
 import com.example.e_clinic_app.data.model.Doctor
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * ViewModel for managing the patient dashboard.
@@ -25,6 +28,30 @@ import com.example.e_clinic_app.data.model.Doctor
 class PatientDashboardViewModel(
     override val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) : StandardDashboard() {
+    private val _isBanned = MutableStateFlow<Boolean?>(null)
+    val isBanned: StateFlow<Boolean?> = _isBanned
+    private var initialized = false
+
+    fun initialize(userId: String) {
+        if (initialized) return
+        initialized = true
+
+        // Load the list of available doctors
+        loadDoctors()
+
+        // Fetch the patient's upcoming appointments
+        fetchAppointments(firestore)
+
+        // Check if the patient is banned
+        viewModelScope.launch {
+            val result = loadBanStatus(userId, firestore)
+            _isBanned.value = result.getOrNull()
+            // Optional: handle errors
+            result.exceptionOrNull()?.let {
+                Log.e("BanCheck", "Error checking ban status: ${it.message}")
+            }
+        }
+    }
 
     /**
      * Represents the UI state for the list of available doctors.
@@ -68,6 +95,14 @@ class PatientDashboardViewModel(
     init {
         // Load the list of available doctors when the ViewModel is initialized
         loadDoctors()
+        viewModelScope.launch {
+            val result = loadBanStatus(userId, firestore)
+            _isBanned.value = result.getOrNull()
+            // Optional: handle errors
+            result.exceptionOrNull()?.let {
+                Log.e("BanCheck", "Error checking ban status: ${it.message}")
+            }
+        }
 
     }
 
@@ -117,10 +152,29 @@ class PatientDashboardViewModel(
     }
 
     override suspend fun loadBanStatus(
-        userId: String?,
-        db: FirebaseFirestore,
-    ): Result<Boolean> {
-        TODO("Not yet implemented")
+        patientId: String?,
+        db: FirebaseFirestore
+    ): Result<Boolean> = suspendCoroutine { continuation ->
+        if (patientId != null) {
+            db.collection("users")
+                .document(patientId)
+                .collection("profile")
+                .document("basicInfo")
+                .get()
+                .addOnSuccessListener { document ->
+                    val isBaned = document.getBoolean("isBaned")
+                    if (document.exists() && isBaned != null) {
+                        continuation.resume(Result.success(isBaned))
+                    } else {
+                        continuation.resume(Result.failure(Exception("Patient data not found.")))
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    continuation.resume(Result.failure(exception))
+                }
+        } else {
+            continuation.resume(Result.failure(Exception("Patient ID is null.")))
+        }
     }
 
 

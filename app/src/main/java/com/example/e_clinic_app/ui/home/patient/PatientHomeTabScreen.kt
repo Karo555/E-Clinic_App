@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,6 +24,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -45,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
 import com.example.e_clinic_app.ui.navigation.Routes
+import com.google.firebase.auth.FirebaseAuth
 
 /**
  * A composable function that represents the Patient Home Tab screen in the e-clinic application.
@@ -64,6 +68,7 @@ import com.example.e_clinic_app.ui.navigation.Routes
  * @param navController The `NavController` used for navigating to other screens.
  * @param viewModel The `PatientDashboardViewModel` instance used to manage the screen's state and data.
  */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientHomeTabScreen(
@@ -72,35 +77,26 @@ fun PatientHomeTabScreen(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
-
-    // Collect the doctors list state from ViewModel
     val doctorsState by viewModel.doctorsState.collectAsState()
+    val isBanned by viewModel.isBanned.collectAsState()
 
+    if (isBanned == true) {
+        ShowBanAlert(navController)
+        return
+    }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Column {
-                        Text(
-                            "Hello!",
-                            style = typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            "Find care that fits you",
-                            style = typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant
-                        )
+                        Text("Hello!", style = typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text("Find care that fits you", style = typography.bodySmall, color = colorScheme.onSurfaceVariant)
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Navigate to profile */ }) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Profile",
-                            tint = colorScheme.primary
-                        )
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(Icons.Default.AccountCircle, contentDescription = "Profile", tint = colorScheme.primary)
                     }
                 }
             )
@@ -108,176 +104,127 @@ fun PatientHomeTabScreen(
         bottomBar = { BottomNavigationBar(navController) },
         containerColor = colorScheme.background
     ) { innerPadding ->
-        Column(
+        LazyColumn (
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
-                .fillMaxSize()
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(Modifier.height(16.dp))
-
-            // Search Bar (logic to be implemented later)
-            OutlinedTextField(
-                value = viewModel.searchQuery,
-                onValueChange = { viewModel.onSearchQueryChanged(it) },
-                placeholder = { Text("Search doctors, specialties...") },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colorScheme.primary,
-                    unfocusedBorderColor = colorScheme.outline,
-                    focusedContainerColor = colorScheme.surface,
-                    unfocusedContainerColor = colorScheme.surfaceVariant
+            item {
+                OutlinedTextField(
+                    value = viewModel.searchQuery,
+                    onValueChange = { viewModel.onSearchQueryChanged(it) },
+                    placeholder = { Text("Search doctors, specialties...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colorScheme.primary,
+                        unfocusedBorderColor = colorScheme.outline,
+                        focusedContainerColor = colorScheme.surface,
+                        unfocusedContainerColor = colorScheme.surfaceVariant
+                    )
                 )
-            )
+            }
 
-            Spacer(Modifier.height(24.dp))
-
-            // Navigation Grid
-            val navigationItems = listOf(
-                "Browse Doctors" to Routes.BROWSE_DOCTORS,
-                "Visits" to Routes.VISITS,
-                "Prescriptions" to Routes.PRESCRIPTIONS, // Assuming this is a placeholder for future functionality
-            )
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.height(220.dp)
-            ) {
-                items(navigationItems) { (label, route) ->
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { navController.navigate(route) },
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Box(
+            item {
+                val navigationItems = listOf(
+                    "Browse Doctors" to Routes.BROWSE_DOCTORS,
+                    "Visits" to Routes.VISITS,
+                    "Prescriptions" to Routes.PRESCRIPTIONS
+                )
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.height(220.dp)
+                ) {
+                    items(navigationItems) { (label, route) ->
+                        ElevatedCard(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .clickable { navController.navigate(route) },
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxSize().padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = label, style = typography.bodyLarge, fontWeight = FontWeight.Medium, color = colorScheme.onSurface)
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                Text("Specialties", style = typography.titleMedium, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                val specialties = listOf("Dentist", "Cardiologist", "Optometrist", "Dietitian")
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(specialties) { specialty ->
+                        ElevatedCard(
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.clickable { }
                         ) {
                             Text(
-                                text = label,
-                                style = typography.bodyLarge,
+                                text = specialty,
+                                style = typography.bodyMedium,
                                 fontWeight = FontWeight.Medium,
-                                color = colorScheme.onSurface
+                                color = colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                             )
                         }
                     }
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
-
-            // Specialties Section
-            Text(
-                "Specialties",
-                style = typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.height(8.dp))
-            val specialties = listOf("Dentist", "Cardiologist", "Optometrist", "Dietitian")
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(specialties) { specialty ->
-                    ElevatedCard(
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.clickable { /* Navigate to Specialty Screen */ }
-                    ) {
-                        Text(
-                            text = specialty,
-                            style = typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                        )
+            item {
+                Text("Available Doctors", style = typography.titleMedium, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                when (doctorsState) {
+                    is PatientDashboardViewModel.UiState.Loading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
-                }
-            }
 
-            Spacer(Modifier.height(24.dp))
-
-            // Available Doctors Section
-            Text(
-                "Available Doctors",
-                style = typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.height(8.dp))
-
-            when (doctorsState) {
-                is PatientDashboardViewModel.UiState.Loading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    is PatientDashboardViewModel.UiState.Error -> {
+                        Text("Failed to load doctors", color = Color.Red, modifier = Modifier.padding(8.dp))
                     }
-                }
 
-                is PatientDashboardViewModel.UiState.Error -> {
-                    Text(
-                        text = "Failed to load doctors",
-                        color = Color.Red,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-
-                is PatientDashboardViewModel.UiState.Success -> {
-                    val doctors =
-                        (doctorsState as PatientDashboardViewModel.UiState.Success).doctors
-                    if (doctors.isEmpty()) {
-                        Text(
-                            text = "No doctors available right now.",
-                            color = colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    } else {
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            items(doctors) { doctor ->
-                                ElevatedCard(
-                                    modifier = Modifier
-                                        .width(160.dp)
-                                        .clickable {
-                                            navController.navigate("${Routes.DOCTOR_DETAIL}/${doctor.id}")
-                                        },
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(12.dp)
+                    is PatientDashboardViewModel.UiState.Success -> {
+                        val doctors = (doctorsState as PatientDashboardViewModel.UiState.Success).doctors
+                        if (doctors.isEmpty()) {
+                            Text("No doctors available right now.", color = colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp))
+                        } else {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                items(doctors) { doctor ->
+                                    ElevatedCard(
+                                        modifier = Modifier
+                                            .width(160.dp)
+                                            .clickable { navController.navigate("${Routes.DOCTOR_DETAIL}/${doctor.id}") },
+                                        shape = RoundedCornerShape(16.dp)
                                     ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .background(
-                                                    colorScheme.surfaceVariant,
-                                                    shape = CircleShape
-                                                )
-                                        )
-                                        Spacer(Modifier.height(8.dp))
-                                        Text(
-                                            "${doctor.firstName} ${doctor.lastName}",
-                                            style = typography.bodyLarge,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                        Text(
-                                            doctor.specialisation,
-                                            style = typography.labelSmall,
-                                            color = colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(Modifier.height(4.dp))
-                                        Text(
-                                            "${doctor.experienceYears} yrs exp.",
-                                            style = typography.labelSmall,
-                                            color = colorScheme.onSurfaceVariant
-                                        )
+                                        Column(modifier = Modifier.padding(12.dp)) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(48.dp)
+                                                    .background(colorScheme.surfaceVariant, shape = CircleShape)
+                                            )
+                                            Spacer(Modifier.height(8.dp))
+                                            Text("${doctor.firstName} ${doctor.lastName}", style = typography.bodyLarge, fontWeight = FontWeight.Medium)
+                                            Text(doctor.specialisation, style = typography.labelSmall, color = colorScheme.onSurfaceVariant)
+                                            Spacer(Modifier.height(4.dp))
+                                            Text("${doctor.experienceYears} yrs exp.", style = typography.labelSmall, color = colorScheme.onSurfaceVariant)
+                                        }
                                     }
                                 }
                             }
@@ -286,24 +233,50 @@ fun PatientHomeTabScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Reminders Section
-            ElevatedCard(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable { navController.navigate(Routes.PATIENT_REMINDERS) },
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = "View Reminders",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
+            item {
+                ElevatedCard(
+                    modifier = Modifier
+                        .padding(vertical = 16.dp)
+                        .clickable { navController.navigate(Routes.PATIENT_REMINDERS) },
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "View Reminders",
+                        modifier = Modifier.padding(16.dp),
+                        style = typography.bodyLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
+
+
+@Composable
+fun ShowBanAlert(navController: NavController) {
+    AlertDialog(
+        onDismissRequest = { /* Do nothing, user must acknowledge */ },
+        title = {
+            Text("Access Restricted", style = MaterialTheme.typography.titleLarge)
+        },
+        text = {
+            Column {
+                Text("Your account has been banned.")
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Please contact the administrator for further assistance.")
+                Text("Mail for support: admin@admin.com")
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    FirebaseAuth.getInstance().signOut()
+                    navController.navigate(Routes.AUTH)
+                }
+            ) {
+                Text("Logout")
+            }
+        },
+    )
 }

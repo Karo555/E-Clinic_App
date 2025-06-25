@@ -30,7 +30,7 @@ class DoctorHomeViewModel(
 ) : StandardDashboard() {
 
     private var registration: ListenerRegistration? = null
-
+    private var initialized = false
     private val _isBanned = MutableStateFlow<Boolean?>(null)
     val isBanned: StateFlow<Boolean?> = _isBanned
 
@@ -38,19 +38,20 @@ class DoctorHomeViewModel(
     private val _doctorFirstName = MutableStateFlow("")
     val doctorFirstName: StateFlow<String> = _doctorFirstName.asStateFlow()
 
-    init {
+    fun initialize(userId: String) {
+        if (initialized) return
+        initialized = true
+
         loadDoctorName()
         startListeningAppointments()
+
         viewModelScope.launch {
             val result = loadBanStatus(userId, firestore)
             _isBanned.value = result.getOrNull()
-
-            // Optional: handle errors
             result.exceptionOrNull()?.let {
                 Log.e("BanCheck", "Error checking ban status: ${it.message}")
             }
         }
-
     }
     /**
      * Loads the doctor's first name from Firestore and updates the [_doctorFirstName] state.

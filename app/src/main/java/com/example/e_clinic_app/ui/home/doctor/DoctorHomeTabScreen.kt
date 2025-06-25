@@ -68,8 +68,7 @@ fun DoctorHomeTabScreen(
     }
 
     if (isBanned == true) {
-        ShowBanAlert(navController){
-        }
+        ShowBanAlert(navController)
         return
     }
 
@@ -274,7 +273,7 @@ data class NavItem(val label: String, val icon: ImageVector, val route: String)
 
 
 @Composable
-fun ShowBanAlert(navController: NavController, onLogout: () -> Unit) {
+fun ShowBanAlert(navController: NavController) {
     AlertDialog(
         onDismissRequest = { /* Do nothing, user must acknowledge */ },
         title = {
