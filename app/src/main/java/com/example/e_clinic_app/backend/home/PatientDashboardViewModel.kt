@@ -68,6 +68,7 @@ class PatientDashboardViewModel(
     init {
         // Load the list of available doctors when the ViewModel is initialized
         loadDoctors()
+
     }
 
     /**
@@ -114,4 +115,13 @@ class PatientDashboardViewModel(
                 Log.e("PatientDashboardViewModel", "Error fetching appointments", exception)
             }
     }
+
+    override suspend fun loadBanStatus(
+        userId: String?,
+        db: FirebaseFirestore,
+    ): Result<Boolean> {
+        TODO("Not yet implemented")
+    }
+
+
 }

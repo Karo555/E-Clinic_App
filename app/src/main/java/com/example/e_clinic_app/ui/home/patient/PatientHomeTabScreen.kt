@@ -76,6 +76,7 @@ fun PatientHomeTabScreen(
     // Collect the doctors list state from ViewModel
     val doctorsState by viewModel.doctorsState.collectAsState()
 
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
