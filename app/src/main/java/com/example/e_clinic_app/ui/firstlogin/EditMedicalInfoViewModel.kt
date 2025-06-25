@@ -84,27 +84,39 @@ class EditMedicalInfoViewModel : ViewModel() {
                     ?.map { MedicalCondition(it["category"] ?: "", it["type"] ?: "") }
                     ?: emptyList()
                 @Suppress("UNCHECKED_CAST")
-                val meds = (doc.get("medications") as? List<Map<String, String>>)
-                ?.map {
-                        Medication(
-                            Drug(
-                                it["name"] as? String ?: "",
-                                name = "aspirin",
-                                formulation = "tablet",
-                                availableUnits = listOf(DosageUnit.TAB),
-                                commonDosages = mapOf(
-                                    DosageUnit.MG to listOf(10.0, 20.0, 50.0),
-                                    DosageUnit.ML to listOf(5.0, 10.0)
+                val meds = (doc.get("medications") as? List<Map<String, Any>>)
+                    ?.mapNotNull { medMap ->
+                        try {
+                            val drugName = medMap["name"] as? String ?: return@mapNotNull null
+                            val dose = (medMap["dose"] as? Number)?.toDouble() ?: 0.0
+                            val frequencyStr = medMap["frequency"] as? String ?: Frequency.ONCE_DAILY.name
+
+                            Medication(
+                                Drug(
+                                    id = drugName,
+                                    name = drugName,
+                                    formulation = "tablet",
+                                    availableUnits = listOf(DosageUnit.TAB),
+                                    commonDosages = mapOf(
+                                        DosageUnit.MG to listOf(10.0, 20.0, 50.0),
+                                        DosageUnit.ML to listOf(5.0, 10.0)
+                                    ),
+                                    defaultFrequency = Frequency.ONCE_DAILY,
+                                    searchableNames = listOf(drugName),
+                                    createdAt = null
                                 ),
-                                defaultFrequency = Frequency.AS_NEEDED,
-                                searchableNames = listOf("aspirin", "acetylsalicylic acid"),
-                                createdAt = null
-                            ), // Assuming `Drug` takes a `String` as a parameter
-                            it["dose"]?.toDoubleOrNull() ?: 0.0,
-                            DosageUnit.valueOf(it["frequency"] as? String ?: "DEFAULT"),
-                            frequency = TODO() // Assuming `DosageUnit` is an enum and has a default value
-                        )
-                    } ?: emptyList()                    ?: emptyList()
+                                amount = dose,  // Map the "dose" field from Firestore to the "amount" property
+                                unit = DosageUnit.TAB,  // Default to TAB if not specified
+                                frequency = try {
+                                    Frequency.valueOf(frequencyStr)
+                                } catch (e: Exception) {
+                                    Frequency.ONCE_DAILY
+                                }
+                            )
+                        } catch (e: Exception) {
+                            null
+                        }
+                    } ?: emptyList()
 
                 _uiState.update {
                     it.copy(
@@ -209,7 +221,11 @@ class EditMedicalInfoViewModel : ViewModel() {
                     mapOf("category" to it.category, "type" to it.type)
                 },
                 "medications" to state.medications.map {
-                    mapOf("name" to it.drug.name, "dose" to it.drug.defaultFrequency, "frequency" to it.drug.defaultFrequency)
+                    mapOf(
+                        "name" to it.drug.name,
+                        "dose" to it.amount,
+                        "frequency" to it.frequency.name
+                    )
                 }
             )
 

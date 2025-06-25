@@ -157,8 +157,8 @@ class MedicalFormStepperViewModel : ViewModel() {
                 "medications" to state.medications.map {
                     mapOf(
                         "name" to it.drug.name,
-                        "dose" to it.drug.defaultFrequency,
-                        "frequency" to it.frequency
+                        "dose" to it.amount,
+                        "frequency" to it.frequency.name
                     )
                 }
             )
