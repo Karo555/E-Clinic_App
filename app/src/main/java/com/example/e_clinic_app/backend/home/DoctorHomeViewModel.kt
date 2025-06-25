@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * ViewModel for managing the doctor's home dashboard.
@@ -28,14 +30,28 @@ class DoctorHomeViewModel(
 ) : StandardDashboard() {
 
     private var registration: ListenerRegistration? = null
+    private var initialized = false
+    private val _isBanned = MutableStateFlow<Boolean?>(null)
+    val isBanned: StateFlow<Boolean?> = _isBanned
 
     // Exposes the doctor's first name as a read-only StateFlow
     private val _doctorFirstName = MutableStateFlow("")
     val doctorFirstName: StateFlow<String> = _doctorFirstName.asStateFlow()
 
-    init {
+    fun initialize(userId: String) {
+        if (initialized) return
+        initialized = true
+
         loadDoctorName()
         startListeningAppointments()
+
+        viewModelScope.launch {
+            val result = loadBanStatus(userId, firestore)
+            _isBanned.value = result.getOrNull()
+            result.exceptionOrNull()?.let {
+                Log.e("BanCheck", "Error checking ban status: ${it.message}")
+            }
+        }
     }
     /**
      * Loads the doctor's first name from Firestore and updates the [_doctorFirstName] state.
@@ -107,6 +123,31 @@ class DoctorHomeViewModel(
     override fun fetchAppointments(firestore: FirebaseFirestore) {
         // no-op: real-time listener in init
     }
+
+    override suspend fun loadBanStatus(
+        doctorId: String?,
+        db: FirebaseFirestore
+    ): Result<Boolean> = suspendCoroutine { continuation ->
+        if (doctorId != null) {
+            db.collection("users")
+                .document(doctorId)
+                .collection("profile")
+                .document("doctorInfo")
+                .get()
+                .addOnSuccessListener { document ->
+                    val isBaned = document.getBoolean("isBaned")
+                    if (document.exists() && isBaned != null) {
+                        continuation.resume(Result.success(isBaned))
+                    } else {
+                        continuation.resume(Result.failure(Exception("Doctor data not found.")))
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    continuation.resume(Result.failure(exception))
+                }
+        }
+    }
+
     /**
      * Cleans up resources when the ViewModel is cleared.
      *

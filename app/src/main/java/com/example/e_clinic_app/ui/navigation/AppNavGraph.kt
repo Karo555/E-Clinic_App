@@ -1,12 +1,14 @@
 package com.example.e_clinic_app.ui.navigation
 
 import AdminHomeTabScreen
+import android.app.Application
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -19,12 +21,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.e_clinic_app.backend.home.DoctorHomeViewModel
 import com.example.e_clinic_app.backend.home.PatientDashboardViewModel
+import com.example.e_clinic_app.presentation.screen.patient.PatientRemindersScreen
 import com.example.e_clinic_app.presentation.viewmodel.AppointmentDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.AppointmentsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.ChatDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.example.e_clinic_app.presentation.viewmodel.DoctorDetailViewModel
 import com.example.e_clinic_app.presentation.viewmodel.PatientDetailViewModel
+import com.example.e_clinic_app.presentation.viewmodel.PatientRemindersViewModelFactory
 import com.example.e_clinic_app.presentation.viewmodel.PrescriptionsViewModel
 import com.example.e_clinic_app.presentation.viewmodel.UserViewModel
 import com.example.e_clinic_app.presentation.viewmodel.VisitDetailViewModel
@@ -82,8 +86,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 fun AppNavGraph(
     navController: NavHostController,
     startDestination: String,
-    patientDashboardViewModel: PatientDashboardViewModel = viewModel(),
-    doctorHomeViewModel: DoctorHomeViewModel = viewModel()
+    patientDashboardViewModel: PatientDashboardViewModel = viewModel()
 ) {
     Log.d("AppNavGraph", "AppNavGraph COMPOSABLE recomposed")
     Log.d("AppNavGraph", "Initializing NavHost with startDestination = $startDestination")
@@ -98,15 +101,27 @@ fun AppNavGraph(
                 viewModel()
             val currentUserRole by userViewModel.role.collectAsState()
             when (currentUserRole) {
-                "Doctor" -> DoctorHomeTabScreen(
-                    navController = navController,
-                    viewModel = doctorHomeViewModel
-                )
+                "Doctor" -> {
+                    val viewModel: DoctorHomeViewModel = viewModel()
+                    val uid = viewModel.userId
+                    LaunchedEffect(uid) {
+                        if (uid != null) {
+                            viewModel.initialize(uid)
+                        }
+                    }
+                    DoctorHomeTabScreen(navController, viewModel)
+                }
 
-                "Patient" -> PatientHomeTabScreen(
-                    navController = navController,
-                    viewModel = patientDashboardViewModel
-                )
+                "Patient" -> {
+                    val viewModel: PatientDashboardViewModel = viewModel()
+                    val uid = viewModel.userId
+                    LaunchedEffect(uid) {
+                        if (uid != null) {
+                            viewModel.initialize(uid)
+                        }
+                    }
+                    PatientHomeTabScreen(navController, viewModel)
+                }
 
                 "Admin" -> AdminHomeTabScreen(navController = navController)
 
@@ -369,12 +384,22 @@ fun AppNavGraph(
         //admin manage doctors
         composable(Routes.MANAGE_DOCTORS) {
             // This screen can be implemented later
-           ManageDoctorsScreen(navController)
+            ManageDoctorsScreen(navController)
         }
         //admin manage patients
         composable(Routes.MANAGE_PATIENTS) {
             // This screen can be implemented later
             ManagePatientsScreen(navController)
         }
+
+        // Patient remindersAdd commentMore actions
+        composable(Routes.PATIENT_REMINDERS) {
+            PatientRemindersScreen(
+                viewModel = viewModel(factory =PatientRemindersViewModelFactory(navController.context.applicationContext as Application)),
+                navigateBack = { navController.popBackStack() }
+            )
+        }
+
+
     }
 }

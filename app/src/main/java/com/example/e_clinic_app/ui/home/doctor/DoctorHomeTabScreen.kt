@@ -33,6 +33,7 @@ import com.example.e_clinic_app.data.appointment.Appointment
 import com.example.e_clinic_app.data.appointment.AppointmentStatus
 import com.example.e_clinic_app.ui.bottomNavBar.BottomNavigationBar
 import com.example.e_clinic_app.ui.navigation.Routes
+import com.google.firebase.auth.FirebaseAuth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -59,8 +60,16 @@ fun DoctorHomeTabScreen(
     // Collect the doctor's first name for personalized greeting
     val doctorName by viewModel.doctorFirstName.collectAsState()
 
+    val isBanned by viewModel.isBanned.collectAsState()
+
+
     LaunchedEffect(Unit) {
         viewModel.fetchAppointments(viewModel.firestore)
+    }
+
+    if (isBanned == true) {
+        ShowBanAlert(navController)
+        return
     }
 
     // live appointments list
@@ -261,3 +270,32 @@ fun DoctorHomeTabScreen(
  * @property route The navigation route to be triggered when the item is clicked.
  */
 data class NavItem(val label: String, val icon: ImageVector, val route: String)
+
+
+@Composable
+fun ShowBanAlert(navController: NavController) {
+    AlertDialog(
+        onDismissRequest = { /* Do nothing, user must acknowledge */ },
+        title = {
+            Text("Access Restricted", style = MaterialTheme.typography.titleLarge)
+        },
+        text = {
+            Column {
+                Text("Your account has been banned.")
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Please contact the administrator for further assistance.")
+                Text("Mail for support: admin@admin.com")
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    FirebaseAuth.getInstance().signOut()
+                    navController.navigate(Routes.AUTH)
+                }
+            ) {
+                Text("Logout")
+            }
+        },
+    )
+}

@@ -32,4 +32,6 @@ abstract class StandardDashboard : ViewModel() {
      * @param firestore The Firestore instance used for database operations.
      */
     abstract fun fetchAppointments(firestore: FirebaseFirestore)
+    abstract suspend fun loadBanStatus(userId: String?, db: FirebaseFirestore): Result<Boolean>
+
 }
