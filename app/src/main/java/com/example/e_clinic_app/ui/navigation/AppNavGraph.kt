@@ -43,6 +43,7 @@ import com.example.e_clinic_app.ui.firstlogin.DoctorFirstLoginScreen
 import com.example.e_clinic_app.ui.firstlogin.EditMedicalInfoScreen
 import com.example.e_clinic_app.ui.home.doctor.AppointmentDetailScreen
 import com.example.e_clinic_app.ui.home.doctor.DoctorAppointmentsScreen
+import com.example.e_clinic_app.ui.home.doctor.DoctorAvailabilityScreen
 import com.example.e_clinic_app.ui.home.doctor.DoctorHomeTabScreen
 import com.example.e_clinic_app.ui.home.doctor.PatientDetailScreen
 import com.example.e_clinic_app.ui.home.doctor.PatientsScreen
@@ -245,6 +246,12 @@ fun AppNavGraph(
         composable(Routes.SET_AVAILABILITY) {
             val availabilityVM: DoctorAvailabilityViewModel = viewModel()
             SetAvailabilityScreen(navController, availabilityVM)
+        }
+
+        // Doctor availability view (personal slots)
+        composable(Routes.DOCTOR_AVAILABILITY) {
+            val availabilityVM: DoctorAvailabilityViewModel = viewModel()
+            DoctorAvailabilityScreen(navController, availabilityVM)
         }
 
         // Visits list
